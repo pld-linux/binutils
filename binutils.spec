@@ -1,8 +1,4 @@
 #
-# BUGS:
-#		- http://sources.redhat.com/bugzilla/show_bug.cgi?id=189
-#		- http://sources.redhat.com/bugzilla/show_bug.cgi?id=414
-#
 # Conditional build:
 %bcond_with	allarchs	# enable all targets
 # define addtargets x,y,z	# build with additional targets x,y,z (e.g. x86_64-linux)
@@ -18,7 +14,7 @@ Summary(tr):	GNU geliþtirme araçlarý
 Summary(uk):	îÁÂ¦Ò ¦ÎÓÔÒÕÍÅÎÔ¦× GNU ÄÌÑ ÐÏÂÕÄÏ×É ×ÉËÏÎÕ×ÁÎÉÈ ÐÒÏÇÒÁÍ
 Name:		binutils
 Version:	2.15.91.0.2
-Release:	2
+Release:	3
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
@@ -34,6 +30,7 @@ Patch4:		%{name}-pt_pax_flags.patch
 Patch5:		%{name}-mips-relocs.patch
 Patch6:		%{name}-pr290.patch
 Patch7:		%{name}-pr338.patch
+Patch8:		%{name}-pr414.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1.8.2
@@ -132,6 +129,7 @@ niektórych pakietów.
 %patch5 -p0
 %patch6 -p0
 %patch7 -p1
+%patch8 -p0
 
 %build
 # non-standard regeneration (needed because of gasp patch)
