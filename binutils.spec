@@ -94,7 +94,7 @@ fi
 /usr/info/*info*
 
 %files static
-/usr/lib/lib*.a
+%attr(644, root, root) /usr/lib/lib*.a
 
 %changelog
 * Sat Aug 22 1998 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
