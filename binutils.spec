@@ -13,7 +13,7 @@ Source:		ftp://ftp.varesearch.com/pub/support/hjl/binutils/%{name}-%{version}.ta
 Patch0:		binutils-info.patch
 Prereq:		/usr/sbin/fix-info-dir
 Prereq:		/sbin/ldconfig
-BuildRoot:	/tmp/%{name}-%{version}-root
+BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
 Binutils is a collection of binary utilities, including:
