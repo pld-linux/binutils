@@ -13,12 +13,13 @@ Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.14.90.0.1
-Release:	1
+Release:	2
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
+#Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
+Source1:	%{name}-non-english-man-pages.tar.bz2
 Patch0:		%{name}-gasp.patch
 Patch1:		%{name}-info.patch
 Patch2:		%{name}-array-sects-compat.patch
@@ -35,6 +36,7 @@ BuildRequires:	sparc32
 %endif
 BuildRequires:	texinfo >= 4.2
 Requires(post,postun):	/sbin/ldconfig
+Conflicts:	gcc-c++ < 3.3
 Conflicts:	modutils < 2.4.17
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -146,9 +148,6 @@ rm -rf $RPM_BUILD_ROOT
 	infodir=$RPM_BUILD_ROOT%{_infodir} \
 	includedir=$RPM_BUILD_ROOT%{_includedir} \
 	libdir=$RPM_BUILD_ROOT%{_libdir}
-
-# these are already in gcc-g++
-rm -f $RPM_BUILD_ROOT%{_bindir}/c++filt $RPM_BUILD_ROOT%{_mandir}/man1/c++filt*
 
 rm -f $RPM_BUILD_ROOT%{_infodir}/standards.info*
 
