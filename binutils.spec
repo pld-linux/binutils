@@ -110,10 +110,3 @@ fi
 %files static
 %defattr(644,root,root,755)
 %{_libdir}/lib*.a
-
-%changelog
-* Tue May 25 1999 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
-  [2.9.1.0.25-1]
-- spec based on RH version,
-- rewrited by PLD team,
-- pl translation Wojtek ¦lusarczyk <wojtek@shadow.eu.org>.
