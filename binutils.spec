@@ -147,6 +147,7 @@ sparc32 \
 	--enable-shared \
 	--disable-debug \
 	--prefix=%{_prefix} \
+	--libdir=%{_libdir} \
 	--infodir=%{_infodir} \
 	--mandir=%{_mandir} \
 	`[ -n "${TARGETS}" ] && echo "--enable-targets=${TARGETS}"` \
@@ -208,7 +209,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}*/libiberty.a
 %{_libdir}*/lib*.la
 
-%{_libdir}/ldscripts
+%{_prefix}/lib/ldscripts
 %{_includedir}/*.h
 
 %{_infodir}/[!g]*.info*
