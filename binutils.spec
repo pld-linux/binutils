@@ -12,13 +12,13 @@ Summary(ru):	Набор инструментов GNU для построения исполняемых программ
 Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.14.90.0.6
-Release:	2
+Version:	2.14.90.0.7
+Release:	1
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	71b99dba3045a359dc314dbebedcf502
+# Source0-md5:	b5b1608f7308c487c0f3af8e4592a71a
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -27,7 +27,7 @@ Patch2:		%{name}-array-sects-compat.patch
 Patch3:		%{name}-eh-frame-ro.patch
 Patch4:		%{name}-ia64-bootstrap.patch
 Patch5:		%{name}-libtool-relink.patch
-Patch6:		%{name}-sparc-cfi.patch
+#Patch6:		%{name}-sparc-cfi.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	automake
 BuildRequires:	bison
@@ -121,7 +121,6 @@ niektСrych pakietСw.
 %patch2 -p1
 %endif
 %patch5 -p1
-%patch6 -p0
 # need update:
 #%patch3 -p1
 #%patch4 -p1
