@@ -69,14 +69,14 @@ sparc32 \
 	--infodir=%{_infodir} \
 	--mandir=%{_mandir}
 
-make tooldir=%{_prefix} all info
+%{__make} tooldir=%{_prefix} all info
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
 install -d $RPM_BUILD_ROOT%{_prefix}
 
-make install install-info \
+%{__make} install install-info \
 	prefix=$RPM_BUILD_ROOT%{_prefix} \
 	tooldir=$RPM_BUILD_ROOT%{_prefix} \
 	mandir=$RPM_BUILD_ROOT%{_mandir} \
