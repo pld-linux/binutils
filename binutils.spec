@@ -27,7 +27,6 @@ Patch2:		%{name}-array-sects-compat.patch
 Patch3:		%{name}-eh-frame-ro.patch
 Patch4:		%{name}-ia64-bootstrap.patch
 Patch5:		%{name}-libtool-relink.patch
-#Patch6:		%{name}-sparc-cfi.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	automake
 BuildRequires:	bison
