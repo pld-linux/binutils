@@ -14,6 +14,8 @@ Source0:	ftp://ftp.varesearch.com/pub/support/hjl/binutils/%{name}-%{version}.ta
 Patch0:		binutils-info.patch
 Prereq:		/usr/sbin/fix-info-dir
 Prereq:		/sbin/ldconfig
+BuildRequires:	flex
+BuildRequires:	bison
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
