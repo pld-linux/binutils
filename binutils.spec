@@ -3,6 +3,9 @@
 %bcond_with	allarchs	# enable all targets
 # define addtargets x,y,z	# build with additional targets x,y,z (e.g. x86_64-linux)
 #
+# TODO:
+#		- http://sources.redhat.com/bugzilla/show_bug.cgi?id=453
+#
 Summary:	GNU Binary Utility Development Utilities
 Summary(de):	GNU Binary Utility Development Utilities
 Summary(es):	Utilitarios para desarrollo de binarios de la GNU
