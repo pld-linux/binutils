@@ -14,7 +14,7 @@ Summary(tr):	GNU geliþtirme araçlarý
 Summary(uk):	îÁÂ¦Ò ¦ÎÓÔÒÕÍÅÎÔ¦× GNU ÄÌÑ ÐÏÂÕÄÏ×É ×ÉËÏÎÕ×ÁÎÉÈ ÐÒÏÇÒÁÍ
 Name:		binutils
 Version:	2.15.90.0.1
-Release:	1
+Release:	2
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
@@ -29,7 +29,8 @@ Patch3:		%{name}-eh-frame-ro.patch
 Patch4:		%{name}-ia64-bootstrap.patch
 Patch5:		%{name}-libtool-relink.patch
 URL:		http://sources.redhat.com/binutils/
-BuildRequires:	automake
+BuildRequires:	autoconf >= 2.59
+BuildRequires:	automake >= 1.8.2
 BuildRequires:	bison
 BuildRequires:	flex
 BuildRequires:	gettext-devel
@@ -126,6 +127,14 @@ niektórych pakietów.
 #%patch4 -p1
 
 %build
+# temporary workaround (only for 2.15.90.0.1) for missing files (non-standard regeneration!)
+cd gas
+aclocal
+automake --cygnus Makefile
+automake --cygnus doc/Makefile
+autoconf
+cd ..
+
 # More targets
 TARGETS=
 %ifarch ia64
