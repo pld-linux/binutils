@@ -1,7 +1,7 @@
 Summary:	GNU Binary Utility Development Utilities
 Summary(pl):	Narzêdzia GNU dla programistów
 Name:		binutils
-Version:	2.9.5.0.19
+Version:	2.9.5.0.21
 Release:	1
 Copyright:	GPL
 Group:		Development/Tools
