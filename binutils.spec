@@ -1,6 +1,7 @@
 #
-# conditional build:
-# _with_allarchs	- enable
+# Conditional build:
+%bcond_with	allarchs	# enable all targets
+# define addtargets x,y,z	# build with additional targets x,y,z (e.g. x86_64-linux)
 #
 Summary:	GNU Binary Utility Development Utilities
 Summary(de):	GNU Binary Utility Development Utilities
@@ -12,8 +13,8 @@ Summary(ru):	Набор инструментов GNU для построения исполняемых программ
 Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.14.90.0.7
-Release:	3
+Version:	2.14.90.0.8
+Release:	1
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
@@ -27,7 +28,6 @@ Patch2:		%{name}-array-sects-compat.patch
 Patch3:		%{name}-eh-frame-ro.patch
 Patch4:		%{name}-ia64-bootstrap.patch
 Patch5:		%{name}-libtool-relink.patch
-Patch6:		%{name}-gas-alpha-segv.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	automake
 BuildRequires:	bison
@@ -114,14 +114,13 @@ uznany za przestarzaЁy, ale jest nadal potrzebny do zbudowania
 niektСrych pakietСw.
 
 %prep
-%setup  -q
+%setup -q
 %patch0 -p1
 %patch1 -p1
 %ifarch %{ix86}
 %patch2 -p1
 %endif
 %patch5 -p1
-%patch6 -p1
 # need update:
 #%patch3 -p1
 #%patch4 -p1
@@ -132,12 +131,14 @@ TARGETS=
 %ifarch ia64
 TARGETS=i686-linux
 %endif
+# uhm?
 %ifarch %{ix86}
 TARGETS=x86_64-linux
 %endif
 %ifarch sparc
 TARGETS=sparc64-linux
 %endif
+%{?addtargets:TARGETS="%{addtargets}"}
 
 cp -f /usr/share/automake/config.* .
 CFLAGS="%{rpmcflags}"; export CFLAGS
@@ -152,18 +153,16 @@ sparc32 \
 	--libdir=%{_libdir} \
 	--infodir=%{_infodir} \
 	--mandir=%{_mandir} \
-	`[ -n "${TARGETS}" ] && echo "--enable-targets=${TARGETS}"` \
+	%{!?with_allarchs:`[ -n "${TARGETS}" ] && echo "--enable-targets=${TARGETS}"`} \
 %ifarch sparc
 	--enable-64-bit-bfd \
+%else
+	%{?with_allarchs:--enable-64-bit-bfd} \
 %endif
-%ifnarch sparc
-	%{?_with_allarchs:--enable-64-bit-bfd} \
-%endif
-	%{?_with_allarchs:--enable-targets=alpha-linux,arm-linux,cris-linux,hppa-linux,i386-linux,ia64-linux,x86_64-linux,m68k-linux,mips-linux,mips64-linux,mips64el-linux,mipsel-linux,ppc-linux,s390-linux,s390x-linux,sh-linux,sparc-linux,sparc64-linux,i386-linuxaout}
+	%{?with_allarchs:--enable-targets=alpha-linux,arm-linux,cris-linux,hppa-linux,i386-linux,ia64-linux,x86_64-linux,m68k-linux,mips-linux,mips64-linux,mips64el-linux,mipsel-linux,ppc-linux,s390-linux,s390x-linux,sh-linux,sparc-linux,sparc64-linux,i386-linuxaout}
 
-%{__make} \
-	 tooldir=%{_prefix} \
-	 all info
+%{__make} all info \
+	 tooldir=%{_prefix}
 
 %install
 rm -rf $RPM_BUILD_ROOT
