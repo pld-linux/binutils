@@ -13,19 +13,17 @@ Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.13.90.0.20
-Release:	1
+Release:	2
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 Patch0:		%{name}-gasp.patch
-Patch1:		%{name}-sparc-nonpic.patch
-Patch2:		%{name}-ia64-brl.patch
-Patch3:		%{name}-info.patch
-Patch4:		%{name}-array-sects-compat.patch
-Patch5:		%{name}-eh-frame-ro.patch
-Patch6:		%{name}-ia64-bootstrap.patch
+Patch1:		%{name}-info.patch
+Patch2:		%{name}-array-sects-compat.patch
+Patch3:		%{name}-eh-frame-ro.patch
+Patch4:		%{name}-ia64-bootstrap.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	automake
 BuildRequires:	bison
@@ -109,14 +107,12 @@ niektСrych pakietСw.
 %setup  -q
 %patch0 -p1
 %patch1 -p1
-#%patch2 -p1
-%patch3 -p1
 %ifarch %{ix86}
-%patch4 -p1
+%patch2 -p1
 %endif
 # need update:
-#%patch5 -p1
-#%patch6 -p1
+#%patch3 -p1
+#%patch4 -p1
 
 %build
 cp -f /usr/share/automake/config.* .
