@@ -1,0 +1,1047 @@
+2003-01-16  Jakub Jelinek  <jakub@redhat.com>
+
+	* elfxx-ia64.c (struct elfNN_ia64_link_hash_table): Add
+	self_dtpmod_done and self_dtpmod_offset.
+	(allocate_global_data_got): Only use one got entry for all
+	dtpmod relocs against local symbols.
+	(allocate_dynrel_entries): Only need .rela.got entry for
+	dtpmod against global symbol.
+	(elfNN_ia64_size_dynamic_sections): Initialize self_dtpmod_offset.
+	Reserve space in .rela.got for the local dtpmod entry.
+	(set_got_entry): Initialize the common local dtpmod .got entry.
+	(elfNN_ia64_relocate_section): Handle R_IA_64_DTPREL64LSB
+	and R_IA_64_DTPREL64MSB.
+
+	* config/tc-ia64.c (ia64_cons_fix_new): Handle @dtprel() in data.
+
+	* ld-ia64/ia64.exp: New.
+	* ld-ia64/tlsbin.dd: New test.
+	* ld-ia64/tlsbinpic.s: New test.
+	* ld-ia64/tlsbin.rd: New test.
+	* ld-ia64/tlsbin.s: New test.
+	* ld-ia64/tlsbin.sd: New test.
+	* ld-ia64/tlsbin.td: New test.
+	* ld-ia64/tlsg.s: New test.
+	* ld-ia64/tlsg.sd: New test.
+	* ld-ia64/tlslib.s: New test.
+	* ld-ia64/tlspic1.s: New test.
+	* ld-ia64/tlspic2.s: New test.
+	* ld-ia64/tlspic.dd: New test.
+	* ld-ia64/tlspic.rd: New test.
+	* ld-ia64/tlspic.sd: New test.
+	* ld-ia64/tlspic.td: New test.
+
+--- binutils-2.13.90.0.16/bfd/elfxx-ia64.c.jj	2002-12-28 23:26:51.000000000 +0100
++++ binutils-2.13.90.0.16/bfd/elfxx-ia64.c	2003-01-16 00:00:12.000000000 +0100
+@@ -1,5 +1,5 @@
+ /* IA-64 support for 64-bit ELF
+-   Copyright 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
++   Copyright 1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+    Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
+ 
+    This file is part of BFD, the Binary File Descriptor library.
+@@ -148,6 +148,8 @@ struct elfNN_ia64_link_hash_table
+ 
+   bfd_size_type minplt_entries;	/* number of minplt entries */
+   unsigned reltext : 1;		/* are there relocs against readonly sections? */
++  unsigned self_dtpmod_done : 1;/* has self DTPMOD entry been finished? */
++  bfd_vma self_dtpmod_offset;	/* .got offset to self DTPMOD entry */
+ 
+   struct elfNN_ia64_local_hash_table loc_hash_table;
+ };
+@@ -2415,8 +2417,23 @@ allocate_global_data_got (dyn_i, data)
+     }
+   if (dyn_i->want_dtpmod)
+     {
+-      dyn_i->dtpmod_offset = x->ofs;
+-      x->ofs += 8;
++      if (elfNN_ia64_dynamic_symbol_p (dyn_i->h, x->info))
++	{
++	  dyn_i->dtpmod_offset = x->ofs;
++	  x->ofs += 8;
++	}
++      else
++	{
++	  struct elfNN_ia64_link_hash_table *ia64_info;
++
++	  ia64_info = elfNN_ia64_hash_table (x->info);
++	  if (ia64_info->self_dtpmod_offset == (bfd_vma) -1)
++	    {
++	      ia64_info->self_dtpmod_offset = x->ofs;
++	      x->ofs += 8;
++	    }
++	  dyn_i->dtpmod_offset = ia64_info->self_dtpmod_offset;
++	}
+     }
+   if (dyn_i->want_dtprel)
+     {
+@@ -2686,7 +2703,7 @@ allocate_dynrel_entries (dyn_i, data)
+     ia64_info->rel_got_sec->_raw_size += sizeof (ElfNN_External_Rela);
+   if ((dynamic_symbol || shared) && dyn_i->want_tprel)
+     ia64_info->rel_got_sec->_raw_size += sizeof (ElfNN_External_Rela);
+-  if ((dynamic_symbol || shared) && dyn_i->want_dtpmod)
++  if (dynamic_symbol && dyn_i->want_dtpmod)
+     ia64_info->rel_got_sec->_raw_size += sizeof (ElfNN_External_Rela);
+   if (dynamic_symbol && dyn_i->want_dtprel)
+     ia64_info->rel_got_sec->_raw_size += sizeof (ElfNN_External_Rela);
+@@ -2752,6 +2769,7 @@ elfNN_ia64_size_dynamic_sections (output
+ 
+   dynobj = elf_hash_table(info)->dynobj;
+   ia64_info = elfNN_ia64_hash_table (info);
++  ia64_info->self_dtpmod_offset = (bfd_vma) -1;
+   BFD_ASSERT(dynobj != NULL);
+   data.info = info;
+ 
+@@ -2830,6 +2848,8 @@ elfNN_ia64_size_dynamic_sections (output
+       /* Allocate space for the dynamic relocations that turned out to be
+ 	 required.  */
+ 
++      if (info->shared && ia64_info->self_dtpmod_offset != (bfd_vma) -1)
++	ia64_info->rel_got_sec->_raw_size += sizeof (ElfNN_External_Rela);
+       elfNN_ia64_dyn_sym_traverse (ia64_info, allocate_dynrel_entries, &data);
+     }
+ 
+@@ -3262,8 +3282,17 @@ set_got_entry (abfd, info, dyn_i, dynind
+       got_offset = dyn_i->tprel_offset;
+       break;
+     case R_IA64_DTPMOD64LSB:
+-      done = dyn_i->dtpmod_done;
+-      dyn_i->dtpmod_done = true;
++      if (dyn_i->dtpmod_offset != ia64_info->self_dtpmod_offset)
++	{
++	  done = dyn_i->dtpmod_done;
++	  dyn_i->dtpmod_done = true;
++	}
++      else
++	{
++	  done = ia64_info->self_dtpmod_done;
++	  ia64_info->self_dtpmod_done = true;
++	  dynindx = 0;
++	}
+       got_offset = dyn_i->dtpmod_offset;
+       break;
+     case R_IA64_DTPREL64LSB:
+@@ -4221,6 +4250,8 @@ elfNN_ia64_relocate_section (output_bfd,
+ 	case R_IA64_DTPREL14:
+ 	case R_IA64_DTPREL22:
+ 	case R_IA64_DTPREL64I:
++	case R_IA64_DTPREL64LSB:
++	case R_IA64_DTPREL64MSB:
+ 	  value -= elfNN_ia64_dtprel_base (info);
+ 	  r = elfNN_ia64_install_value (output_bfd, hit_addr, value, r_type);
+ 	  break;
+--- binutils-2.13.90.0.16/gas/config/tc-ia64.c.jj	2002-12-28 23:19:14.000000000 +0100
++++ binutils-2.13.90.0.16/gas/config/tc-ia64.c	2003-01-15 22:39:46.000000000 +0100
+@@ -1,5 +1,5 @@
+ /* tc-ia64.c -- Assembler for the HP/Intel IA-64 architecture.
+-   Copyright 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
++   Copyright 1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+    Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
+ 
+    This file is part of GAS, the GNU Assembler.
+@@ -10074,6 +10074,16 @@ ia64_cons_fix_new (f, where, nbytes, exp
+ 	  exp->X_op = O_symbol;
+ 	  break;
+ 	}
++      else if (exp->X_op == O_pseudo_fixup
++	       && exp->X_op_symbol
++	       && S_GET_VALUE (exp->X_op_symbol) == FUNC_DTP_RELATIVE)
++	{
++	  if (target_big_endian)
++	    code = BFD_RELOC_IA64_DTPREL64MSB;
++	  else
++	    code = BFD_RELOC_IA64_DTPREL64LSB;
++	  break;
++	}
+       else
+ 	{
+ 	  if (target_big_endian)
+--- binutils-2.13.90.0.16/ld/testsuite/ld-ia64/ia64.exp.jj	2003-01-13 17:10:21.000000000 +0100
++++ binutils-2.13.90.0.16/ld/testsuite/ld-ia64/ia64.exp	2003-01-10 16:07:57.000000000 +0100
+@@ -0,0 +1,54 @@
++# Expect script for ld-ia64 tests
++#   Copyright (C) 2002, 2003 Free Software Foundation
++#
++# This file is free software; you can redistribute it and/or modify
++# it under the terms of the GNU General Public License as published by
++# the Free Software Foundation; either version 2 of the License, or
++# (at your option) any later version.
++#
++# This program is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program; if not, write to the Free Software
++# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
++#
++
++# Test ia64 linking; all types of relocs.  This tests the assembler and
++# tools like objdump as well as the linker.
++
++if { !([istarget "ia64-*-elf*"]
++       || [istarget "ia64-*-linux*"]) } {
++    return
++}
++
++# List contains test-items with 3 items followed by 2 lists:
++# 0:name 1:ld options 2:assembler options
++# 3:filenames of assembler files 4: action and options. 5: name of output file
++
++# Actions:
++# objdump: Apply objdump options on result.  Compare with regex (last arg).
++# nm: Apply nm options on result.  Compare with regex (last arg).
++# readelf: Apply readelf options on result.  Compare with regex (last arg).
++
++set ia64tests {
++    {"TLS -fpic -shared" "-shared -melf64_ia64"
++     "" {tlspic1.s tlspic2.s}
++     {{readelf -WSsrl tlspic.rd} {objdump -drj.text tlspic.dd}
++      {objdump -sj.got tlspic.sd} {objdump -sj.tdata tlspic.td}}
++      "libtlspic.so"}
++    {"Helper shared library" "-shared -melf64_ia64"
++     "" {tlslib.s} {} "libtlslib.so"}
++    {"TLS -fpic and -fno-pic exec"
++     "-melf64_ia64 tmpdir/libtlslib.so" "" {tlsbinpic.s tlsbin.s}
++     {{readelf -WSsrl tlsbin.rd} {objdump -drj.text tlsbin.dd}
++      {objdump -sj.got tlsbin.sd} {objdump -sj.tdata tlsbin.td}}
++      "tlsbin"}
++    {"TLS in debug sections" "-melf64_ia64"
++     "" {tlsg.s}
++     {{objdump -sj.debug_foobar tlsg.sd}} "tlsg"}
++}
++
++run_ld_link_tests $ia64tests
+--- binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlsbin.dd.jj	2003-01-13 17:10:21.000000000 +0100
++++ binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlsbin.dd	2003-01-16 00:06:36.000000000 +0100
+@@ -0,0 +1,75 @@
++#source: tlsbinpic.s
++#source: tlsbin.s
++#as:
++#ld: -shared -melf64_ia64
++#objdump: -drj.text
++#target: ia64-*-*
++
++.*: +file format elf64-ia64-little
++
++Disassembly of section .text:
++
++40+1000 <fn2>:
++40+1000:	10 10 15 06 80 05[ 	]+\[MIB\][ 	]+alloc r34=ar.pfs,5,3,0
++40+1006:	10 02 00 62 00 00[ 	]+mov r33=b0
++40+100c:	00 00 00 20[ 	]+nop.b 0x0
++40+1010:	0d 70 80 02 00 24[ 	]+\[MFI\][ 	]+addl r14=32,r1
++40+1016:	00 00 00 02 00 e0[ 	]+nop.f 0x0
++40+101c:	81 0a 00 90[ 	]+addl r15=40,r1;;
++40+1020:	19 18 01 1c 18 10[ 	]+\[MMB\][ 	]+ld8 r35=\[r14\]
++40+1026:	40 02 3c 30 20 00[ 	]+ld8 r36=\[r15\]
++40+102c:	e8 f3 ff 58[ 	]+br.call.sptk.many b0=[0-9a-f]+ <.*>;;
++40+1030:	0d 70 c0 02 00 24[ 	]+\[MFI\][ 	]+addl r14=48,r1
++40+1036:	00 00 00 02 00 e0[ 	]+nop.f 0x0
++40+103c:	81 0b 00 90[ 	]+addl r15=56,r1;;
++40+1040:	19 18 01 1c 18 10[ 	]+\[MMB\][ 	]+ld8 r35=\[r14\]
++40+1046:	40 02 3c 30 20 00[ 	]+ld8 r36=\[r15\]
++40+104c:	c8 f3 ff 58[ 	]+br.call.sptk.many b0=[0-9a-f]+ <.*>;;
++40+1050:	0d 70 c0 02 00 24[ 	]+\[MFI\][ 	]+addl r14=48,r1
++40+1056:	00 00 00 02 00 80[ 	]+nop.f 0x0
++40+105c:	14 02 00 90[ 	]+mov r36=33;;
++40+1060:	1d 18 01 1c 18 10[ 	]+\[MFB\][ 	]+ld8 r35=\[r14\]
++40+1066:	00 00 00 02 00 00[ 	]+nop.f 0x0
++40+106c:	a8 f3 ff 58[ 	]+br.call.sptk.many b0=[0-9a-f]+ <.*>;;
++40+1070:	0d 70 c0 02 00 24[ 	]+\[MFI\][ 	]+addl r14=48,r1
++40+1076:	00 00 00 02 00 80[ 	]+nop.f 0x0
++40+107c:	04 00 00 84[ 	]+mov r36=r0;;
++40+1080:	1d 18 01 1c 18 10[ 	]+\[MFB\][ 	]+ld8 r35=\[r14\]
++40+1086:	00 00 00 02 00 00[ 	]+nop.f 0x0
++40+108c:	88 f3 ff 58[ 	]+br.call.sptk.many b0=[0-9a-f]+ <.*>;;
++40+1090:	0b 10 00 10 00 21[ 	]+\[MMI\][ 	]+mov r2=r8;;
++40+1096:	e0 00 0a 00 48 e0[ 	]+addl r14=64,r2
++40+109c:	61 14 00 90[ 	]+addl r15=70,r2;;
++40+10a0:	05 70 2c 11 00 21[ 	]+\[MLX\][ 	]+adds r14=75,r8
++40+10a6:	00 00 00 00 00 e0[ 	]+movl r15=0x4d;;
++40+10ac:	d1 04 00 60 
++40+10b0:	0a 78 3c 10 00 20[ 	]+\[MMI\][ 	]+add r15=r15,r8;;
++40+10b6:	00 00 00 02 00 00[ 	]+nop.m 0x0
++40+10bc:	20 02 aa 00[ 	]+mov.i ar.pfs=r34
++40+10c0:	11 00 00 00 01 00[ 	]+\[MIB\][ 	]+nop.m 0x0
++40+10c6:	00 08 05 80 03 80[ 	]+mov b0=r33
++40+10cc:	08 00 84 00[ 	]+br.ret.sptk.many b0;;
++#...
++
++40+2000 <_start>:
++40+2000:	0b 70 60 02 00 24[ 	]+\[MMI\][ 	]+addl r14=24,r1;;
++40+2006:	e0 00 38 30 20 00[ 	]+ld8 r14=\[r14\]
++40+200c:	00 00 04 00[ 	]+nop.i 0x0;;
++40+2010:	0b 70 38 1a 00 20[ 	]+\[MMI\][ 	]+add r14=r14,r13;;
++40+2016:	e0 00 06 00 48 00[ 	]+addl r14=64,r1
++40+201c:	00 00 04 00[ 	]+nop.i 0x0;;
++40+2020:	0b 70 00 1c 18 10[ 	]+\[MMI\][ 	]+ld8 r14=\[r14\];;
++40+2026:	e0 70 34 00 40 00[ 	]+add r14=r14,r13
++40+202c:	00 00 04 00[ 	]+nop.i 0x0;;
++40+2030:	0b 10 00 1a 00 21[ 	]+\[MMI\][ 	]+mov r2=r13;;
++40+2036:	e0 80 08 00 48 e0[ 	]+addl r14=16,r2
++40+203c:	61 11 04 90[ 	]+addl r15=150,r2;;
++40+2040:	05 70 5c 1b 00 21[ 	]+\[MLX\][ 	]+adds r14=87,r13
++40+2046:	00 00 00 00 00 e0[ 	]+movl r15=0x95;;
++40+204c:	51 01 04 60 
++40+2050:	0a 78 3c 1a 00 20[ 	]+\[MMI\][ 	]+add r15=r15,r13;;
++40+2056:	00 00 00 02 00 00[ 	]+nop.m 0x0
++40+205c:	00 00 04 00[ 	]+nop.i 0x0
++40+2060:	1d 00 00 00 01 00[ 	]+\[MFB\][ 	]+nop.m 0x0
++40+2066:	00 00 00 02 00 80[ 	]+nop.f 0x0
++40+206c:	08 00 84 00[ 	]+br.ret.sptk.many b0;;
+--- binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlsbinpic.s.jj	2003-01-13 17:10:21.000000000 +0100
++++ binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlsbinpic.s	2003-01-10 16:56:50.000000000 +0100
+@@ -0,0 +1,96 @@
++	/* Force .data aligned to 4K, so that .got very likely gets at
++	   0x60000000000031b0 (0x60 bytes .tdata and 0x150 bytes
++	   .dynamic).  */
++	.data
++	.balign	4096
++	.section ".tdata", "awT", @progbits
++	.globl sg1, sg2, sg3, sg4, sg5, sg6, sg7, sg8
++	.globl sh1, sh2, sh3, sh4, sh5, sh6, sh7, sh8
++	.hidden sh1, sh2, sh3, sh4, sh5, sh6, sh7, sh8
++sg1:	.long 17
++sg2:	.long 18
++sg3:	.long 19
++sg4:	.long 20
++sg5:	.long 21
++sg6:	.long 22
++sg7:	.long 23
++sg8:	.long 24
++sl1:	.long 65
++sl2:	.long 66
++sl3:	.long 67
++sl4:	.long 68
++sl5:	.long 69
++sl6:	.long 70
++sl7:	.long 71
++sl8:	.long 72
++sh1:	.long 257
++sh2:	.long 258
++sh3:	.long 259
++sh4:	.long 260
++sh5:	.long 261
++sh6:	.long 262
++sh7:	.long 263
++sh8:	.long 264
++	/* Force .text aligned to 4K, so it very likely gets at
++	   0x4000000000001000.  */
++	.pred.safe_across_calls p1-p5,p16-p63
++	.text
++	.balign	4096
++	.globl	fn2#
++	.proc	fn2#
++fn2:
++	.prologue 12, 33
++	.mib
++	.save	ar.pfs, r34
++	alloc	r34 = ar.pfs, 0, 3, 2, 0
++	.save	rp, r33
++	mov	r33 = b0
++
++	/* GD */
++	addl	r14 = @ltoff(@dtpmod(sG1#)), gp
++	addl	r15 = @ltoff(@dtprel(sG1#)), gp
++	;;
++	ld8	out0 = [r14]
++	ld8	out1 = [r15]
++	br.call.sptk.many b0 = __tls_get_addr#
++	;;
++
++	/* GD against local symbol */
++	addl	r14 = @ltoff(@dtpmod(sl2#)), gp
++	addl	r15 = @ltoff(@dtprel(sl2#)), gp
++	;;
++	ld8	out0 = [r14]
++	ld8	out1 = [r15]
++	br.call.sptk.many b0 = __tls_get_addr#
++	;;
++
++	/* LD */
++	addl	r14 = @ltoff(@dtpmod(sl1#)), gp
++	addl	out1 = @dtprel(sl1#) + 1, r0
++	;;
++	ld8	out0 = [r14]
++	br.call.sptk.many b0 = __tls_get_addr#
++	;;
++
++	/* LD with 4 variables variables */
++	addl	r14 = @ltoff(@dtpmod(sh1#)), gp
++	mov	out1 = r0
++	;;
++	ld8	out0 = [r14]
++	br.call.sptk.many b0 = __tls_get_addr#
++	;;
++	mov	r2 = r8
++	;;
++	addl	r14 = @dtprel(sh1#), r2
++	addl	r15 = @dtprel(sh2#) + 2, r2
++	;;
++	adds	r14 = @dtprel(sh3#) + 3, r8
++	movl	r15 = @dtprel(sh4#) + 1
++	;;
++	add	r15 = r15, r8
++	;;
++
++	mov	ar.pfs = r34
++	mov	b0 = r33
++	br.ret.sptk.many b0
++	.endp	fn2#
+--- binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlsbin.rd.jj	2003-01-13 17:10:21.000000000 +0100
++++ binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlsbin.rd	2003-01-16 00:05:07.000000000 +0100
+@@ -0,0 +1,147 @@
++#source: tlsbinpic.s
++#source: tlsbin.s
++#as:
++#ld: -shared -melf64_ia64
++#readelf: -WSsrl
++#target: ia64-*-*
++
++There are 22 section headers, starting at offset 0x[0-9a-f]+:
++
++Section Headers:
++  \[Nr\] Name +Type +Address +Off +Size +ES Flg Lk Inf Al
++  \[ 0\] +NULL +0+ 0+ 0+ 00 +0 +0 +0
++  \[ 1\] .interp +.*
++  \[ 2\] .hash +.*
++  \[ 3\] .dynsym +.*
++  \[ 4\] .dynstr +.*
++  \[ 5\] .rela.dyn +.*
++  \[ 6\] .rela.IA_64.pltof +.*
++  \[ 7\] .plt +.*
++  \[ 8\] .text +PROGBITS +40+1000 0+1000 0+1070 00 +AX +0 +0 4096
++  \[ 9\] .IA_64.unwind_inf +.*
++  \[10\] .IA_64.unwind +.*
++  \[11\] .data +.*
++  \[12\] .tdata +PROGBITS +60+3000 0+3000 0+60 00 WAT +0 +0 +4
++  \[13\] .tbss +NOBITS +60+3060 0+3060 0+40 00 WAT +0 +0 +1
++  \[14\] .dynamic +DYNAMIC +60+3060 0+3060 0+150 10 +WA +4 +0 +8
++  \[15\] .got +PROGBITS +60+31b0 0+31b0 0+48 00 WAp +0 +0 +8
++  \[16\] .IA_64.pltoff +.*
++  \[17\] .sbss +.*
++  \[18\] .bss +.*
++  \[19\] .shstrtab +.*
++  \[20\] .symtab +.*
++  \[21\] .strtab +.*
++#...
++
++Elf file type is EXEC \(Executable file\)
++Entry point 0x40+2000
++There are 7 program headers, starting at offset [0-9]+
++
++Program Headers:
++  Type +Offset +VirtAddr +PhysAddr +FileSiz +MemSiz +Flg Align
++  PHDR +0x0+40 0x40+40 0x40+40 0x0+188 0x0+188 R E 0x8
++  INTERP +0x0+1c8 0x40+1c8 0x40+1c8 0x[0-9a-f]+ 0x[0-9a-f]+ R +0x1
++.*Requesting program interpreter.*
++  LOAD +0x0+ 0x40+ 0x40+ 0x0+20a0 0x0+20a0 R E 0x10000
++  LOAD +0x0+3000 0x60+3000 0x60+3000 0x0+210 0x0+210 RW +0x10000
++  DYNAMIC +0x0+3060 0x60+3060 0x60+3060 0x0+150 0x0+150 RW +0x8
++  TLS +0x0+3000 0x60+3000 0x60+3000 0x0+60 0x0+a0 R +0x4
++  IA_64_UNWIND .* R +0x8
++#...
++
++Relocation section '.rela.dyn' at offset 0x[0-9a-f]+ contains 3 entries:
++ +Offset +Info +Type +Symbol's Value  Symbol's Name \+ Addend
++60+31c8  0+200000097 R_IA64_TPREL64LSB +0+ sG2 \+ 0
++60+31d0  0+5000000a7 R_IA64_DTPMOD64LSB +0+ sG1 \+ 0
++60+31d8  0+5000000b7 R_IA64_DTPREL64LSB +0+ sG1 \+ 0
++
++Relocation section '.rela.IA_64.pltoff' at offset 0x[0-9a-f]+ contains 1 entries:
++ +Offset +Info +Type +Symbol's Value  Symbol's Name \+ Addend
++60+3200  0+300000081 R_IA64_IPLTLSB +0+ __tls_get_addr \+ 0
++
++Symbol table '.dynsym' contains 9 entries:
++ +Num: +Value +Size Type +Bind +Vis +Ndx Name
++ +0: 0+ +0 NOTYPE +LOCAL +DEFAULT +UND *
++ +1: 60+3060 +0 OBJECT +GLOBAL DEFAULT +ABS _DYNAMIC
++ +2: 0+ +0 TLS +GLOBAL DEFAULT +UND sG2
++ +3: 0+ +16 FUNC +GLOBAL DEFAULT +UND __tls_get_addr
++ +4: [0-9a-f]+ +0 NOTYPE +GLOBAL DEFAULT +ABS __bss_start
++ +5: 0+ +0 TLS +GLOBAL DEFAULT +UND sG1
++ +6: [0-9a-f]+ +0 NOTYPE +GLOBAL DEFAULT +ABS _edata
++ +7: 60+31b0 +0 OBJECT +GLOBAL DEFAULT +ABS _GLOBAL_OFFSET_TABLE_
++ +8: [0-9a-f]+ +0 NOTYPE +GLOBAL DEFAULT +ABS _end
++
++Symbol table '.symtab' contains 72 entries:
++ +Num: +Value +Size Type +Bind +Vis +Ndx Name
++ +0: 0+ +0 NOTYPE +LOCAL +DEFAULT +UND *
++ +1: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +1 *
++ +2: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +2 *
++ +3: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +3 *
++ +4: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +4 *
++ +5: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +5 *
++ +6: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +6 *
++ +7: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +7 *
++ +8: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +8 *
++ +9: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +9 *
++ +10: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +10 *
++ +11: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +11 *
++ +12: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +12 *
++ +13: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +13 *
++ +14: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +14 *
++ +15: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +15 *
++ +16: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +16 *
++ +17: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +17 *
++ +18: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +18 *
++ +19: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +19 *
++ +20: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +20 *
++ +21: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +21 *
++ +22: 0+20 +0 TLS +LOCAL +DEFAULT +12 sl1
++ +23: 0+24 +0 TLS +LOCAL +DEFAULT +12 sl2
++ +24: 0+28 +0 TLS +LOCAL +DEFAULT +12 sl3
++ +25: 0+2c +0 TLS +LOCAL +DEFAULT +12 sl4
++ +26: 0+30 +0 TLS +LOCAL +DEFAULT +12 sl5
++ +27: 0+34 +0 TLS +LOCAL +DEFAULT +12 sl6
++ +28: 0+38 +0 TLS +LOCAL +DEFAULT +12 sl7
++ +29: 0+3c +0 TLS +LOCAL +DEFAULT +12 sl8
++ +30: 0+80 +0 TLS +LOCAL +DEFAULT +13 bl1
++ +31: 0+84 +0 TLS +LOCAL +DEFAULT +13 bl2
++ +32: 0+88 +0 TLS +LOCAL +DEFAULT +13 bl3
++ +33: 0+8c +0 TLS +LOCAL +DEFAULT +13 bl4
++ +34: 0+90 +0 TLS +LOCAL +DEFAULT +13 bl5
++ +35: 0+94 +0 TLS +LOCAL +DEFAULT +13 bl6
++ +36: 0+98 +0 TLS +LOCAL +DEFAULT +13 bl7
++ +37: 0+9c +0 TLS +LOCAL +DEFAULT +13 bl8
++ +38: 0+1c +0 TLS +GLOBAL DEFAULT +12 sg8
++ +39: 0+7c +0 TLS +GLOBAL DEFAULT +13 bg8
++ +40: 0+74 +0 TLS +GLOBAL DEFAULT +13 bg6
++ +41: 0+68 +0 TLS +GLOBAL DEFAULT +13 bg3
++ +42: 60+3060 +0 OBJECT +GLOBAL DEFAULT +ABS _DYNAMIC
++ +43: 0+8 +0 TLS +GLOBAL DEFAULT +12 sg3
++ +44: 0+48 +0 TLS +GLOBAL HIDDEN +12 sh3
++ +45: 0+ +0 TLS +GLOBAL DEFAULT +UND sG2
++ +46: 0+c +0 TLS +GLOBAL DEFAULT +12 sg4
++ +47: 0+10 +0 TLS +GLOBAL DEFAULT +12 sg5
++ +48: 0+70 +0 TLS +GLOBAL DEFAULT +13 bg5
++ +49: 0+ +16 FUNC +GLOBAL DEFAULT +UND __tls_get_addr
++ +50: 0+58 +0 TLS +GLOBAL HIDDEN +12 sh7
++ +51: 0+5c +0 TLS +GLOBAL HIDDEN +12 sh8
++ +52: 0+ +0 TLS +GLOBAL DEFAULT +12 sg1
++ +53: 40+2000 +112 FUNC +GLOBAL DEFAULT +8 _start
++ +54: 0+4c +0 TLS +GLOBAL HIDDEN +12 sh4
++ +55: 0+78 +0 TLS +GLOBAL DEFAULT +13 bg7
++ +56: 0+50 +0 TLS +GLOBAL HIDDEN +12 sh5
++ +57: [0-9a-f]+ +0 NOTYPE +GLOBAL DEFAULT +ABS __bss_start
++ +58: 40+1000 +208 FUNC +GLOBAL DEFAULT +8 fn2
++ +59: 0+4 +0 TLS +GLOBAL DEFAULT +12 sg2
++ +60: 0+ +0 TLS +GLOBAL DEFAULT +UND sG1
++ +61: 0+40 +0 TLS +GLOBAL HIDDEN +12 sh1
++ +62: 0+14 +0 TLS +GLOBAL DEFAULT +12 sg6
++ +63: 0+18 +0 TLS +GLOBAL DEFAULT +12 sg7
++ +64: [0-9a-f]+ +0 NOTYPE +GLOBAL DEFAULT +ABS _edata
++ +65: [0-9a-f]+ +0 OBJECT +GLOBAL DEFAULT +ABS _GLOBAL_OFFSET_TABLE_
++ +66: [0-9a-f]+ +0 NOTYPE +GLOBAL DEFAULT +ABS _end
++ +67: 0+44 +0 TLS +GLOBAL HIDDEN +12 sh2
++ +68: 0+54 +0 TLS +GLOBAL HIDDEN +12 sh6
++ +69: 0+64 +0 TLS +GLOBAL DEFAULT +13 bg2
++ +70: 0+60 +0 TLS +GLOBAL DEFAULT +13 bg1
++ +71: 0+6c +0 TLS +GLOBAL DEFAULT +13 bg4
+--- binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlsbin.s.jj	2003-01-13 17:10:21.000000000 +0100
++++ binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlsbin.s	2003-01-15 23:11:57.000000000 +0100
+@@ -0,0 +1,53 @@
++	.section ".tbss", "awT", @nobits
++	.globl bg1, bg2, bg3, bg4, bg5, bg6, bg7, bg8
++bg1:	.space 4
++bg2:	.space 4
++bg3:	.space 4
++bg4:	.space 4
++bg5:	.space 4
++bg6:	.space 4
++bg7:	.space 4
++bg8:	.space 4
++bl1:	.space 4
++bl2:	.space 4
++bl3:	.space 4
++bl4:	.space 4
++bl5:	.space 4
++bl6:	.space 4
++bl7:	.space 4
++bl8:	.space 4
++	.pred.safe_across_calls p1-p5,p16-p63
++	.text
++	.globl	_start#
++	.proc	_start#
++_start:
++	/* IE */
++	addl	r14 = @ltoff(@tprel(sG2#)), gp
++	;;
++	ld8	r14 = [r14]
++	;;
++	add	r14 = r14, r13
++	;;
++
++	/* IE against global symbol in exec */
++	addl	r14 = @ltoff(@tprel(bl1#)), gp
++	;;
++	ld8	r14 = [r14]
++	;;
++	add	r14 = r14, r13
++	;;
++
++	/* LE */
++	mov	r2 = r13
++	;;
++	addl	r14 = @tprel(sg1#), r2
++	addl	r15 = @tprel(bl2#) + 2, r2
++	;;
++	adds	r14 = @tprel(sh2#) + 3, r13
++	movl	r15 = @tprel(bl2#) + 1
++	;;
++	add	r15 = r15, r13
++	;;
++
++	br.ret.sptk.many b0
++	.endp	_start#
+--- binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlsbin.sd.jj	2003-01-13 17:10:21.000000000 +0100
++++ binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlsbin.sd	2003-01-15 23:34:08.000000000 +0100
+@@ -0,0 +1,15 @@
++#source: tlsbinpic.s
++#source: tlsbin.s
++#as:
++#ld: -shared -melf64_ia64
++#objdump: -sj.got
++#target: ia64-*-*
++
++.*: +file format elf64-ia64-little
++
++Contents of section .got:
++ (60+)?31b0 0+ 0+ 0+ 0+  .*
++ (60+)?31c0 0+ 0+ 0+ 0+  .*
++ (60+)?31d0 0+ 0+ 0+ 0+  .*
++ (60+)?31e0 01000000 0+ 24000000 0+  .*
++ (60+)?31f0 90000000 0+  .*
+--- binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlsbin.td.jj	2003-01-13 17:10:21.000000000 +0100
++++ binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlsbin.td	2003-01-15 23:03:39.000000000 +0100
+@@ -0,0 +1,16 @@
++#source: tlsbinpic.s
++#source: tlsbin.s
++#as:
++#ld: -shared -melf64_ia64
++#objdump: -sj.tdata
++#target: ia64-*-*
++
++.*: +file format elf64-ia64-little
++
++Contents of section .tdata:
++ (60+)?3000 11000000 12000000 13000000 14000000  .*
++ (60+)?3010 15000000 16000000 17000000 18000000  .*
++ (60+)?3020 41000000 42000000 43000000 44000000  .*
++ (60+)?3030 45000000 46000000 47000000 48000000  .*
++ (60+)?3040 01010000 02010000 03010000 04010000  .*
++ (60+)?3050 05010000 06010000 07010000 08010000  .*
+--- binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlsg.s.jj	2003-01-13 17:10:21.000000000 +0100
++++ binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlsg.s	2003-01-10 15:43:48.000000000 +0100
+@@ -0,0 +1,14 @@
++	.section	.tbss,"awT",@nobits
++	.align 4
++	.skip	24
++	.type	a#,@object
++	.size	a#,4
++a:
++	data4	0
++	.text
++	.globl	_start#
++	.proc	_start#
++_start:
++	.endp	_start#
++	.section	.debug_foobar
++	data8	@dtprel(a#)
+--- binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlsg.sd.jj	2003-01-13 17:10:21.000000000 +0100
++++ binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlsg.sd	2003-01-15 22:12:34.000000000 +0100
+@@ -0,0 +1,10 @@
++#source: tlsg.s
++#as:
++#ld: -melf64_ia64
++#objdump: -sj.debug_foobar
++#target: ia64-*-*
++
++.*: +file format elf64-ia64-little
++
++Contents of section .debug_foobar:
++ 0+ 18000000 0+  +.*
+--- binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlslib.s.jj	2003-01-13 17:10:21.000000000 +0100
++++ binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlslib.s	2003-01-10 15:32:44.000000000 +0100
+@@ -0,0 +1,18 @@
++	.section ".tdata", "awT", @progbits
++	.globl sG1, sG2, sG3, sG4, sG5, sG6, sG7, sG8
++sG1:	.long 513
++sG2:	.long 514
++sG3:	.long 515
++sG4:	.long 516
++sG5:	.long 517
++sG6:	.long 518
++sG7:	.long 519
++sG8:	.long 520
++
++	.text
++	/* Dummy.  */
++	.globl	__tls_get_addr#
++	.proc	__tls_get_addr#
++__tls_get_addr:
++	br.ret.sptk.many b0
++	.endp   __tls_get_addr#
+--- binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlspic1.s.jj	2003-01-13 17:10:21.000000000 +0100
++++ binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlspic1.s	2003-01-15 21:18:49.000000000 +0100
+@@ -0,0 +1,94 @@
++	/* Force .data aligned to 4K, so .got very likely gets at 0x13190
++	   (0x60 bytes .tdata and 0x130 bytes .dynamic)  */
++	.data
++	.balign 4096
++	.section ".tdata", "awT", @progbits
++	.globl sg1, sg2, sg3, sg4, sg5, sg6, sg7, sg8
++	.globl sh1, sh2, sh3, sh4, sh5, sh6, sh7, sh8
++	.hidden sh1, sh2, sh3, sh4, sh5, sh6, sh7, sh8
++sg1:	.long 17
++sg2:	.long 18
++sg3:	.long 19
++sg4:	.long 20
++sg5:	.long 21
++sg6:	.long 22
++sg7:	.long 23
++sg8:	.long 24
++sl1:	.long 65
++sl2:	.long 66
++sl3:	.long 67
++sl4:	.long 68
++sl5:	.long 69
++sl6:	.long 70
++sl7:	.long 71
++sl8:	.long 72
++sh1:	.long 257
++sh2:	.long 258
++sh3:	.long 259
++sh4:	.long 260
++sh5:	.long 261
++sh6:	.long 262
++sh7:	.long 263
++sh8:	.long 264
++	/* Force .text aligned to 4K, so it very likely gets at 0x1000.  */
++	.pred.safe_across_calls p1-p5,p16-p63
++	.text
++	.balign	4096
++	.globl	fn1#
++	.proc	fn1#
++fn1:
++	.prologue 12, 33
++	.mib
++	.save	ar.pfs, r34
++	alloc	r34 = ar.pfs, 0, 3, 2, 0
++	.save	rp, r33
++	mov	r33 = b0
++
++	/* GD */
++	addl	r14 = @ltoff(@dtpmod(sg1#)), gp
++	addl	r15 = @ltoff(@dtprel(sg1#)), gp
++	;;
++	ld8	out0 = [r14]
++	ld8	out1 = [r15]
++	br.call.sptk.many b0 = __tls_get_addr#
++	;;
++
++	/* GD against hidden symbol */
++	addl	r14 = @ltoff(@dtpmod(sh2#)), gp
++	addl	r15 = @ltoff(@dtprel(sh2#)), gp
++	;;
++	ld8	out0 = [r14]
++	ld8	out1 = [r15]
++	br.call.sptk.many b0 = __tls_get_addr#
++	;;
++
++	/* LD */
++	addl	r14 = @ltoff(@dtpmod(sl1#)), gp
++	addl	out1 = @dtprel(sl1#) + 1, r0
++	;;
++	ld8	out0 = [r14]
++	br.call.sptk.many b0 = __tls_get_addr#
++	;;
++
++	/* LD with 4 variables variables */
++	addl	r14 = @ltoff(@dtpmod(sh1#)), gp
++	mov	out1 = r0
++	;;
++	ld8	out0 = [r14]
++	br.call.sptk.many b0 = __tls_get_addr#
++	;;
++	mov	r2 = r8
++	;;
++	addl	r14 = @dtprel(sh1#), r2
++	addl	r15 = @dtprel(sH1#) + 2, r2
++	;;
++	adds	r14 = @dtprel(sh5#) + 3, r8
++	movl	r15 = @dtprel(sH5#) + 1
++	;;
++	add	r15 = r15, r8
++	;;
++
++	mov	ar.pfs = r34
++	mov	b0 = r33
++	br.ret.sptk.many b0
++	.endp	fn1#
+--- binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlspic2.s.jj	2003-01-13 17:10:21.000000000 +0100
++++ binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlspic2.s	2002-09-25 11:30:19.000000000 +0200
+@@ -0,0 +1,11 @@
++	.section ".tbss", "awT", @nobits
++	.globl sH1, sH2, sH3, sH4, sH5, sH6, sH7, sH8
++	.hidden sH1, sH2, sH3, sH4, sH5, sH6, sH7, sH8
++sH1:	.space 4
++sH2:	.space 4
++sH3:	.space 4
++sH4:	.space 4
++sH5:	.space 4
++sH6:	.space 4
++sH7:	.space 4
++sH8:	.space 4
+--- binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlspic.dd.jj	2003-01-13 17:10:21.000000000 +0100
++++ binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlspic.dd	2003-01-15 22:06:18.000000000 +0100
+@@ -0,0 +1,52 @@
++#source: tlspic1.s
++#source: tlspic2.s
++#as:
++#ld: -shared -melf64_ia64
++#objdump: -drj.text
++#target: ia64-*-*
++
++.*: +file format elf64-ia64-little
++
++Disassembly of section .text:
++
++0+1000 <fn1>:
++ +1000:	10 10 15 06 80 05[ 	]+\[MIB\] +alloc r34=ar.pfs,5,3,0
++ +1006:	10 02 00 62 00 00[ 	]+mov r33=b0
++ +100c:	00 00 00 20[ 	]+nop.b 0x0
++ +1010:	0d 70 60 02 00 24[ 	]+\[MFI\] +addl r14=24,r1
++ +1016:	00 00 00 02 00 e0[ 	]+nop.f 0x0
++ +101c:	01 0a 00 90[ 	]+addl r15=32,r1;;
++ +1020:	19 18 01 1c 18 10[ 	]+\[MMB\] +ld8 r35=\[r14\]
++ +1026:	40 02 3c 30 20 00[ 	]+ld8 r36=\[r15\]
++ +102c:	48 f6 ff 58[ 	]+br.call.sptk.many b0=[0-9a-f]+ <.*>;;
++ +1030:	0d 70 a0 02 00 24[ 	]+\[MFI\] +addl r14=40,r1
++ +1036:	00 00 00 02 00 e0[ 	]+nop.f 0x0
++ +103c:	01 0b 00 90[ 	]+addl r15=48,r1;;
++ +1040:	19 18 01 1c 18 10[ 	]+\[MMB\] +ld8 r35=\[r14\]
++ +1046:	40 02 3c 30 20 00[ 	]+ld8 r36=\[r15\]
++ +104c:	28 f6 ff 58[ 	]+br.call.sptk.many b0=[0-9a-f]+ <.*>;;
++ +1050:	0d 70 a0 02 00 24[ 	]+\[MFI\] +addl r14=40,r1
++ +1056:	00 00 00 02 00 80[ 	]+nop.f 0x0
++ +105c:	14 02 00 90[ 	]+mov r36=33;;
++ +1060:	1d 18 01 1c 18 10[ 	]+\[MFB\] +ld8 r35=\[r14\]
++ +1066:	00 00 00 02 00 00[ 	]+nop.f 0x0
++ +106c:	08 f6 ff 58[ 	]+br.call.sptk.many b0=[0-9a-f]+ <.*>;;
++ +1070:	0d 70 a0 02 00 24[ 	]+\[MFI\] +addl r14=40,r1
++ +1076:	00 00 00 02 00 80[ 	]+nop.f 0x0
++ +107c:	04 00 00 84[ 	]+mov r36=r0;;
++ +1080:	1d 18 01 1c 18 10[ 	]+\[MFB\] +ld8 r35=\[r14\]
++ +1086:	00 00 00 02 00 00[ 	]+nop.f 0x0
++ +108c:	e8 f5 ff 58[ 	]+br.call.sptk.many b0=[0-9a-f]+ <.*>;;
++ +1090:	0b 10 00 10 00 21[ 	]+\[MMI\] +mov r2=r8;;
++ +1096:	e0 00 0a 00 48 e0[ 	]+addl r14=64,r2
++ +109c:	21 16 00 90[ 	]+addl r15=98,r2;;
++ +10a0:	05 70 4c 11 00 21[ 	]+\[MLX\] +adds r14=83,r8
++ +10a6:	00 00 00 00 00 e0[ 	]+movl r15=0x71;;
++ +10ac:	11 07 00 60 
++ +10b0:	0a 78 3c 10 00 20[ 	]+\[MMI\] +add r15=r15,r8;;
++ +10b6:	00 00 00 02 00 00[ 	]+nop.m 0x0
++ +10bc:	20 02 aa 00[ 	]+mov.i ar.pfs=r34
++ +10c0:	11 00 00 00 01 00[ 	]+\[MIB\] +nop.m 0x0
++ +10c6:	00 08 05 80 03 80[ 	]+mov b0=r33
++ +10cc:	08 00 84 00[ 	]+br.ret.sptk.many b0;;
++#pass
+--- binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlspic.rd.jj	2003-01-13 17:10:21.000000000 +0100
++++ binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlspic.rd	2003-01-15 21:50:27.000000000 +0100
+@@ -0,0 +1,156 @@
++#source: tlspic1.s
++#source: tlspic2.s
++#as:
++#ld: -shared -melf64_ia64
++#readelf: -WSsrl
++#target: ia64-*-*
++
++There are 21 section headers, starting at offset 0x[0-9a-f]+:
++
++Section Headers:
++  \[Nr\] Name +Type +Address +Off +Size +ES Flg Lk Inf Al
++  \[ 0\] +NULL +0+ 0+ 0+ 00 +0 +0 +0
++  \[ 1\] .hash +.*
++  \[ 2\] .dynsym +.*
++  \[ 3\] .dynstr +.*
++  \[ 4\] .rela.dyn +.*
++  \[ 5\] .rela.IA_64.pltof +.*
++  \[ 6\] .plt +.*
++  \[ 7\] .text +PROGBITS +0+1000 0+1000 0+1000 00 +AX +0 +0 4096
++  \[ 8\] .IA_64.unwind_inf +.*
++  \[ 9\] .IA_64.unwind +.*
++  \[10\] .data +.*
++  \[11\] .tdata +PROGBITS +0+13000 0+3000 0+60 00 WAT +0 +0 +4
++  \[12\] .tbss +NOBITS +0+13060 0+3060 0+20 00 WAT +0 +0 +1
++  \[13\] .dynamic +DYNAMIC +0+13060 0+3060 0+130 10 +WA +3 +0 +8
++  \[14\] .got +PROGBITS +0+13190 0+3190 0+38 00 WAp +0 +0 +8
++  \[15\] .IA_64.pltoff +.*
++  \[16\] .sbss +.*
++  \[17\] .bss +.*
++  \[18\] .shstrtab +.*
++  \[19\] .symtab +.*
++  \[20\] .strtab +.*
++Key to Flags:
++#...
++
++Elf file type is DYN \(Shared object file\)
++Entry point 0x1000
++There are 5 program headers, starting at offset [0-9]+
++
++Program Headers:
++  Type +Offset +VirtAddr +PhysAddr +FileSiz +MemSiz +Flg Align
++  LOAD +0x0+ 0x0+ 0x0+ 0x0+2030 0x0+2030 R E 0x10000
++  LOAD +0x0+3000 0x0+13000 0x0+13000 0x0+1e0 0x0+1e0 RW +0x10000
++  DYNAMIC +0x0+3060 0x0+13060 0x0+13060 0x0+130 0x0+130 RW +0x8
++  TLS +0x0+3000 0x0+13000 0x0+13000 0x0+60 0x0+80 R +0x4
++  IA_64_UNWIND +0x0+2018 0x0+2018 0x0+2018 0x0+18 0x0+18 R +0x8
++#...
++
++Relocation section '.rela.dyn' at offset 0x[0-9a-f]+ contains 3 entries:
++ +Offset +Info +Type +Symbol's Value +Symbol's Name \+ Addend
++0+131a8 +0+18000000a7 R_IA64_DTPMOD64LSB +0+ sg1 \+ 0
++0+131b0 +0+18000000b7 R_IA64_DTPREL64LSB +0+ sg1 \+ 0
++0+131b8 +0+a7 R_IA64_DTPMOD64LSB +0+
++
++Relocation section '.rela.IA_64.pltoff' at offset 0x[0-9a-f]+ contains 1 entries:
++ +Offset +Info +Type +Symbol's Value +Symbol's Name \+ Addend
++0+[0-9a-f]+ +0+1700000081 R_IA64_IPLTLSB +0+ __tls_get_addr \+ 0
++
++Symbol table '.dynsym' contains 33 entries:
++ +Num: +Value +Size Type +Bind +Vis +Ndx Name
++ +0: 0+ +0 NOTYPE +LOCAL +DEFAULT +UND *
++ +1: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +1 *
++ +2: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +2 *
++ +3: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +3 *
++ +4: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +4 *
++ +5: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +5 *
++ +6: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +6 *
++ +7: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +7 *
++ +8: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +8 *
++ +9: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +9 *
++ +10: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +10 *
++ +11: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +11 *
++ +12: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +12 *
++ +13: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +13 *
++ +14: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +14 *
++ +15: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +15 *
++ +16: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +16 *
++ +17: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +17 *
++ +18: 0+1c +0 TLS +GLOBAL DEFAULT +11 sg8
++ +19: 0+13060 +0 OBJECT +GLOBAL DEFAULT +ABS _DYNAMIC
++ +20: 0+8 +0 TLS +GLOBAL DEFAULT +11 sg3
++ +21: 0+c +0 TLS +GLOBAL DEFAULT +11 sg4
++ +22: 0+10 +0 TLS +GLOBAL DEFAULT +11 sg5
++ +23: 0+ +0 NOTYPE +GLOBAL DEFAULT +UND __tls_get_addr
++ +24: 0+ +0 TLS +GLOBAL DEFAULT +11 sg1
++ +25: 0+1000 +208 FUNC +GLOBAL DEFAULT +7 fn1
++ +26: [0-9a-f]+ +0 NOTYPE +GLOBAL DEFAULT +ABS __bss_start
++ +27: 0+4 +0 TLS +GLOBAL DEFAULT +11 sg2
++ +28: 0+14 +0 TLS +GLOBAL DEFAULT +11 sg6
++ +29: 0+18 +0 TLS +GLOBAL DEFAULT +11 sg7
++ +30: [0-9a-f]+ +0 NOTYPE +GLOBAL DEFAULT +ABS _edata
++ +31: 0+13190 +0 OBJECT +GLOBAL DEFAULT +ABS _GLOBAL_OFFSET_TABLE_
++ +32: [0-9a-f]+ +0 NOTYPE +GLOBAL DEFAULT +ABS _end
++
++Symbol table '.symtab' contains 60 entries:
++ +Num: +Value +Size Type +Bind +Vis +Ndx Name
++ +0: 0+ +0 NOTYPE +LOCAL +DEFAULT +UND *
++ +1: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +1 *
++ +2: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +2 *
++ +3: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +3 *
++ +4: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +4 *
++ +5: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +5 *
++ +6: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +6 *
++ +7: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +7 *
++ +8: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +8 *
++ +9: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +9 *
++ +10: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +10 *
++ +11: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +11 *
++ +12: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +12 *
++ +13: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +13 *
++ +14: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +14 *
++ +15: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +15 *
++ +16: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +16 *
++ +17: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +17 *
++ +18: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +18 *
++ +19: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +19 *
++ +20: [0-9a-f]+ +0 SECTION LOCAL +DEFAULT +20 *
++ +21: 0+20 +0 TLS +LOCAL +DEFAULT +11 sl1
++ +22: 0+24 +0 TLS +LOCAL +DEFAULT +11 sl2
++ +23: 0+28 +0 TLS +LOCAL +DEFAULT +11 sl3
++ +24: 0+2c +0 TLS +LOCAL +DEFAULT +11 sl4
++ +25: 0+30 +0 TLS +LOCAL +DEFAULT +11 sl5
++ +26: 0+34 +0 TLS +LOCAL +DEFAULT +11 sl6
++ +27: 0+38 +0 TLS +LOCAL +DEFAULT +11 sl7
++ +28: 0+3c +0 TLS +LOCAL +DEFAULT +11 sl8
++ +29: 0+60 +0 TLS +LOCAL +HIDDEN +12 sH1
++ +30: 0+48 +0 TLS +LOCAL +HIDDEN +11 sh3
++ +31: 0+64 +0 TLS +LOCAL +HIDDEN +12 sH2
++ +32: 0+78 +0 TLS +LOCAL +HIDDEN +12 sH7
++ +33: 0+58 +0 TLS +LOCAL +HIDDEN +11 sh7
++ +34: 0+5c +0 TLS +LOCAL +HIDDEN +11 sh8
++ +35: 0+6c +0 TLS +LOCAL +HIDDEN +12 sH4
++ +36: 0+4c +0 TLS +LOCAL +HIDDEN +11 sh4
++ +37: 0+68 +0 TLS +LOCAL +HIDDEN +12 sH3
++ +38: 0+50 +0 TLS +LOCAL +HIDDEN +11 sh5
++ +39: 0+70 +0 TLS +LOCAL +HIDDEN +12 sH5
++ +40: 0+74 +0 TLS +LOCAL +HIDDEN +12 sH6
++ +41: 0+7c +0 TLS +LOCAL +HIDDEN +12 sH8
++ +42: 0+40 +0 TLS +LOCAL +HIDDEN +11 sh1
++ +43: 0+44 +0 TLS +LOCAL +HIDDEN +11 sh2
++ +44: 0+54 +0 TLS +LOCAL +HIDDEN +11 sh6
++ +45: 0+1c +0 TLS +GLOBAL DEFAULT +11 sg8
++ +46: 0+13060 +0 OBJECT +GLOBAL DEFAULT +ABS _DYNAMIC
++ +47: 0+8 +0 TLS +GLOBAL DEFAULT +11 sg3
++ +48: 0+c +0 TLS +GLOBAL DEFAULT +11 sg4
++ +49: 0+10 +0 TLS +GLOBAL DEFAULT +11 sg5
++ +50: 0+ +0 NOTYPE +GLOBAL DEFAULT +UND __tls_get_addr
++ +51: 0+ +0 TLS +GLOBAL DEFAULT +11 sg1
++ +52: 0+1000 +208 FUNC +GLOBAL DEFAULT +7 fn1
++ +53: [0-9a-f]+ +0 NOTYPE +GLOBAL DEFAULT +ABS __bss_start
++ +54: 0+4 +0 TLS +GLOBAL DEFAULT +11 sg2
++ +55: 0+14 +0 TLS +GLOBAL DEFAULT +11 sg6
++ +56: 0+18 +0 TLS +GLOBAL DEFAULT +11 sg7
++ +57: [0-9a-f]+ +0 NOTYPE +GLOBAL DEFAULT +ABS _edata
++ +58: 0+13190 +0 OBJECT +GLOBAL DEFAULT +ABS _GLOBAL_OFFSET_TABLE_
++ +59: [0-9a-f]+ +0 NOTYPE +GLOBAL DEFAULT +ABS _end
+--- binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlspic.sd.jj	2003-01-13 17:10:21.000000000 +0100
++++ binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlspic.sd	2003-01-15 22:04:53.000000000 +0100
+@@ -0,0 +1,14 @@
++#source: tlspic1.s
++#source: tlspic2.s
++#as:
++#ld: -shared -melf64_ia64
++#objdump: -sj.got
++#target: ia64-*-*
++
++.*: +file format elf64-ia64-little
++
++Contents of section .got:
++ 13190 0+ 0+ 0+ 0+  .*
++ 131a0 0+ 0+ [0-9a-f]+ [0-9a-f]+  .*
++ 131b0 [0-9a-f]+ [0-9a-f]+ [0-9a-f]+ [0-9a-f]+  .*
++ 131c0 440+ 0+  .*
+--- binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlspic.td.jj	2003-01-13 17:10:21.000000000 +0100
++++ binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlspic.td	2003-01-15 21:21:33.000000000 +0100
+@@ -0,0 +1,16 @@
++#source: tlspic1.s
++#source: tlspic2.s
++#as:
++#ld: -shared -melf64_ia64
++#objdump: -sj.tdata
++#target: ia64-*-*
++
++.*: +file format elf64-ia64-little
++
++Contents of section .tdata:
++ 13000 11000000 12000000 13000000 14000000  .*
++ 13010 15000000 16000000 17000000 18000000  .*
++ 13020 41000000 42000000 43000000 44000000  .*
++ 13030 45000000 46000000 47000000 48000000  .*
++ 13040 01010000 02010000 03010000 04010000  .*
++ 13050 05010000 06010000 07010000 08010000  .*

@@ -1,0 +1,17 @@
+2002-12-28  Jakub Jelinek  <jakub@redhat.com>
+
+	* elf64-alpha.c (elf64_alpha_finish_dynamic_sections): Clear .plt
+	sh_entsize.
+
+--- binutils-2.13.90.0.16/bfd/elf64-alpha.c	30 Nov 2002 08:39:38 -0000	1.87
++++ binutils-2.13.90.0.16/bfd/elf64-alpha.c	28 Dec 2002 21:15:35 -0000	1.88
+@@ -5137,8 +5137,7 @@ elf64_alpha_finish_dynamic_sections (out
+ 	  bfd_put_64 (output_bfd, (bfd_vma) 0, splt->contents + 16);
+ 	  bfd_put_64 (output_bfd, (bfd_vma) 0, splt->contents + 24);
+ 
+-	  elf_section_data (splt->output_section)->this_hdr.sh_entsize =
+-	    PLT_HEADER_SIZE;
++	  elf_section_data (splt->output_section)->this_hdr.sh_entsize = 0;
+ 	}
+     }
+ 

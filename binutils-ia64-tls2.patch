@@ -1,0 +1,225 @@
+2003-01-17  Jakub Jelinek  <jakub@redhat.com>
+
+	* elfxx-ia64.c (elfNN_ia64_relocate_section): Handle
+	R_IA64_TPREL64[LM]SB against non-global symbol properly.
+
+	* ld-ia64/tlspic1.s: Add tests for IE in shared libraries.
+	* ld-ia64/tlspic.rd: Adjust.
+	* ld-ia64/tlspic.dd: Adjust.
+	* ld-ia64/tlspic.sd: Adjust.
+
+--- binutils-2.13.90.0.16/bfd/elfxx-ia64.c.jj	2003-01-16 22:28:30.000000000 +0100
++++ binutils-2.13.90.0.16/bfd/elfxx-ia64.c	2003-01-17 14:57:18.000000000 +0100
+@@ -4264,13 +4264,23 @@ elfNN_ia64_relocate_section (output_bfd,
+ 	case R_IA64_LTOFF_DTPREL22:
+ 	  {
+ 	    int got_r_type;
++	    long dynindx = h ? h->dynindx : -1;
++	    bfd_vma r_addend = rel->r_addend;
+ 
+ 	    switch (r_type)
+ 	      {
+ 	      default:
+ 	      case R_IA64_LTOFF_TPREL22:
+-		if (!dynamic_symbol_p && !info->shared)
+-		  value -= elfNN_ia64_tprel_base (info);
++		if (!dynamic_symbol_p)
++		  {
++		    if (!info->shared)
++		      value -= elfNN_ia64_tprel_base (info);
++		    else
++		      {
++			r_addend += value - elfNN_ia64_dtprel_base (info);
++			dynindx = 0;
++		      }
++		  }
+ 		got_r_type = R_IA64_TPREL64LSB;
+ 		break;
+ 	      case R_IA64_LTOFF_DTPMOD22:
+@@ -4285,8 +4295,7 @@ elfNN_ia64_relocate_section (output_bfd,
+ 		break;
+ 	      }
+ 	    dyn_i = get_dyn_sym_info (ia64_info, h, input_bfd, rel, false);
+-	    value = set_got_entry (input_bfd, info, dyn_i,
+-				   (h ? h->dynindx : -1), rel->r_addend,
++	    value = set_got_entry (input_bfd, info, dyn_i, dynindx, r_addend,
+ 				   value, got_r_type);
+ 	    value -= gp_val;
+ 	    r = elfNN_ia64_install_value (output_bfd, hit_addr, value,
+--- binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlspic1.s.jj	2003-01-16 22:28:30.000000000 +0100
++++ binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlspic1.s	2003-01-17 14:11:42.000000000 +0100
+@@ -88,6 +88,25 @@ fn1:
+ 	add	r15 = r15, r8
+ 	;;
+ 
++	/* IE against global */
++	addl	r14 = @ltoff(@tprel(sg2#)), gp
++	;;
++	ld8	r15 = [r14]
++	;;
++	add	r14 = r15, r13
++	;;
++
++	/* IE against local and hidden */
++	addl	r14 = @ltoff(@tprel(sl2#)), gp
++	addl	r15 = @ltoff(@tprel(sh2#)), gp
++	;;
++	ld8	r14 = [r14]
++	ld8	r15 = [r15]
++	;;
++	add	r14 = r14, r13
++	add	r15 = r15, r13
++	;;
++
+ 	mov	ar.pfs = r34
+ 	mov	b0 = r33
+ 	br.ret.sptk.many b0
+--- binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlspic.rd.jj	2003-01-16 22:28:30.000000000 +0100
++++ binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlspic.rd	2003-01-17 15:12:59.000000000 +0100
+@@ -22,8 +22,8 @@ Section Headers:
+   \[10\] .data +.*
+   \[11\] .tdata +PROGBITS +0+13000 0+3000 0+60 00 WAT +0 +0 +4
+   \[12\] .tbss +NOBITS +0+13060 0+3060 0+20 00 WAT +0 +0 +1
+-  \[13\] .dynamic +DYNAMIC +0+13060 0+3060 0+130 10 +WA +3 +0 +8
+-  \[14\] .got +PROGBITS +0+13190 0+3190 0+38 00 WAp +0 +0 +8
++  \[13\] .dynamic +DYNAMIC +0+13060 0+3060 0+140 10 +WA +3 +0 +8
++  \[14\] .got +PROGBITS +0+131a0 0+31a0 0+50 00 WAp +0 +0 +8
+   \[15\] .IA_64.pltoff +.*
+   \[16\] .sbss +.*
+   \[17\] .bss +.*
+@@ -40,17 +40,20 @@ There are 5 program headers, starting at
+ Program Headers:
+   Type +Offset +VirtAddr +PhysAddr +FileSiz +MemSiz +Flg Align
+   LOAD +0x0+ 0x0+ 0x0+ 0x0+2030 0x0+2030 R E 0x10000
+-  LOAD +0x0+3000 0x0+13000 0x0+13000 0x0+1e0 0x0+1e0 RW +0x10000
+-  DYNAMIC +0x0+3060 0x0+13060 0x0+13060 0x0+130 0x0+130 RW +0x8
++  LOAD +0x0+3000 0x0+13000 0x0+13000 0x0+200 0x0+200 RW +0x10000
++  DYNAMIC +0x0+3060 0x0+13060 0x0+13060 0x0+140 0x0+140 RW +0x8
+   TLS +0x0+3000 0x0+13000 0x0+13000 0x0+60 0x0+80 R +0x4
+   IA_64_UNWIND +0x0+2018 0x0+2018 0x0+2018 0x0+18 0x0+18 R +0x8
+ #...
+ 
+-Relocation section '.rela.dyn' at offset 0x[0-9a-f]+ contains 3 entries:
++Relocation section '.rela.dyn' at offset 0x[0-9a-f]+ contains 6 entries:
+  +Offset +Info +Type +Symbol's Value +Symbol's Name \+ Addend
+-0+131a8 +0+18000000a7 R_IA64_DTPMOD64LSB +0+ sg1 \+ 0
+-0+131b0 +0+18000000b7 R_IA64_DTPREL64LSB +0+ sg1 \+ 0
+-0+131b8 +0+a7 R_IA64_DTPMOD64LSB +0+
++0+131b8 +0+18000000a7 R_IA64_DTPMOD64LSB +0+ sg1 \+ 0
++0+131c0 +0+18000000b7 R_IA64_DTPREL64LSB +0+ sg1 \+ 0
++0+131c8 +0+1b00000097 R_IA64_TPREL64LSB +0+4 sg2 \+ 0
++0+131d0 +0+a7 R_IA64_DTPMOD64LSB +0+
++0+131d8 +0+97 R_IA64_TPREL64LSB +0+44
++0+131e8 +0+97 R_IA64_TPREL64LSB +0+24
+ 
+ Relocation section '.rela.IA_64.pltoff' at offset 0x[0-9a-f]+ contains 1 entries:
+  +Offset +Info +Type +Symbol's Value +Symbol's Name \+ Addend
+@@ -83,13 +86,13 @@ Symbol table '.dynsym' contains 33 entri
+  +22: 0+10 +0 TLS +GLOBAL DEFAULT +11 sg5
+  +23: 0+ +0 NOTYPE +GLOBAL DEFAULT +UND __tls_get_addr
+  +24: 0+ +0 TLS +GLOBAL DEFAULT +11 sg1
+- +25: 0+1000 +208 FUNC +GLOBAL DEFAULT +7 fn1
++ +25: 0+1000 +272 FUNC +GLOBAL DEFAULT +7 fn1
+  +26: [0-9a-f]+ +0 NOTYPE +GLOBAL DEFAULT +ABS __bss_start
+  +27: 0+4 +0 TLS +GLOBAL DEFAULT +11 sg2
+  +28: 0+14 +0 TLS +GLOBAL DEFAULT +11 sg6
+  +29: 0+18 +0 TLS +GLOBAL DEFAULT +11 sg7
+  +30: [0-9a-f]+ +0 NOTYPE +GLOBAL DEFAULT +ABS _edata
+- +31: 0+13190 +0 OBJECT +GLOBAL DEFAULT +ABS _GLOBAL_OFFSET_TABLE_
++ +31: 0+131a0 +0 OBJECT +GLOBAL DEFAULT +ABS _GLOBAL_OFFSET_TABLE_
+  +32: [0-9a-f]+ +0 NOTYPE +GLOBAL DEFAULT +ABS _end
+ 
+ Symbol table '.symtab' contains 60 entries:
+@@ -146,11 +149,11 @@ Symbol table '.symtab' contains 60 entri
+  +49: 0+10 +0 TLS +GLOBAL DEFAULT +11 sg5
+  +50: 0+ +0 NOTYPE +GLOBAL DEFAULT +UND __tls_get_addr
+  +51: 0+ +0 TLS +GLOBAL DEFAULT +11 sg1
+- +52: 0+1000 +208 FUNC +GLOBAL DEFAULT +7 fn1
++ +52: 0+1000 +272 FUNC +GLOBAL DEFAULT +7 fn1
+  +53: [0-9a-f]+ +0 NOTYPE +GLOBAL DEFAULT +ABS __bss_start
+  +54: 0+4 +0 TLS +GLOBAL DEFAULT +11 sg2
+  +55: 0+14 +0 TLS +GLOBAL DEFAULT +11 sg6
+  +56: 0+18 +0 TLS +GLOBAL DEFAULT +11 sg7
+  +57: [0-9a-f]+ +0 NOTYPE +GLOBAL DEFAULT +ABS _edata
+- +58: 0+13190 +0 OBJECT +GLOBAL DEFAULT +ABS _GLOBAL_OFFSET_TABLE_
++ +58: 0+131a0 +0 OBJECT +GLOBAL DEFAULT +ABS _GLOBAL_OFFSET_TABLE_
+  +59: [0-9a-f]+ +0 NOTYPE +GLOBAL DEFAULT +ABS _end
+--- binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlspic.dd.jj	2003-01-16 22:28:30.000000000 +0100
++++ binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlspic.dd	2003-01-17 15:20:45.000000000 +0100
+@@ -18,35 +18,47 @@ Disassembly of section .text:
+  +101c:	01 0a 00 90[ 	]+addl r15=32,r1;;
+  +1020:	19 18 01 1c 18 10[ 	]+\[MMB\] +ld8 r35=\[r14\]
+  +1026:	40 02 3c 30 20 00[ 	]+ld8 r36=\[r15\]
+- +102c:	48 f6 ff 58[ 	]+br.call.sptk.many b0=[0-9a-f]+ <.*>;;
+- +1030:	0d 70 a0 02 00 24[ 	]+\[MFI\] +addl r14=40,r1
++ +102c:	88 f6 ff 58[ 	]+br.call.sptk.many b0=[0-9a-f]+ <.*>;;
++ +1030:	0d 70 c0 02 00 24[ 	]+\[MFI\] +addl r14=48,r1
+  +1036:	00 00 00 02 00 e0[ 	]+nop.f 0x0
+- +103c:	01 0b 00 90[ 	]+addl r15=48,r1;;
++ +103c:	01 0c 00 90[ 	]+addl r15=64,r1;;
+  +1040:	19 18 01 1c 18 10[ 	]+\[MMB\] +ld8 r35=\[r14\]
+  +1046:	40 02 3c 30 20 00[ 	]+ld8 r36=\[r15\]
+- +104c:	28 f6 ff 58[ 	]+br.call.sptk.many b0=[0-9a-f]+ <.*>;;
+- +1050:	0d 70 a0 02 00 24[ 	]+\[MFI\] +addl r14=40,r1
++ +104c:	68 f6 ff 58[ 	]+br.call.sptk.many b0=[0-9a-f]+ <.*>;;
++ +1050:	0d 70 c0 02 00 24[ 	]+\[MFI\] +addl r14=48,r1
+  +1056:	00 00 00 02 00 80[ 	]+nop.f 0x0
+  +105c:	14 02 00 90[ 	]+mov r36=33;;
+  +1060:	1d 18 01 1c 18 10[ 	]+\[MFB\] +ld8 r35=\[r14\]
+  +1066:	00 00 00 02 00 00[ 	]+nop.f 0x0
+- +106c:	08 f6 ff 58[ 	]+br.call.sptk.many b0=[0-9a-f]+ <.*>;;
+- +1070:	0d 70 a0 02 00 24[ 	]+\[MFI\] +addl r14=40,r1
++ +106c:	48 f6 ff 58[ 	]+br.call.sptk.many b0=[0-9a-f]+ <.*>;;
++ +1070:	0d 70 c0 02 00 24[ 	]+\[MFI\] +addl r14=48,r1
+  +1076:	00 00 00 02 00 80[ 	]+nop.f 0x0
+  +107c:	04 00 00 84[ 	]+mov r36=r0;;
+  +1080:	1d 18 01 1c 18 10[ 	]+\[MFB\] +ld8 r35=\[r14\]
+  +1086:	00 00 00 02 00 00[ 	]+nop.f 0x0
+- +108c:	e8 f5 ff 58[ 	]+br.call.sptk.many b0=[0-9a-f]+ <.*>;;
++ +108c:	28 f6 ff 58[ 	]+br.call.sptk.many b0=[0-9a-f]+ <.*>;;
+  +1090:	0b 10 00 10 00 21[ 	]+\[MMI\] +mov r2=r8;;
+  +1096:	e0 00 0a 00 48 e0[ 	]+addl r14=64,r2
+  +109c:	21 16 00 90[ 	]+addl r15=98,r2;;
+  +10a0:	05 70 4c 11 00 21[ 	]+\[MLX\] +adds r14=83,r8
+  +10a6:	00 00 00 00 00 e0[ 	]+movl r15=0x71;;
+  +10ac:	11 07 00 60 
+- +10b0:	0a 78 3c 10 00 20[ 	]+\[MMI\] +add r15=r15,r8;;
+- +10b6:	00 00 00 02 00 00[ 	]+nop.m 0x0
+- +10bc:	20 02 aa 00[ 	]+mov.i ar.pfs=r34
+- +10c0:	11 00 00 00 01 00[ 	]+\[MIB\] +nop.m 0x0
+- +10c6:	00 08 05 80 03 80[ 	]+mov b0=r33
+- +10cc:	08 00 84 00[ 	]+br.ret.sptk.many b0;;
++ +10b0:	0b 78 3c 10 00 20[ 	]+\[MMI\] +add r15=r15,r8;;
++ +10b6:	e0 40 05 00 48 00[ 	]+addl r14=40,r1
++ +10bc:	00 00 04 00[ 	]+nop.i 0x0;;
++ +10c0:	0b 78 00 1c 18 10[ 	]+\[MMI\] +ld8 r15=\[r14\];;
++ +10c6:	e0 78 34 00 40 00[ 	]+add r14=r15,r13
++ +10cc:	00 00 04 00[ 	]+nop.i 0x0;;
++ +10d0:	0d 70 20 03 00 24[ 	]+\[MFI\] +addl r14=72,r1
++ +10d6:	00 00 00 02 00 e0[ 	]+nop.f 0x0
++ +10dc:	81 0b 00 90[ 	]+addl r15=56,r1;;
++ +10e0:	09 70 00 1c 18 10[ 	]+\[MMI\] +ld8 r14=\[r14\]
++ +10e6:	f0 00 3c 30 20 00[ 	]+ld8 r15=\[r15\]
++ +10ec:	00 00 04 00[ 	]+nop.i 0x0;;
++ +10f0:	02 70 38 1a 00 20[ 	]+\[MII\] +add r14=r14,r13
++ +10f6:	f0 78 34 00 40 00[ 	]+add r15=r15,r13;;
++ +10fc:	20 02 aa 00[ 	]+mov.i ar.pfs=r34
++ +1100:	11 00 00 00 01 00[ 	]+\[MIB\] +nop.m 0x0
++ +1106:	00 08 05 80 03 80[ 	]+mov b0=r33
++ +110c:	08 00 84 00[ 	]+br.ret.sptk.many b0;;
+ #pass
+--- binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlspic.sd.jj	2003-01-17 15:40:29.000000000 +0100
++++ binutils-2.13.90.0.16/ld/testsuite/ld-ia64/tlspic.sd	2003-01-17 15:39:45.000000000 +0100
+@@ -8,7 +8,8 @@
+ .*: +file format elf64-ia64-little
+ 
+ Contents of section .got:
+- 13190 0+ 0+ 0+ 0+  .*
+- 131a0 0+ 0+ [0-9a-f]+ [0-9a-f]+  .*
+- 131b0 [0-9a-f]+ [0-9a-f]+ [0-9a-f]+ [0-9a-f]+  .*
+- 131c0 440+ 0+  .*
++ 131a0 0+ 0+ 0+ 0+  .*
++ 131b0 0+ 0+ [0-9a-f]+ [0-9a-f]+  .*
++ 131c0 [0-9a-f]+ [0-9a-f]+ [0-9a-f]+ [0-9a-f]+  .*
++ 131d0 [0-9a-f]+ [0-9a-f]+ [0-9a-f]+ [0-9a-f]+  .*
++ 131e0 440+ 0+ [0-9a-f]+ [0-9a-f]+  .*
