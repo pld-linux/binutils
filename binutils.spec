@@ -7,7 +7,8 @@ Copyright:	GPL
 Group:		Development/Tools
 Group(pl):	Programowanie/Narzêdzia
 Source:		ftp://ftp.varesearch.com/pub/support/hjl/binutils/%{name}-%{version}.tar.bz2
-Patch0:		binutils-info.patch
+Patch:		binutils-info.patch
+Prereq:		/usr/sbin/fix-info-dir
 BuildRoot:	/tmp/%{name}-%{version}-root
 
 %description
@@ -35,7 +36,7 @@ Biblioteki statyczne GNU Binutils.
 
 %prep
 %setup -q 
-#%patch -p1
+%patch -p1
 
 %build
 CFLAGS="$RPM_OPT_FLAGS" LDFLAGS="-s" \
@@ -75,23 +76,11 @@ gzip -9nf $RPM_BUILD_ROOT{%{_infodir}/*.inf*,%{_mandir}/man1/*} \
 rm -rf $RPM_BUILD_ROOT
 
 %post
-/sbin/install-info %{_infodir}/as.info.gz /etc/info-dir
-/sbin/install-info %{_infodir}/bfd.info.gz /etc/info-dir
-/sbin/install-info %{_infodir}/binutils.info.gz /etc/info-dir 
-/sbin/install-info %{_infodir}/ld.info.gz /etc/info-dir
-/sbin/install-info %{_infodir}/gasp.info.gz /etc/info-dir 
-/sbin/install-info %{_infodir}/gprof.info.gz /etc/info-dir 
 /sbin/ldconfig
+/usr/sbin/fix-info-dir -c %{_infodir} >/dev/null 2>&1
 
 %preun
-if [ "$1" = "0" ]; then
-	/sbin/install-info --delete %{_infodir}/as.info.gz /etc/info-dir
-	/sbin/install-info --delete %{_infodir}/bfd.info.gz /etc/info-dir
-	/sbin/install-info --delete %{_infodir}/binutils.info.gz /etc/info-dir
-	/sbin/install-info --delete %{_infodir}/ld.info.gz /etc/info-dir
-	/sbin/install-info --delete %{_infodir}/gasp.info.gz /etc/info-dir
-	/sbin/install-info --delete %{_infodir}/gprof.info.gz /etc/info-dir
-fi
+/usr/sbin/fix-info-dir -c %{_infodir} >/dev/null 2>&1
 
 %postun -p /sbin/ldconfig
 
