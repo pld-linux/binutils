@@ -1,0 +1,63 @@
+On Thu, Aug 02, 2001 at 05:02:26PM -0700, H . J . Lu wrote:
+> On Fri, Aug 03, 2001 at 09:15:10AM +0930, Alan Modra wrote:
+> > On Thu, Aug 02, 2001 at 10:09:41AM -0700, H . J . Lu wrote:
+> > > 
+> > > Alan, why don't we discard all relocations for static binaries?
+> > 
+> > A thinko on my part.  We obviously should be discarding them.  I
+> > suspect this crept into elf32-i386.c from elf32-hppa.c, and it's
+> > wrong there too.
+> 
+> Could you please fix both of them?
+
+Your patch does the right thing, but I'm tweaking it a little.
+
+bfd/ChangeLog
+	From  H.J. Lu  <hjl@gnu.org>
+	* elf32-i386.c (allocate_plt_and_got_and_discard_relocs): Don't
+	keep relocs for undefined syms if there are no dynamic sections in
+	executable.
+	* elf32-hppa.c (allocate_plt_and_got_and_discard_relocs): Likewise.
+
+-- 
+Alan Modra
+
+Index: bfd/elf32-hppa.c
+===================================================================
+RCS file: /cvs/src/src/bfd/elf32-hppa.c,v
+retrieving revision 1.41
+diff -u -p -r1.41 elf32-hppa.c
+--- bfd/elf32-hppa.c	2001/06/30 00:34:10	1.41
++++ bfd/elf32-hppa.c	2001/08/03 05:07:46
+@@ -2141,8 +2141,9 @@ allocate_plt_and_got_and_discard_relocs 
+   if (!info->shared
+       && (h->elf_link_hash_flags & ELF_LINK_NON_GOT_REF) == 0
+       && ((h->elf_link_hash_flags & ELF_LINK_HASH_DEF_DYNAMIC) != 0
+-	  || h->root.type == bfd_link_hash_undefweak
+-	  || h->root.type == bfd_link_hash_undefined))
++	  || (hplink->root.dynamic_sections_created
++	      && (h->root.type == bfd_link_hash_undefweak
++		  || h->root.type == bfd_link_hash_undefined))))
+     {
+       /* Make sure this symbol is output as a dynamic symbol.
+ 	 Undefined weak syms won't yet be marked as dynamic.  */
+Index: bfd/elf32-i386.c
+===================================================================
+RCS file: /cvs/src/src/bfd/elf32-i386.c,v
+retrieving revision 1.36
+diff -u -p -r1.36 elf32-i386.c
+--- bfd/elf32-i386.c	2001/06/27 01:46:17	1.36
++++ bfd/elf32-i386.c	2001/08/03 05:07:49
+@@ -1199,8 +1199,9 @@ allocate_plt_and_got_and_discard_relocs 
+   if (!info->shared
+       && (h->elf_link_hash_flags & ELF_LINK_NON_GOT_REF) == 0
+       && ((h->elf_link_hash_flags & ELF_LINK_HASH_DEF_DYNAMIC) != 0
+-	  || h->root.type == bfd_link_hash_undefweak
+-	  || h->root.type == bfd_link_hash_undefined))
++	  || (htab->root.dynamic_sections_created
++	      && (h->root.type == bfd_link_hash_undefweak
++		  || h->root.type == bfd_link_hash_undefined))))
+     {
+       /* Make sure this symbol is output as a dynamic symbol.
+ 	 Undefined weak syms won't yet be marked as dynamic.  */
+
