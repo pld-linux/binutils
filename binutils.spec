@@ -14,7 +14,7 @@ Summary(tr):	GNU geliþtirme araçlarý
 Summary(uk):	îÁÂ¦Ò ¦ÎÓÔÒÕÍÅÎÔ¦× GNU ÄÌÑ ÐÏÂÕÄÏ×É ×ÉËÏÎÕ×ÁÎÉÈ ÐÒÏÇÒÁÍ
 Name:		binutils
 Version:	2.15.91.0.1
-Release:	1
+Release:	2
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
@@ -30,6 +30,7 @@ Patch4:		%{name}-ia64-bootstrap.patch
 Patch5:		%{name}-libtool-relink.patch
 Patch6:		%{name}-pt_pax_flags.patch
 Patch7:		%{name}-mips-relocs.patch
+Patch8:		%{name}-elf-sort.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1.8.2
@@ -126,6 +127,7 @@ niektórych pakietów.
 %patch5 -p1
 %patch6 -p1
 %patch7 -p0
+%patch8 -p0
 # need update:
 #%patch3 -p1
 #%patch4 -p1
