@@ -141,8 +141,11 @@ sparc32 \
 	--mandir=%{_mandir} \
 %ifarch sparc
 	--enable-targets=sparc64-linux \
+	--enable-64-bit-bfd \
 %endif
+%ifnarch sparc
 	%{?_with_allarchs:--enable-64-bit-bfd} \
+%endif
 	%{?_with_allarchs:--enable-targets=alpha-linux,arm-linux,cris-linux,hppa-linux,i386-linux,ia64-linux,m68k-linux,mips-linux,mips64-linux,mips64el-linux,mipsel-linux,ppc-linux,s390-linux,s390x-linux,sh-linux,sparc-linux,sparc64-linux,i386-linuxaout}
 
 %{__make} tooldir=%{_prefix} all info
