@@ -2,13 +2,13 @@ Summary:	GNU Binary Utility Development Utilities
 Summary(pl):	Narzêdzia GNU dla programistów
 Name:		binutils
 Version:	2.9.1.0.19a
-Release:	5d
+Release:	6
 Copyright:	GPL
 Group:		Development/Tools
 Group(pl):	Programowanie/Narzêdzia
 URL:		ftp://ftp.kernel.org/pub/linux/devel/gcc
 Source:		%{name}-%{version}.tar.bz2
-Patch:		%{name}-sparc32.patch
+Patch0:		%{name}-sparc32.patch
 Patch1:		%{name}-2.9.1.0.19-opcodes.patch.gz
 Patch2:		%{name}-%{version}-r_386_pc.patch.gz
 Patch3:		%{name}-%{version}-gas_opcodes.patch.gz
@@ -42,7 +42,7 @@ Biblioteki statyczne GNU Binutils.
 
 %prep
 %setup -q 
-%patch  -p1
+%patch0 -p1
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
@@ -73,13 +73,14 @@ make install install-info \
 gzip -9nf $RPM_BUILD_ROOT/usr/info/*.inf*
 
 strip $RPM_BUILD_ROOT/usr/bin/*
-#strip $RPM_BUILD_ROOT/usr/lib/*.so.*
 
 install include/libiberty.h $RPM_BUILD_ROOT/usr/include
 
 chmod 755 $RPM_BUILD_ROOT/usr/lib/*.so.*
 
-gzip -9nf $RPM_BUILD_ROOT/usr/man/man1/* README
+gzip -9nf $RPM_BUILD_ROOT/usr/man/man1/* 
+
+bzip2 -9 README
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -107,7 +108,7 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc README.gz
+%doc README.bz2
 
 %attr(755,root,root) /usr/bin/*
 
@@ -136,7 +137,7 @@ fi
 - minor changes
 
 * Mon Jan 18 1999 Wojtek ¦lusarczyk <wojtek@shadow.eu.org>
-[2.9.1.0.19-4d]
+  [2.9.1.0.19-4d]
 - fixed %preun && %post,
 - commpresed %doc,
 - added Group(pl),
@@ -156,33 +157,33 @@ fi
 - added a fix for 16-bit PC-relative relocations on i386.
 
 * Sun Dec 20 1998 Wojtek ¦lusarczyk <wojtek@shadow.eu.org>
-[2.9.1.0.19-2d]
+  [2.9.1.0.19-2d]
 - removed static subpackages,
 - cosmetic changes,
 - final build for Tornado.
 
 * Wed Dec  8 1998 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
-[2.9.1.0.17-2] 
+  [2.9.1.0.17-2] 
 - added using sparc32 for run ./configure script on sparc
   architecture (thanks DaveM).
 
 * Fri Oct  9 1998 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
-[2.9.1.0.15-2]
+  [2.9.1.0.15-2]
 - /usr/lib/libiberty.a moved to main.
 
 * Sat Oct 03 1998 Wojtek ¦lusarczyk <wojtek@shadow.eu.org>
-[2.9.1.0.15-1d]
+  [2.9.1.0.15-1d]
 - fixed pl translation,
 - updated to 2.9.1.0.15.
 
 * Sun Sep 13 1998 Wojtek ¦lusarczyk <wojtek@SHADOW.EU.ORG>
-[2.9.1.0.12-1d]
+  [2.9.1.0.12-1d]
 - updated to 2.9.1.0.12.
 - install -d instead mkdir -p,
 - restricted ELF binaries permissions.
 
 * Tue Sep 07 1998 Wojtek ¦lusarczyk <wojtek@SHADOW.EU.ORG>
-[2.9.1.0.11-1d]
+  [2.9.1.0.11-1d]
 - updated to 2.9.1.0.11,
 - build without $RPM_OPT_FLAGS - some problems with egcs & -O6 ...
 - added a static package,
@@ -197,54 +198,9 @@ fi
 - added using $RPM_OPT_FLAGS during building package.
 
 * Fri Jun 12 1998 Wojtek ¦lusarczyk <wojtek@SHADOW.EU.ORG>
-[2.9.1.0.6-2]
+  [2.9.1.0.6-2]
 - build against GNU libc-2.1.
 
 * Fri May 29 1998 Wojtek ¦lusarczyk <wojtek@SHADOW.EU.ORG>
-- Replaced binutils to binutils-2.9.1.0.6.
-
-* Wed May  6 1998 Christian Joensson <chj@lin.foa.se>
-- Replaced binutils to binutils-2.9.1.0.4.
-
-* Wed Apr 29 1998 Christian Joensson <chj@lin.foa.se>
-- Replaced binutils to binutils-2.9.1.0.3.
-
-* Tue Apr 28 1998 Christian Joensson <chj@lin.foa.se>
-- Replaced binutils to binutils-2.9.1.0.2.
-
-* Fri Apr 17 1998 Christian Joensson <chj@lin.foa.se>
-- Replaced binutils to binutils-2.9.0.3.
-
-* Tue Apr 14 1998 Christian Joensson <chj@lin.foa.se>
-- Replaced binutils to binutils-2.9.0.2.
-
-* Mon Apr 13 1998 Christian Joensson <chj@lin.foa.se>
-- Replaced binutils to binutils-2.9.0.1.
-
-* Thu Apr  9 1998 Christian Joensson <chj@lin.foa.se>
-- Replaced binutils to binutils-2.8.1.0.30 and changed the conflict of
-  /usr/info/dir.
-
-* Sun Apr  5 1998 Christian Joensson <chj@lin.foa.se>
-- Replaced binutils to binutils-2.8.1.0.29.
-
-* Thu Apr  2 1998 Christian Joensson <chj@lin.foa.se>
-- Fixed the conflict of /usr/info/dir between the binutils and info packages.
-
-* Wed Apr  1 1998 Christian Joensson <chj@lin.foa.se>
-- Replaced binutils to binutils-2.8.1.0.28.
-
-* Mon Mar 30 1998 Christian Joensson <chj@lin.foa.se>
-- Replaced binutils to binutils-2.8.1.0.27.
-
-* Thu Mar 26 1998 Christian Joensson <chj@lin.foa.se>
-- Replaced binutils to binutils-2.8.1.0.25.
-
-* Thu Mar 19 1998 Trond Myklebust <trond.myklebust@fys.uio.no>
-- Replaced with hjl's binutils release from tsx-11
-  (patch 0.15-0.23 is far too large).
-
-* Wed Oct 22 1997 Erik Troan <ewt@redhat.com>
-
-- added 2.8.1.0.1 patch from hj
-- added patch for alpha palcode form rth
+- Replaced binutils to binutils-2.9.1.0.6,
+- start at RH spec file.
