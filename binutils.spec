@@ -107,7 +107,7 @@ rm -rf $RPM_BUILD_ROOT
 - added using sparc32 for run ./configure script on sparc
   architecture (thanks DaveM).
 
-* Mon Dec  9 1998 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
+* Mon Dec  7 1998 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
   [2.9.1.0.17-1]
 - added gzipping man pages,
 - added using LDFLAGS="-s" to ./configure enviroment,
