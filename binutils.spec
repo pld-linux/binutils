@@ -5,7 +5,7 @@ Summary(pl):	Narzêdzia GNU dla programistów
 Summary(tr):	GNU geliþtirme araçlarý
 Name:		binutils
 Version:	2.11.90.0.27
-Release:	0
+Release:	1
 Epoch:		1
 License:	GPL
 Group:		Development/Tools
@@ -13,6 +13,7 @@ Group(de):	Entwicklung/Werkzeuge
 Group(fr):	Development/Outils
 Group(pl):	Programowanie/Narzêdzia
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2 	
+Source1:	%{name}-non-english-man-pages.tar.gz
 Patch0:		%{name}-info.patch
 Patch1:		%{name}-bdfbug.patch
 URL:		http://sourceware.cygnus.com/binutils/
@@ -95,9 +96,16 @@ install -d $RPM_BUILD_ROOT%{_prefix}
 	includedir=$RPM_BUILD_ROOT%{_includedir} \
 	libdir=$RPM_BUILD_ROOT%{_libdir}
 
-rm -f $RPM_BUILD_ROOT%{_bindir}/c++filt 
+# these are already in gcc-g++
+rm -f $RPM_BUILD_ROOT%{_bindir}/c++filt $RPM_BUILD_ROOT%{_mandir}/man1/c++filt*
 
 rm -f $RPM_BUILD_ROOT%{_infodir}/standards.info*
+
+# remove these man pages unless we cross-build for win*/netware platforms.
+# however, this should be done in Makefiles.
+rm -f $RPM_BUILD_ROOT%{_mandir}/man1/{dlltool,nlmconv,windres}.1
+
+tar xzvf %{SOURCE1} -C $RPM_BUILD_ROOT%{_mandir}/
 
 install include/libiberty.h $RPM_BUILD_ROOT%{_includedir}
 
@@ -125,6 +133,14 @@ rm -rf $RPM_BUILD_ROOT
 
 %{_infodir}/*info*
 %{_mandir}/man1/*
+%lang(cs) %{_mandir}/cs/man1/*
+%lang(de) %{_mandir}/de/man1/*
+%lang(es) %{_mandir}/es/man1/*
+%lang(fi) %{_mandir}/fi/man1/*
+%lang(fr) %{_mandir}/fr/man1/*
+%lang(hu) %{_mandir}/hu/man1/*
+%lang(ja) %{_mandir}/ja/man1/*
+%lang(pl) %{_mandir}/pl/man1/*
 
 %files static
 %defattr(644,root,root,755)
