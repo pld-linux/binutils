@@ -4,13 +4,12 @@ Summary(fr): Utilitaires de développement binaire de GNU
 Summary(pl): Narzêdzia GNU dla programistów
 Summary(tr): GNU geliþtirme araçlarý
 Name:        binutils
-Version:     2.9.1.0.15
-Release:     2
+Version:     2.9.1.0.17
+Release:     1
 Copyright:   GPL
 Group:       Development/Tools
-Source:      ftp://tsx-11.mit.edu/pub/linux/packages/GCC/%{name}-%{version}.tar.gz
+Source       ftp://ftp.kernel.org/pub/linux/devel/gcc/%{name}-%{version}.tar.bz2
 Patch0:      binutils-2.9.1-sparcsectionreloc.patch
-Patch1:      binutils-2.9.1-emsparcv9.diff
 Buildroot:   /tmp/%{name}-%{version}-root
 
 %description
@@ -39,10 +38,11 @@ Biblioteki statyczne do GNU Binutils.
 (cd bfd;
 %patch -p0 -b .secreloc
 )
-%patch1 -p0 -b .emv9
 
 %build
-CFLAGS=$RPM_OPT_FLAGS ./configure --prefix=/usr --enable-shared
+CFLAGS="$RPM_OPT_FLAGS" LDFLAGS="-s" \
+./configure \
+	--prefix=/usr --enable-shared
 make tooldir=/usr all info
 
 %install
@@ -98,6 +98,12 @@ rm -rf $RPM_BUILD_ROOT
 /usr/lib/libopcodes.a
 
 %changelog
+* Mon Dec  9 1998 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
+  [2.9.1.0.17-1]
+- added gzipping man pages,
+- added using LDFLAGS="-s" to ./configure enviroment,
+- changed base Source url to ftp:ftp.kernel.org/pub/linux/devel/gcc/.
+
 * Fri Oct  9 1998 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
   [2.9.1.0.14-2]
 - /usr/lib/libiberty.a moved to main.
