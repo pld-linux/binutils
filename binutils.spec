@@ -1,5 +1,8 @@
 Summary:	GNU Binary Utility Development Utilities
+Summary(de):	GNU Binary Utility Development Utilities
+Summary(fr):	Utilitaires de développement binaire de GNU
 Summary(pl):	Narzêdzia GNU dla programistów
+Summary(tr):	GNU geliþtirme araçlarý
 Name:		binutils
 Version:	2.9.5.0.29
 Release:	1
