@@ -28,6 +28,7 @@ Patch2:		%{name}-array-sects-compat.patch
 Patch3:		%{name}-eh-frame-ro.patch
 Patch4:		%{name}-ia64-bootstrap.patch
 Patch5:		%{name}-libtool-relink.patch
+Patch6:		%{name}-pt_pax_flags.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1.8.2
@@ -122,6 +123,7 @@ niektórych pakietów.
 %patch2 -p1
 %endif
 %patch5 -p1
+%patch6 -p1
 # need update:
 #%patch3 -p1
 #%patch4 -p1
