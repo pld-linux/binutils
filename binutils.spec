@@ -5,7 +5,7 @@ Summary(pl): Narzêdzia GNU dla programistów
 Summary(tr): GNU geliþtirme araçlarý
 Name:        binutils
 Version:     2.9.1.0.17
-Release:     1
+Release:     2
 Copyright:   GPL
 Group:       Development/Tools
 Source       ftp://ftp.kernel.org/pub/linux/devel/gcc/%{name}-%{version}.tar.bz2
@@ -41,7 +41,11 @@ Biblioteki statyczne do GNU Binutils.
 
 %build
 CFLAGS="$RPM_OPT_FLAGS" LDFLAGS="-s" \
+%ifarch sparc sparc64
+sparc32 ./configure \
+%else
 ./configure \
+%endif
 	--prefix=/usr --enable-shared
 make tooldir=/usr all info
 
@@ -98,6 +102,11 @@ rm -rf $RPM_BUILD_ROOT
 /usr/lib/libopcodes.a
 
 %changelog
+* Wed Dec  8 1998 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
+  [2.9.1.0.17-2] 
+- added using sparc32 for run ./configure script on sparc
+  architecture (thanks DaveM).
+
 * Mon Dec  9 1998 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
   [2.9.1.0.17-1]
 - added gzipping man pages,
