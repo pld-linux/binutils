@@ -4,7 +4,7 @@ Summary(fr):	Utilitaires de développement binaire de GNU
 Summary(pl):	Narzêdzia GNU dla programistów
 Summary(tr):	GNU geliþtirme araçlarý
 Name:		binutils
-Version:	2.10.1
+Version:	2.10.0.33
 Release:	1
 Epoch:		1
 License:	GPL
@@ -12,7 +12,7 @@ Group:		Development/Tools
 Group(de):	Entwicklung/Werkzeuge
 Group(fr):	Development/Outils
 Group(pl):	Programowanie/Narzêdzia
-Source0:	ftp://ftp.gnu.org/pub/gnu/binutils/%{name}-%{version}.tar.gz
+Source0:	ftp://ftp.varesearch.com/pub/support/hjl/binutils/%{name}-%{version}.tar.gz
 Patch0:		%{name}-info.patch
 URL:		http://sourceware.cygnus.com/binutils/
 Prereq:		/sbin/ldconfig
