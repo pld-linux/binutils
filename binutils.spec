@@ -1,8 +1,8 @@
 Summary:	GNU Binary Utility Development Utilities
 Summary(pl):	Narzêdzia GNU dla programistów
 Name:		binutils
-Version:	2.9.1.0.25
-Release:	2
+Version:	2.9.5.0.8
+Release:	0.1
 Copyright:	GPL
 Group:		Development/Tools
 Group(pl):	Programowanie/Narzêdzia
@@ -35,7 +35,7 @@ Biblioteki statyczne GNU Binutils.
 
 %prep
 %setup -q 
-%patch -p1
+#%patch -p1
 
 %build
 CFLAGS="$RPM_OPT_FLAGS" LDFLAGS="-s" \
