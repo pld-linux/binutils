@@ -6,25 +6,24 @@ Summary(pl):	Narzêdzia GNU dla programistów
 Summary(pt_BR):	Utilitários para desenvolvimento de binários da GNU
 Summary(tr):	GNU geliþtirme araçlarý
 Name:		binutils
-Version:	2.11.90.0.19
-Release:	5
+Version:	2.13.90.0.4
+Release:	1
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 Patch0:		%{name}-info.patch
-Patch1:		%{name}-sparc_unaligned_reloc.patch
-Patch2:		%{name}-preserve_e_flags.patch
-Patch3:		%{name}-getopt.patch
 URL:		http://sourceware.cygnus.com/binutils/
 Prereq:		/sbin/ldconfig
+BuildRequires:	automake
 BuildRequires:	flex
 BuildRequires:	bison
 BuildRequires:	perl-devel
 %ifarch sparc sparc32
 BuildRequires:	sparc32
 %endif
+Conflicts:	modutils < 2.4.17
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -71,13 +70,11 @@ Biblioteki statyczne GNU Binutils.
 %prep
 %setup -q 
 %patch0 -p1
-%patch1 -p1
-%patch2 -p0
-%patch3 -p1
 
 %build
-CFLAGS="%{rpmcflags}"
-export CFLAGS
+cp -f /usr/share/automake/config.* .
+CFLAGS="%{rpmcflags}"; export CFLAGS
+CC="%{__cc}"; export CC
 %ifarch sparc 
 sparc32 \
 %endif
@@ -114,9 +111,11 @@ rm -f $RPM_BUILD_ROOT%{_infodir}/standards.info*
 # however, this should be done in Makefiles.
 rm -f $RPM_BUILD_ROOT%{_mandir}/man1/{dlltool,nlmconv,windres}.1
 
-bzip2 -dc %{SOURCE1} | tar xf - -C $RPM_BUILD_ROOT%{_mandir}/
+bzip2 -dc %{SOURCE1} | tar xf - -C $RPM_BUILD_ROOT%{_mandir}
 
 install include/libiberty.h $RPM_BUILD_ROOT%{_includedir}
+
+%find_lang %{name} --all-name
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -129,12 +128,13 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/ldconfig
 [ ! -x /usr/sbin/fix-info-dir ] || /usr/sbin/fix-info-dir -c %{_infodir} >/dev/null 2>&1
 
-%files
+%files -f %{name}.lang
 %defattr(644,root,root,755)
 %doc README
 %attr(755,root,root) %{_bindir}/*
 %attr(755,root,root) %{_libdir}/*.so
 %{_libdir}/libiberty.a
+%{_libdir}/lib*.la
 
 %{_libdir}/ldscripts
 %{_includedir}/*.h
