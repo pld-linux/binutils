@@ -1,0 +1,137 @@
+Summary:     GNU Binary Utility Development Utilities
+Summary(de): GNU Binary Utility Development Utilities
+Summary(fr): Utilitaires de développement binaire de GNU
+Summary(pl): Narzêdzia GNU dla programistów
+Summary(tr): GNU geliþtirme araçlarý
+Name:        binutils
+Version:     2.9.1.0.10
+Release:     3
+Copyright:   GPL
+Group:       Development/Tools
+Source:      ftp://tsx-11.mit.edu/pub/linux/packages/GCC/%{name}-%{version}.tar.gz
+Patch0:      binutils-2.9.1-sparcsectionreloc.patch
+Patch1:      binutils-2.9.1-emsparcv9.diff
+Buildroot:   /tmp/%{name}-%{version}-root
+
+%description
+Binutils is a collection of utilities necessary for compiling programs. It
+includes the assembler and linker, as well as a number of other
+miscellaneous programs for dealing with executable formats.
+
+%description -l pl
+Pakiet binutils zawiera zestaw narzêdzi umo¿liwiaj±cych kompilacjê
+programów. Zawiera on assembler, konsolidator (linker), a tak¿e inne narzêdzia
+do manipulowania na binarnych plikach programów i bibliotek.
+
+%prep
+%setup -q
+(cd bfd;
+%patch -p0 -b .secreloc
+)
+%patch1 -p0 -b .emv9
+
+%build
+CFLAGS=$RPM_OPT_FLAGS ./configure --prefix=/usr --enable-shared
+make tooldir=/usr all info
+
+%install
+rm -rf $RPM_BUILD_ROOT
+install -d $RPM_BUILD_ROOT/usr
+make	install install-info \
+	prefix=$RPM_BUILD_ROOT/usr \
+	tooldir=$RPM_BUILD_ROOT/usr
+
+strip $RPM_BUILD_ROOT/usr/bin/*
+gzip -q9f $RPM_BUILD_ROOT/usr/info/*.info*
+
+install include/libiberty.h $RPM_BUILD_ROOT/usr/include
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%post
+/sbin/ldconfig
+/sbin/install-info --info-dir=/usr/info /usr/info/as.info.gz
+/sbin/install-info --info-dir=/usr/info /usr/info/bfd.info.gz
+/sbin/install-info --info-dir=/usr/info /usr/info/binutils.info.gz
+/sbin/install-info --info-dir=/usr/info /usr/info/gasp.info.gz
+/sbin/install-info --info-dir=/usr/info /usr/info/gprof.info.gz
+/sbin/install-info --info-dir=/usr/info /usr/info/ld.info.gz
+/sbin/install-info --info-dir=/usr/info /usr/info/standards.info.gz
+
+%preun
+if [ $1 = 0 ] ;then
+  /sbin/install-info --delete --info-dir=/usr/info /usr/info/as.info.gz
+  /sbin/install-info --delete --info-dir=/usr/info /usr/info/bfd.info.gz
+  /sbin/install-info --delete --info-dir=/usr/info /usr/info/binutils.info.gz
+  /sbin/install-info --delete --info-dir=/usr/info /usr/info/gasp.info.gz
+  /sbin/install-info --delete --info-dir=/usr/info /usr/info/gprof.info.gz
+  /sbin/install-info --delete --info-dir=/usr/info /usr/info/ld.info.gz
+  /sbin/install-info --delete --info-dir=/usr/info /usr/info/standards.info.gz
+fi
+
+%postun -p /sbin/ldconfig
+
+%files
+%defattr(644, root, root, 755)
+/usr/bin/*
+%attr(644, root,  man) /usr/man/man1/*
+/usr/include/*
+/usr/lib/*
+/usr/info/*info*
+
+%changelog
+* Sat Aug 22 1998 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
+  [2.9.1.0.10-3]
+- changed Buildroot to /tmp/%%{name}-%%{version}-root,
+- added using %%{name} and %%{version} in Source,
+- added static subpackage,
+- added using $RPM_OPT_FLAGS during building package,
+- added striping shared libraries,
+- added %attr and %defattr macros in %files (allow build package from
+  non-root account).
+
+* Thu Jul  2 1998 Jeff Johnson <jbj@redhat.com>
+- updated to 2.9.1.0.7.
+
+* Wed Jun 03 1998 Jeff Johnson <jbj@redhat.com>
+- updated to 2.9.1.0.6.
+
+* Tue Jun 02 1998 Erik Troan <ewt@redhat.com>
+- added patch from rth to get right offsets for sections in relocateable
+  objects on sparc32
+
+* Thu May 07 1998 Prospector System <bugs@redhat.com>
+- translations modified for de, fr, tr
+
+* Tue May 05 1998 Cristian Gafton <gafton@redhat.com>
+- version 2.9.1.0.4 is out; even more, it is public !
+
+* Tue May 05 1998 Jeff Johnson <jbj@redhat.com>
+- updated to 2.9.1.0.3.
+
+* Mon Apr 20 1998 Cristian Gafton <gafton@redhat.com>
+- updated to 2.9.0.3
+
+* Tue Apr 14 1998 Cristian Gafton <gafton@redhat.com>
+- upgraded to 2.9.0.2
+
+* Sun Apr 05 1998 Cristian Gafton <gafton@redhat.com>
+- updated to 2.8.1.0.29 (HJ warned me that this thing is a moving target...
+  :-)
+- "fixed" the damn make install command so that all tools get installed
+
+* Thu Apr 02 1998 Cristian Gafton <gafton@redhat.com>
+- upgraded again to 2.8.1.0.28 (at least on alpha now egcs will compile)
+- added info packages handling
+
+* Tue Mar 10 1998 Cristian Gafton <gafton@redhat.com>
+- upgraded to 2.8.1.0.23
+
+* Mon Mar 02 1998 Cristian Gafton <gafton@redhat.com>
+- updated to 2.8.1.0.15 (required to compile the newer glibc)
+- all patches are obsoleted now
+
+* Wed Oct 22 1997 Erik Troan <ewt@redhat.com>
+- added 2.8.1.0.1 patch from hj
+- added patch for alpha palcode form rth
