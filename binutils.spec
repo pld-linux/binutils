@@ -73,7 +73,7 @@ sparc32 \
 	--disable-debug \
 	--prefix=%{_prefix} \
 	--infodir=%{_infodir} \
-	--mandir=%{_mandir}
+	--mandir=%{_mandir} \
 %ifarch sparc
 	--enable-targets=sparc64-pld-linux
 %endif
