@@ -4,14 +4,15 @@ Summary(fr):	Utilitaires de développement binaire de GNU
 Summary(pl):	Narzêdzia GNU dla programistów
 Summary(tr):	GNU geliþtirme araçlarý
 Name:		binutils
-Version:	2.10.0.18
+Version:	2.10.0.12
 Release:	1
+Epoch:		1
 License:	GPL
 Group:		Development/Tools
 Group(fr):	Development/Outils
 Group(pl):	Programowanie/Narzêdzia
 Source0:	ftp://ftp.varesearch.com/pub/support/hjl/binutils/%{name}-%{version}.tar.gz
-Patch0:		binutils-info.patch
+Patch0:		%{name}-info.patch
 Prereq:		/sbin/ldconfig
 BuildRequires:	flex
 BuildRequires:	bison
