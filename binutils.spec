@@ -12,8 +12,8 @@ Summary(ru):	Набор инструментов GNU для построения исполняемых программ
 Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.13.90.0.18
-Release:	0.1
+Version:	2.13.90.0.20
+Release:	1
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
@@ -109,7 +109,7 @@ niektСrych pakietСw.
 %setup  -q
 %patch0 -p1
 %patch1 -p1
-%patch2 -p1
+#%patch2 -p1
 %patch3 -p1
 %ifarch %{ix86}
 %patch4 -p1
