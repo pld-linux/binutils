@@ -4,7 +4,7 @@ Summary(fr):	Utilitaires de développement binaire de GNU
 Summary(pl):	Narzêdzia GNU dla programistów
 Summary(tr):	GNU geliþtirme araçlarý
 Name:		binutils
-Version:	2.11.90.0.5
+Version:	2.11.90.0.6
 Release:	1
 Epoch:		1
 License:	GPL
@@ -12,12 +12,13 @@ Group:		Development/Tools
 Group(de):	Entwicklung/Werkzeuge
 Group(fr):	Development/Outils
 Group(pl):	Programowanie/Narzêdzia
-Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/binutils-2.11.90.0.5.tar.bz2 	
+Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2 	
 Patch0:		%{name}-info.patch
 URL:		http://sourceware.cygnus.com/binutils/
 Prereq:		/sbin/ldconfig
 BuildRequires:	flex
 BuildRequires:	bison
+BuildRequires:	perl
 %ifarch sparc sparc32
 BuildRequires:	sparc32
 %endif
@@ -63,7 +64,7 @@ Biblioteki statyczne GNU Binutils.
 %patch0 -p1
 
 %build
-CFLAGS="%{!?debug:$RPM_OPT_FLAGS}%{?debug:-g -O0}"
+CFLAGS="%{rpmcflags}"
 export CFLAGS
 %ifarch sparc
 sparc32 \
