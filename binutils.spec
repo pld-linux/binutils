@@ -11,11 +11,6 @@ Release:	4
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
-Group(de):	Entwicklung/Werkzeuge
-Group(es):	Desarrollo/Herramientas
-Group(fr):	Development/Outils
-Group(pl):	Programowanie/NarzЙdzia
-Group(pt):	Desenvolvimento/Ferramentas
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 Patch0:		%{name}-info.patch
@@ -65,14 +60,6 @@ programas para trabalhar com formatos executАveis.
 Summary:	GNU Binutils static libraries
 Summary(pl):	Biblioteki statyczne do GNU Binutils
 Group:		Development/Libraries
-Group(de):	Entwicklung/Bibliotheken
-Group(es):	Desarrollo/Bibliotecas
-Group(fr):	Development/Librairies
-Group(pl):	Programowanie/Biblioteki
-Group(pt_BR):	Desenvolvimento/Bibliotecas
-Group(pt):	Desenvolvimento/Bibliotecas
-Group(ru):	Разработка/Библиотеки
-Group(uk):	Розробка/Б╕бл╕отеки
 Requires:	%{name} = %{version}
 
 %description static
