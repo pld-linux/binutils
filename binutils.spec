@@ -6,7 +6,7 @@ Summary(pl):	Narzêdzia GNU dla programistów
 Summary(pt_BR):	Utilitários para desenvolvimento de binários da GNU
 Summary(tr):	GNU geliþtirme araçlarý
 Name:		binutils
-Version:	2.13.90.0.4
+Version:	2.13.90.0.10
 Release:	1
 Epoch:		2
 License:	GPL
@@ -14,15 +14,15 @@ Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 Patch0:		%{name}-info.patch
-URL:		http://sourceware.cygnus.com/binutils/
-Prereq:		/sbin/ldconfig
+URL:		http://sources.redhat.com/binutils/
 BuildRequires:	automake
-BuildRequires:	flex
 BuildRequires:	bison
+BuildRequires:	flex
 BuildRequires:	perl-devel
 %ifarch sparc sparc32
 BuildRequires:	sparc32
 %endif
+Requires(post,postun):	/sbin/ldconfig
 Conflicts:	modutils < 2.4.17
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -64,7 +64,7 @@ Requires:	%{name} = %{version}
 %description static
 Static libraries for GNU Binutils.
 
-%description -l pl static
+%description static -l pl
 Biblioteki statyczne GNU Binutils.
 
 %prep
