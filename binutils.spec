@@ -121,7 +121,7 @@ fi
 
 /usr/info/*.gz
 
-%attr(644,root,root) /usr/lib/*.a
+%attr(644,root,root) /usr/lib/libiberty.a
 %attr(644,root, man) /usr/man/man1/*
 
 %files static
