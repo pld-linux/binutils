@@ -12,27 +12,20 @@ Summary(ru):	Набор инструментов GNU для построения исполняемых программ
 Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.13.90.0.16
-Release:	2
+Version:	2.13.90.0.18
+Release:	0.1
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
-Patch0:		%{name}-info.patch
+Patch0:		%{name}-gasp.patch
 Patch1:		%{name}-sparc-nonpic.patch
 Patch2:		%{name}-ia64-brl.patch
-Patch3:		%{name}-rodata-cst.patch
-Patch4:		%{name}-eh-frame-ro.patch
-Patch5:		%{name}-ppc-apuinfo.patch
-Patch6:		%{name}-stt_tls.patch
-Patch7:		%{name}-ia64-bootstrap.patch
-Patch8:		%{name}-tls-strip.patch
-Patch9:		%{name}-ia64-tls.patch
-Patch10:	%{name}-alpha-plt.patch
-Patch11:	%{name}-ia64-tls2.patch
-Patch12:	%{name}-array-sects-compat.patch
-Patch13:	%{name}-build-gasp.patch
+Patch3:		%{name}-info.patch
+Patch4:		%{name}-array-sects-compat.patch
+Patch5:		%{name}-eh-frame-ro.patch
+Patch6:		%{name}-ia64-bootstrap.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	automake
 BuildRequires:	bison
@@ -97,24 +90,33 @@ Static libraries for GNU Binutils.
 %description static -l pl
 Biblioteki statyczne GNU Binutils.
 
+%package gasp
+Summary:	GASP - old preprocessor for assembly programs
+Summary(pl):	GASP - stary preprocesor dla programСw w asemblerze
+Group:		Development/Tools
+Requires:	%{name} = %{version}
+
+%description gasp
+GASP - old preprocessor for assembly programs. It's officially
+obsoleted, but it's still needed to build some packages.
+
+%description gasp -l pl
+GASP - stary preprocesor dla programСw w asemblerze. Jest oficjalnie
+uznany za przestarzaЁy, ale jest nadal potrzebny do zbudowania
+niektСrych pakietСw.
+
 %prep
 %setup  -q
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
-%patch4 -p1
-%patch5 -p1
-%patch6 -p1
-%patch7 -p1
-%patch8 -p1
-%patch9 -p1
-%patch10 -p1
-%patch11 -p1
 %ifarch %{ix86}
-%patch12 -p1
+%patch4 -p1
 %endif
-%patch13 -p1
+# need update:
+#%patch5 -p1
+#%patch6 -p1
 
 %build
 cp -f /usr/share/automake/config.* .
@@ -178,7 +180,8 @@ rm -rf $RPM_BUILD_ROOT
 %files -f %{name}.lang
 %defattr(644,root,root,755)
 %doc README
-%attr(755,root,root) %{_bindir}/*
+%attr(755,root,root) %{_bindir}/[!g]*
+%attr(755,root,root) %{_bindir}/g[!a]*
 %attr(755,root,root) %{_libdir}/*.so
 %{_libdir}/libiberty.a
 %{_libdir}/lib*.la
@@ -186,7 +189,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/ldscripts
 %{_includedir}/*.h
 
-%{_infodir}/*info*
+%{_infodir}/[!g]*.info*
+%{_infodir}/g[!a]*.info*
 %{_mandir}/man1/*
 %lang(cs) %{_mandir}/cs/man1/*
 %lang(de) %{_mandir}/de/man1/*
@@ -199,4 +203,9 @@ rm -rf $RPM_BUILD_ROOT
 
 %files static
 %defattr(644,root,root,755)
-%{_libdir}/lib[^i]*.a
+%{_libdir}/lib[!i]*.a
+
+%files gasp
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_bindir}/gasp
+%{_infodir}/gasp.info*
