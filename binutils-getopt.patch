@@ -1,0 +1,12 @@
+diff -urN binutils-2.11.90.0.19.org/binutils/objcopy.c binutils-2.11.90.0.19/binutils/objcopy.c
+--- binutils-2.11.90.0.19.org/binutils/objcopy.c	Wed Feb  6 10:23:18 2002
++++ binutils-2.11.90.0.19/binutils/objcopy.c	Wed Feb  6 10:23:48 2002
+@@ -1840,7 +1840,7 @@
+   struct section_list *p;
+   char *output_file = NULL;
+ 
+-  while ((c = getopt_long (argc, argv, "b:i:I:j:K:N:s:O:d:F:L:G:R:SpgxXVvW:",
++  while ((c = getopt_long (argc, argv, "b:i:I:j:K:N:o:s:O:d:F:L:G:R:SpgxXVvW:",
+ 			   strip_options, (int *) 0)) != EOF)
+     {
+       switch (c)
