@@ -123,8 +123,7 @@ niektórych pakietów.
 %endif
 %patch3 -p1
 %patch4 -p1
-# we don't seem to have mips, updateme anyway
-#%patch5 -p0
+%patch5 -p0
 
 %build
 # non-standard regeneration (needed because of gasp patch)
