@@ -16,6 +16,9 @@ Patch0:		%{name}-info.patch
 Prereq:		/sbin/ldconfig
 BuildRequires:	flex
 BuildRequires:	bison
+%ifarch sparc sparc32
+BuildRequires:	sparc32
+%endif
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
