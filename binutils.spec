@@ -85,7 +85,7 @@ fi
 
 %files
 %defattr(644, root, root, 755)
-/usr/bin/*
+%attr(755, root, root) /usr/bin/*
 %attr(644, root,  man) /usr/man/man1/*
 /usr/include/*
 %attr(755, root, root) /usr/lib/lib*.so.*.*
