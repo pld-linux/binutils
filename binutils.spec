@@ -183,6 +183,7 @@ rm -f $RPM_BUILD_ROOT%{_mandir}/man1/{dlltool,nlmconv,windres}.1
 bzip2 -dc %{SOURCE1} | tar xf - -C $RPM_BUILD_ROOT%{_mandir}
 
 install include/libiberty.h $RPM_BUILD_ROOT%{_includedir}
+install libiberty/pic/libiberty.a $RPM_BUILD_ROOT%{_libdir}
 
 # remove evil -L pointing inside builder's home
 perl -pi -e 's@-L[^ ]*/pic @@g' $RPM_BUILD_ROOT%{_libdir}/libbfd.la
