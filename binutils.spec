@@ -118,6 +118,8 @@ niektórych pakietów.
 
 %prep
 %setup -q
+
+/bin/sh patches/README
 %patch0 -p1
 %patch1 -p1
 %ifarch %{ix86}
@@ -156,6 +158,7 @@ CC="%{__cc}"; export CC
 %ifarch sparc
 sparc32 \
 %endif
+
 ./configure %{_target_platform} \
 	--enable-shared \
 	--disable-debug \
@@ -171,8 +174,9 @@ sparc32 \
 %endif
 	%{?with_allarchs:--enable-targets=alpha-linux,arm-linux,cris-linux,hppa-linux,i386-linux,ia64-linux,x86_64-linux,m68k-linux,mips-linux,mips64-linux,mips64el-linux,mipsel-linux,ppc-linux,s390-linux,s390x-linux,sh-linux,sparc-linux,sparc64-linux,i386-linuxaout}
 
-%{__make} all info \
-	 tooldir=%{_prefix}
+%{__make} configure-bfd
+%{__make} headers -C bfd
+%{__make} tooldir=%{_prefix} all info
 
 %install
 rm -rf $RPM_BUILD_ROOT
