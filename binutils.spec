@@ -60,35 +60,35 @@ make install install-info \
 	prefix=$RPM_BUILD_ROOT/usr \
 	tooldir=$RPM_BUILD_ROOT/usr
 
-gzip -9nf $RPM_BUILD_ROOT/usr/info/*.inf*
+gzip -9nf $RPM_BUILD_ROOT%{_infodir}/*.inf*
 
 strip $RPM_BUILD_ROOT/usr/bin/*
 
 install include/libiberty.h $RPM_BUILD_ROOT/usr/include
 
-gzip -9nf $RPM_BUILD_ROOT/usr/man/man1/* \
+gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man1/* \
 	README
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %post
-/sbin/install-info /usr/info/as.info.gz /etc/info-dir
-/sbin/install-info /usr/info/bfd.info.gz /etc/info-dir
-/sbin/install-info /usr/info/binutils.info.gz /etc/info-dir 
-/sbin/install-info /usr/info/ld.info.gz /etc/info-dir
-/sbin/install-info /usr/info/gasp.info.gz /etc/info-dir 
-/sbin/install-info /usr/info/gprof.info.gz /etc/info-dir 
+/sbin/install-info %{_infodir}/as.info.gz /etc/info-dir
+/sbin/install-info %{_infodir}/bfd.info.gz /etc/info-dir
+/sbin/install-info %{_infodir}/binutils.info.gz /etc/info-dir 
+/sbin/install-info %{_infodir}/ld.info.gz /etc/info-dir
+/sbin/install-info %{_infodir}/gasp.info.gz /etc/info-dir 
+/sbin/install-info %{_infodir}/gprof.info.gz /etc/info-dir 
 /sbin/ldconfig
 
 %preun
 if [ "$1" = "0" ]; then
-	/sbin/install-info --delete /usr/info/as.info.gz /etc/info-dir
-	/sbin/install-info --delete /usr/info/bfd.info.gz /etc/info-dir
-	/sbin/install-info --delete /usr/info/binutils.info.gz /etc/info-dir
-	/sbin/install-info --delete /usr/info/ld.info.gz /etc/info-dir
-	/sbin/install-info --delete /usr/info/gasp.info.gz /etc/info-dir
-	/sbin/install-info --delete /usr/info/gprof.info.gz /etc/info-dir
+	/sbin/install-info --delete %{_infodir}/as.info.gz /etc/info-dir
+	/sbin/install-info --delete %{_infodir}/bfd.info.gz /etc/info-dir
+	/sbin/install-info --delete %{_infodir}/binutils.info.gz /etc/info-dir
+	/sbin/install-info --delete %{_infodir}/ld.info.gz /etc/info-dir
+	/sbin/install-info --delete %{_infodir}/gasp.info.gz /etc/info-dir
+	/sbin/install-info --delete %{_infodir}/gprof.info.gz /etc/info-dir
 fi
 
 %postun -p /sbin/ldconfig
@@ -102,10 +102,10 @@ fi
 /usr/lib/ldscripts
 /usr/include/*.h
 
-/usr/info/*.gz
+%{_infodir}/*.gz
 
 /usr/lib/libiberty.a
-/usr/man/man1/*
+%{_mandir}/man1/*
 
 %files static
 %defattr(644,root,root)
