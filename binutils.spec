@@ -2,7 +2,7 @@ Summary:	GNU Binary Utility Development Utilities
 Summary(pl):	Narzêdzia GNU dla programistów
 Name:		binutils
 Version:	2.9.5.0.12
-Release:	1
+Release:	2
 Copyright:	GPL
 Group:		Development/Tools
 Group(pl):	Programowanie/Narzêdzia
@@ -79,10 +79,8 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/ldconfig
 /usr/sbin/fix-info-dir -c %{_infodir} >/dev/null 2>&1
 
-%preun
-/usr/sbin/fix-info-dir -c %{_infodir} >/dev/null 2>&1
-
 %postun -p /sbin/ldconfig
+/usr/sbin/fix-info-dir -c %{_infodir} >/dev/null 2>&1
 
 %files
 %defattr(644,root,root,755)
