@@ -64,7 +64,7 @@ Binutils is a collection of binary utilities, including:
 - nlmconv - convert object code into an NLM.
 
 %description -l es
-binutils es una colectánea de utilitarios necesarios para compilar
+Binutils es una colección de utilitarios necesarios para compilar
 programas. Incluye assembler y linker, así como varios otros programas
 para trabajar con formatos que se puedan ejecutar.
 
