@@ -1,4 +1,7 @@
 #
+# BUGS:
+#		- http://sources.redhat.com/bugzilla/show_bug.cgi?id=189
+#
 # Conditional build:
 %bcond_with	allarchs	# enable all targets
 # define addtargets x,y,z	# build with additional targets x,y,z (e.g. x86_64-linux)
