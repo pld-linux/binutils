@@ -18,6 +18,7 @@ URL:		http://sources.redhat.com/binutils/
 BuildRequires:	automake
 BuildRequires:	bison
 BuildRequires:	flex
+BuildRequires:	gettext-devel
 BuildRequires:	perl-devel
 %ifarch sparc sparc32
 BuildRequires:	sparc32
