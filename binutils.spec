@@ -6,8 +6,7 @@ Release:	2
 Copyright:	GPL
 Group:		Development/Tools
 Group(pl):	Programowanie/Narzêdzia
-URL:		ftp://ftp.varesearch.com/pub/support/hjl/binutils
-Source:		%{name}-%{version}.tar.gz
+Source:		ftp://ftp.varesearch.com/pub/support/hjl/binutils/%{name}-%{version}.tar.gz
 Patch0:		binutils-info.patch
 BuildRoot:	/tmp/%{name}-%{version}-root
 
@@ -21,7 +20,7 @@ Pakiet binutils zawiera zestaw narzêdzi umo¿liwiaj±cych kompilacjê programów.
 Znajduj± siê tutaj miêdzy innymi assembler, konsolidator (linker), a tak¿e 
 inne narzêdzia do manipulowania binarnymi plikami programów i bibliotek.
 
-%package	static
+%package static
 Summary:	GNU Binutils static libraries
 Summary(pl):	Biblioteki statyczne do GNU Binutils
 Group:		Development/Libraries
@@ -99,7 +98,6 @@ fi
 %files
 %defattr(644,root,root,755)
 %doc *.gz
-
 %attr(755,root,root) %{_bindir}/*
 %attr(755,root,root) %{_libdir}/*.so
 
@@ -111,7 +109,6 @@ fi
 
 %files static
 %defattr(644,root,root,755)
-
 %{_libdir}/lib*.a
 
 %changelog
