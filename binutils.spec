@@ -1,10 +1,16 @@
+#
+# conditional build:
+# _with_allarchs	- enable
+#
 Summary:	GNU Binary Utility Development Utilities
 Summary(de):	GNU Binary Utility Development Utilities
 Summary(es):	Utilitarios para desarrollo de binarios de la GNU
 Summary(fr):	Utilitaires de dИveloppement binaire de GNU
 Summary(pl):	NarzЙdzia GNU dla programistСw
 Summary(pt_BR):	UtilitАrios para desenvolvimento de binАrios da GNU
+Summary(ru):	Набор инструментов GNU для построения исполняемых программ
 Summary(tr):	GNU geliЧtirme araГlarЩ
+Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.13.90.0.16
 Release:	1
@@ -14,6 +20,18 @@ Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 Patch0:		%{name}-info.patch
+Patch1:		%{name}-sparc-nonpic.patch
+Patch2:		%{name}-ia64-brl.patch
+Patch3:		%{name}-rodata-cst.patch
+Patch4:		%{name}-eh-frame-ro.patch
+Patch5:		%{name}-ppc-apuinfo.patch
+Patch6:		%{name}-stt_tls.patch
+Patch7:		%{name}-ia64-bootstrap.patch
+Patch8:		%{name}-tls-strip.patch
+Patch9:		%{name}-ia64-tls.patch
+Patch10:	%{name}-alpha-plt.patch
+Patch11:	%{name}-ia64-tls2.patch
+Patch12:	%{name}-array-sects-compat.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	automake
 BuildRequires:	bison
@@ -56,6 +74,16 @@ binutils И uma coletБnea de utilitАrios necessАrios para compilar
 programas. Inclui assembler e linker, assim como vАrios outros
 programas para trabalhar com formatos executАveis.
 
+%description -l ru
+binutils - это набор инструментов, необходимых для компилляции
+программ. Включает ассемблер, компоновщик и набор других программ для
+работы с исполняемыми файлами разнообразных форматов.
+
+%description -l uk
+binutils - це наб╕р ╕нструмент╕в, необх╕дних для комп╕ляц╕╖ програм.
+М╕стить асемблер, компоновщик та ╕нш╕ програми, необх╕дн╕ для роботи з
+виконуваними файлами р╕зних формат╕в.
+
 %package static
 Summary:	GNU Binutils static libraries
 Summary(pl):	Biblioteki statyczne do GNU Binutils
@@ -69,14 +97,28 @@ Static libraries for GNU Binutils.
 Biblioteki statyczne GNU Binutils.
 
 %prep
-%setup -q 
+%setup  -q
 %patch0 -p1
+%patch1 -p1
+%patch2 -p1
+%patch3 -p1
+%patch4 -p1
+%patch5 -p1
+%patch6 -p1
+%patch7 -p1
+%patch8 -p1
+%patch9 -p1
+%patch10 -p1
+%patch11 -p1
+%ifarch %{ix86}
+%patch12 -p1
+%endif
 
 %build
 cp -f /usr/share/automake/config.* .
 CFLAGS="%{rpmcflags}"; export CFLAGS
 CC="%{__cc}"; export CC
-%ifarch sparc 
+%ifarch sparc
 sparc32 \
 %endif
 ./configure %{_target_platform} \
@@ -86,8 +128,10 @@ sparc32 \
 	--infodir=%{_infodir} \
 	--mandir=%{_mandir} \
 %ifarch sparc
-	--enable-targets=sparc64-linux
+	--enable-targets=sparc64-linux \
 %endif
+	%{?_with_allarchs:--enable-64-bit-bfd} \
+	%{?_with_allarchs:--enable-targets=alpha-linux,arm-linux,cris-linux,hppa-linux,i386-linux,ia64-linux,m68k-linux,mips-linux,mips64-linux,mips64el-linux,mipsel-linux,ppc-linux,s390-linux,s390x-linux,sh-linux,sparc-linux,sparc64-linux,i386-linuxaout}
 
 %{__make} tooldir=%{_prefix} all info
 
