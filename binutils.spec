@@ -13,24 +13,22 @@ Summary(ru):	Набор инструментов GNU для построения исполняемых программ
 Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.15.91.0.1
-Release:	2
+Version:	2.15.91.0.2
+Release:	1
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	0d64d65d33a7f305e5ef8351086b9a3a
+# Source0-md5:	41983069bef07af4f1350c6d30666b2d
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
 Patch1:		%{name}-info.patch
 Patch2:		%{name}-array-sects-compat.patch
-Patch3:		%{name}-eh-frame-ro.patch
-Patch4:		%{name}-ia64-bootstrap.patch
-Patch5:		%{name}-libtool-relink.patch
-Patch6:		%{name}-pt_pax_flags.patch
-Patch7:		%{name}-mips-relocs.patch
-Patch8:		%{name}-elf-sort.patch
+Patch3:		%{name}-libtool-relink.patch
+Patch4:		%{name}-pt_pax_flags.patch
+# needs check
+#Patch5:		%{name}-mips-relocs.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1.8.2
@@ -124,13 +122,9 @@ niektСrych pakietСw.
 %ifarch %{ix86}
 %patch2 -p1
 %endif
-%patch5 -p1
-%patch6 -p1
-%patch7 -p0
-%patch8 -p0
-# need update:
-#%patch3 -p1
-#%patch4 -p1
+%patch3 -p1
+%patch4 -p1
+#%patch5 -p0
 
 %build
 # non-standard regeneration (needed because of gasp patch)
