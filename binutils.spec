@@ -1,14 +1,15 @@
 Summary:	GNU Binary Utility Development Utilities
 Summary(pl):	Narzêdzia GNU dla programistów
 Name:		binutils
-Version:	2.9.5.0.12
-Release:	2
+Version:	2.9.5.0.16
+Release:	1
 Copyright:	GPL
 Group:		Development/Tools
 Group(pl):	Programowanie/Narzêdzia
 Source:		ftp://ftp.varesearch.com/pub/support/hjl/binutils/%{name}-%{version}.tar.bz2
 Patch:		binutils-info.patch
 Prereq:		/usr/sbin/fix-info-dir
+Prereq:		/sbin/ldconfig
 BuildRoot:	/tmp/%{name}-%{version}-root
 
 %description
@@ -43,9 +44,12 @@ LDFLAGS="-s"; export LDFLAGS
 %ifarch sparc sparc64
 sparc32 \
 %endif
-%configure \
+./configure %{_target_platform} \
 	--enable-shared \
-	--disable-debug
+	--disable-debug \
+	--prefix=%{_prefix} \
+	--infodir=%{_infodir} \
+	--mandir=%{_mandir}
 
 make tooldir=%{_prefix} all info
 
@@ -79,7 +83,8 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/ldconfig
 /usr/sbin/fix-info-dir -c %{_infodir} >/dev/null 2>&1
 
-%postun -p /sbin/ldconfig
+%postun
+/sbin/ldconfig
 /usr/sbin/fix-info-dir -c %{_infodir} >/dev/null 2>&1
 
 %files
