@@ -43,7 +43,7 @@ CFLAGS="$RPM_OPT_FLAGS" LDFLAGS="-s" \
 %ifarch sparc sparc64
 sparc32 \
 %endif
-./configure %{_target} \
+./configure %{_target_platform} \
 	--prefix=%{_prefix} \
 	--enable-shared \
 	--disable-debug \
