@@ -12,13 +12,13 @@ Summary(ru):	Набор инструментов GNU для построения исполняемых программ
 Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.14.90.0.5
-Release:	2
+Version:	2.14.90.0.6
+Release:	1
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	023e0914937116121c2c34e59e0d1c4b
+# Source0-md5:	71b99dba3045a359dc314dbebedcf502
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -41,6 +41,10 @@ Requires(post,postun):	/sbin/ldconfig
 Conflicts:	gcc-c++ < 5:3.3
 Conflicts:	modutils < 2.4.17
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+
+%ifarch sparc64
+%define		_libdir		/usr/lib
+%endif
 
 %description
 Binutils is a collection of binary utilities, including:
@@ -183,9 +187,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc README
 %attr(755,root,root) %{_bindir}/[!g]*
 %attr(755,root,root) %{_bindir}/g[!a]*
-%attr(755,root,root) %{_libdir}/*.so
-%{_libdir}/libiberty.a
-%{_libdir}/lib*.la
+%attr(755,root,root) %{_libdir}*/*.so
+%{_libdir}*/libiberty.a
+%{_libdir}*/lib*.la
 
 %{_libdir}/ldscripts
 %{_includedir}/*.h
@@ -204,7 +208,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files static
 %defattr(644,root,root,755)
-%{_libdir}/lib[!i]*.a
+%{_libdir}*/lib[!i]*.a
 
 %files gasp
 %defattr(644,root,root,755)
