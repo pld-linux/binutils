@@ -13,7 +13,7 @@ Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.13.90.0.16
-Release:	1
+Release:	2
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
@@ -32,6 +32,7 @@ Patch9:		%{name}-ia64-tls.patch
 Patch10:	%{name}-alpha-plt.patch
 Patch11:	%{name}-ia64-tls2.patch
 Patch12:	%{name}-array-sects-compat.patch
+Patch13:	%{name}-build-gasp.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	automake
 BuildRequires:	bison
@@ -113,6 +114,7 @@ Biblioteki statyczne GNU Binutils.
 %ifarch %{ix86}
 %patch12 -p1
 %endif
+%patch13 -p1
 
 %build
 cp -f /usr/share/automake/config.* .
