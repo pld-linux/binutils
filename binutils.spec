@@ -7,7 +7,7 @@ Summary(pt_BR):	Utilitários para desenvolvimento de binários da GNU
 Summary(tr):	GNU geliþtirme araçlarý
 Name:		binutils
 Version:	2.12.90.0.4
-Release:	1
+Release:	2
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
@@ -132,6 +132,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc *.gz
 %attr(755,root,root) %{_bindir}/*
 %attr(755,root,root) %{_libdir}/*.so
+%{_libdir}/libiberty.a
 
 %{_libdir}/ldscripts
 %{_includedir}/*.h
@@ -149,4 +150,4 @@ rm -rf $RPM_BUILD_ROOT
 
 %files static
 %defattr(644,root,root,755)
-%{_libdir}/lib*.a
+%{_libdir}/lib[^i]*.a
