@@ -40,13 +40,13 @@ Biblioteki statyczne GNU Binutils.
 %build
 CFLAGS="$RPM_OPT_FLAGS" LDFLAGS="-s" \
 %ifarch sparc sparc64
-sparc32 ./configure \
+sparc32 ./configure %{_target} \
 %else
-./configure \
+./configure %{_target} \
 	--prefix=/usr \
 	--enable-shared \
 	--disable-debug \
-	$RPM_ARCH-pld-linux
+	%{_target_cpu}-pld-linux
 %endif
 
 make tooldir=/usr all info
