@@ -9,6 +9,7 @@ Release:	1
 Epoch:		1
 License:	GPL
 Group:		Development/Tools
+Group(de):	Entwicklung/Werkzeuge
 Group(fr):	Development/Outils
 Group(pl):	Programowanie/Narzêdzia
 Source0:	ftp://ftp.varesearch.com/pub/support/hjl/binutils/%{name}-%{version}.tar.gz
@@ -45,6 +46,7 @@ programów i bibliotek.
 Summary:	GNU Binutils static libraries
 Summary(pl):	Biblioteki statyczne do GNU Binutils
 Group:		Development/Libraries
+Group(de):	Entwicklung/Libraries
 Group(fr):	Development/Librairies
 Group(pl):	Programowanie/Biblioteki
 Requires:	%{name} = %{version}
@@ -60,9 +62,7 @@ Biblioteki statyczne GNU Binutils.
 %patch0 -p1
 
 %build
-LDFLAGS="-s"
-CFLAGS="$RPM_OPT_FLAGS"
-export LDFLAGS CFLAGS
+CFLAGS="%{!?debug:$RPM_OPT_FLAGS}%{?debug:-g -O}"
 %ifarch sparc sparc64
 sparc32 \
 %endif
@@ -90,13 +90,9 @@ install -d $RPM_BUILD_ROOT%{_prefix}
 
 rm -f $RPM_BUILD_ROOT%{_bindir}/c++filt 
 
-strip $RPM_BUILD_ROOT%{_bindir}/*
-strip --strip-unneeded $RPM_BUILD_ROOT%{_libdir}/lib*.so
-
 install include/libiberty.h $RPM_BUILD_ROOT%{_includedir}
 
-gzip -9nf $RPM_BUILD_ROOT{%{_infodir}/*.inf*,%{_mandir}/man1/*} \
-	README
+gzip -9nf README
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -118,7 +114,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/ldscripts
 %{_includedir}/*.h
 
-%{_infodir}/*.gz
+%{_infodir}/*info*
 %{_mandir}/man1/*
 
 %files static
