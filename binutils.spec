@@ -1,4 +1,6 @@
 #
+# TODO: bug gas/584
+#
 # Conditional build:
 %bcond_with	allarchs	# enable all targets
 # define addtargets x,y,z	# build with additional targets x,y,z (e.g. x86_64-linux)
