@@ -41,19 +41,13 @@ Biblioteki statyczne GNU Binutils.
 %build
 CFLAGS="$RPM_OPT_FLAGS" LDFLAGS="-s" \
 %ifarch sparc sparc64
-sparc32 ./configure %{_target} \
-	    --prefix=%{_prefix} \
-	    --enable-shared \
-	    --disable-debug \
-	    --infodir=%{_infodir} 
-%else
-    ./configure \
+sparc32 \
+%endif
+./configure %{_target} \
 	--prefix=%{_prefix} \
 	--enable-shared \
 	--disable-debug \
-	--infodir=%{_infodir} \
-	%{_target_platform}
-%endif
+	--infodir=%{_infodir}
 
 make tooldir=%{_prefix} all info
 
