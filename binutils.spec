@@ -18,7 +18,7 @@ URL:		http://sourceware.cygnus.com/binutils/
 Prereq:		/sbin/ldconfig
 BuildRequires:	flex
 BuildRequires:	bison
-BuildRequires:	perl
+BuildRequires:	perl-devel
 %ifarch sparc sparc32
 BuildRequires:	sparc32
 %endif
