@@ -49,16 +49,16 @@ sparc32 ./configure %{_target} \
 	 --infodir=%{_infodir} %{_target_platform}
 %endif
 
-make tooldir=%{prefix} all info
+make tooldir=%{_prefix} all info
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
-install -d $RPM_BUILD_ROOT%{prefix}
+install -d $RPM_BUILD_ROOT%{_prefix}
 
 make install install-info \
-	prefix=$RPM_BUILD_ROOT%{prefix} \
-	tooldir=$RPM_BUILD_ROOT%{prefix} \
+	prefix=$RPM_BUILD_ROOT%{_prefix} \
+	tooldir=$RPM_BUILD_ROOT%{_prefix} \
 	mandir=$RPM_BUILD_ROOT%{_mandir} \
 	infodir=$RPM_BUILD_ROOT%{_infodir}
 
