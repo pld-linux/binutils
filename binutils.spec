@@ -125,7 +125,7 @@ fi
  [2.9.1.0.24-2]
 - removed c++filt -- provides by egcs (at now...) 
 - used some macros,
-- FHS-2.0 changes.
+- FHS-2.0 ready.
 
 * Thu Apr 22 1999 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
   [2.9.1.0.23-2]
