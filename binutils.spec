@@ -4,7 +4,7 @@ Summary(fr):	Utilitaires de développement binaire de GNU
 Summary(pl):	Narzêdzia GNU dla programistów
 Summary(tr):	GNU geliþtirme araçlarý
 Name:		binutils
-Version:	2.11.90.0.27
+Version:	2.11.90.0.31
 Release:	1
 Epoch:		1
 License:	GPL
@@ -15,7 +15,6 @@ Group(pl):	Programowanie/Narzêdzia
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2 	
 Source1:	%{name}-non-english-man-pages.tar.gz
 Patch0:		%{name}-info.patch
-Patch1:		%{name}-bdfbug.patch
 URL:		http://sourceware.cygnus.com/binutils/
 Prereq:		/sbin/ldconfig
 BuildRequires:	flex
@@ -63,7 +62,6 @@ Biblioteki statyczne GNU Binutils.
 %prep
 %setup -q 
 %patch0 -p1
-#%patch1 -p0
 
 %build
 CFLAGS="%{rpmcflags}"
