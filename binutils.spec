@@ -149,7 +149,7 @@ sparc32 \
 	--prefix=%{_prefix} \
 	--infodir=%{_infodir} \
 	--mandir=%{_mandir} \
-	--enable-targets=${TARGETS} \
+	`[ -n "${TARGETS}" ] && echo "--enable-targets=${TARGETS}"` \
 %ifarch sparc
 	--enable-64-bit-bfd \
 %endif
