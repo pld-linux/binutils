@@ -23,8 +23,8 @@ inne narzêdzia do manipulowania binarnymi plikami programów i bibliotek.
 %package static
 Summary:	GNU Binutils static libraries
 Summary(pl):	Biblioteki statyczne do GNU Binutils
-Group:		Libraries
-Group(pl):	Biblioteki
+Group:		Development/Libraries
+Group(pl):	Programowanie/Biblioteki
 Requires:	%{name} = %{version}
 
 %description static
