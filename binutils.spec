@@ -13,13 +13,13 @@ Summary(ru):	Набор инструментов GNU для построения исполняемых программ
 Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.15.90.0.3
-Release:	3
+Version:	2.15.91.0.1
+Release:	1
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	1c1af0064ebd3d7bd99905874656a21e
+# Source0-md5:	0d64d65d33a7f305e5ef8351086b9a3a
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -29,8 +29,6 @@ Patch3:		%{name}-eh-frame-ro.patch
 Patch4:		%{name}-ia64-bootstrap.patch
 Patch5:		%{name}-libtool-relink.patch
 Patch6:		%{name}-pt_pax_flags.patch
-Patch7:		%{name}-gas-fix.patch
-Patch8:		%{name}-gas-sparc64.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1.8.2
@@ -126,8 +124,6 @@ niektСrych pakietСw.
 %endif
 %patch5 -p1
 %patch6 -p1
-%patch7 -p0
-%patch8 -p1
 # need update:
 #%patch3 -p1
 #%patch4 -p1
