@@ -63,7 +63,7 @@ Biblioteki statyczne GNU Binutils.
 %patch0 -p1
 
 %build
-CFLAGS="%{!?debug:$RPM_OPT_FLAGS}%{?debug:-g -O}"
+CFLAGS="%{!?debug:$RPM_OPT_FLAGS}%{?debug:-g -O0}"
 export CFLAGS
 %ifarch sparc sparc64
 sparc32 \
