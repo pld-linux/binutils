@@ -1,12 +1,12 @@
 Summary:	GNU Binary Utility Development Utilities
 Summary(pl):	Narzêdzia GNU dla programistów
 Name:		binutils
-Version:	2.9.5.0.8
-Release:	0.1
+Version:	2.9.5.0.11
+Release:	1
 Copyright:	GPL
 Group:		Development/Tools
 Group(pl):	Programowanie/Narzêdzia
-Source:		ftp://ftp.varesearch.com/pub/support/hjl/binutils/%{name}-%{version}.tar.gz
+Source:		ftp://ftp.varesearch.com/pub/support/hjl/binutils/%{name}-%{version}.tar.bz2
 Patch0:		binutils-info.patch
 BuildRoot:	/tmp/%{name}-%{version}-root
 
