@@ -3,9 +3,6 @@
 %bcond_with	allarchs	# enable all targets
 # define addtargets x,y,z	# build with additional targets x,y,z (e.g. x86_64-linux)
 #
-# TODO:
-#		- http://sources.redhat.com/bugzilla/show_bug.cgi?id=453
-#
 Summary:	GNU Binary Utility Development Utilities
 Summary(de):	GNU Binary Utility Development Utilities
 Summary(es):	Utilitarios para desarrollo de binarios de la GNU
@@ -17,7 +14,7 @@ Summary(tr):	GNU geliþtirme araçlarý
 Summary(uk):	îÁÂ¦Ò ¦ÎÓÔÒÕÍÅÎÔ¦× GNU ÄÌÑ ÐÏÂÕÄÏ×É ×ÉËÏÎÕ×ÁÎÉÈ ÐÒÏÇÒÁÍ
 Name:		binutils
 Version:	2.15.92.0.2
-Release:	1
+Release:	2
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
@@ -32,6 +29,7 @@ Patch3:		%{name}-libtool-relink.patch
 Patch4:		%{name}-pt_pax_flags.patch
 Patch5:		%{name}-mips-relocs.patch
 Patch6:		%{name}-pr414.patch
+Patch7:		%{name}-pr437.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1.8.2
@@ -129,6 +127,7 @@ niektórych pakietów.
 %patch4 -p1
 %patch5 -p0
 %patch6 -p0
+%patch7 -p1
 
 %build
 # non-standard regeneration (needed because of gasp patch)
