@@ -69,7 +69,7 @@ strip --strip-unneeded $RPM_BUILD_ROOT%{_libdir}/lib*.so
 
 install include/libiberty.h $RPM_BUILD_ROOT%{_includedir}
 
-gzip -9nf $RPM_BUILD_ROOT{%{_infodir}/*.inf*,{_mandir}/man1/*} \
+gzip -9nf $RPM_BUILD_ROOT{%{_infodir}/*.inf*,%{_mandir}/man1/*} \
 	README
 
 %clean
