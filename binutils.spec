@@ -85,7 +85,7 @@ binutils - це наб╕р ╕нструмент╕в, необх╕дних для комп╕ляц╕╖ програм.
 Summary:	GNU Binutils static libraries
 Summary(pl):	Biblioteki statyczne do GNU Binutils
 Group:		Development/Libraries
-Requires:	%{name} = %{version}
+Requires:	%{name} = %{epoch}:%{version}
 
 %description static
 Static libraries for GNU Binutils.
@@ -97,7 +97,7 @@ Biblioteki statyczne GNU Binutils.
 Summary:	GASP - old preprocessor for assembly programs
 Summary(pl):	GASP - stary preprocesor dla programСw w asemblerze
 Group:		Development/Tools
-Requires:	%{name} = %{version}
+Requires:	%{name} = %{epoch}:%{version}
 
 %description gasp
 GASP - old preprocessor for assembly programs. It's officially
