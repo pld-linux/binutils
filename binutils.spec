@@ -125,7 +125,7 @@ niektórych pakietów.
 %endif
 %patch5 -p1
 %patch6 -p1
-%patch7 -p1
+%patch7 -p0
 # need update:
 #%patch3 -p1
 #%patch4 -p1
