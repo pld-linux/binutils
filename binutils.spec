@@ -1,121 +1,186 @@
-Summary:     GNU Binary Utility Development Utilities
-Summary(de): GNU Binary Utility Development Utilities
-Summary(fr): Utilitaires de développement binaire de GNU
-Summary(pl): Narzêdzia GNU dla programistów
-Summary(tr): GNU geliþtirme araçlarý
-Name:        binutils
-Version:     2.9.1.0.19
-Release:     1
-Copyright:   GPL
-Group:       Development/Tools
-Source       ftp://ftp.kernel.org/pub/linux/devel/gcc/%{name}-%{version}.tar.bz2
-Patch0:      binutils-2.9.1-sparcsectionreloc.patch
-Buildroot:   /tmp/%{name}-%{version}-root
+Summary:	GNU Binary Utility Development Utilities
+Name:		binutils
+Version:	2.9.1.0.19a
+Release:	4d
+Copyright:	GPL
+Group:		Development/Tools
+Group(pl):	Programowanie/Narzêdzia
+URL:		ftp://ftp.kernel.org/pub/linux/devel/gcc
+Source:		%{name}-%{version}.tar.bz2
+Patch:		%{name}-sparc32.patch
+Patch1:		%{name}-2.9.1.0.19-opcodes.patch.gz
+Patch2:		%{name}-%{version}-r_386_pc.patch.gz
+Patch3:		%{name}-%{version}-gas_opcodes.patch.gz
+Patch4:		%{name}-%{version}-pII_opcodes.patch.gz
+Patch5:		%{name}-%{version}-bfd_binary.patch.gz
+Prereq:		/sbin/ldconfig
+BuildRoot:	/tmp/%{name}-%{version}-root
+Summary(pl):	Narzêdzia GNU dla programistów
 
 %description
-Binutils is a collection of utilities necessary for compiling programs. It
+binutils is a collection of utilities necessary for compiling programs. It
 includes the assembler and linker, as well as a number of other
 miscellaneous programs for dealing with executable formats.
 
 %description -l pl
-Pakiet binutils zawiera zestaw narzêdzi umo¿liwiaj±cych kompilacjê
-programów. Zawiera on assembler, konsolidator (linker), a tak¿e inne narzêdzia
-do manipulowania na binarnych plikach programów i bibliotek.
+Pakiet binutils zawiera zestaw narzêdzi umo¿liwiaj±cych kompilacjê programów. 
+Znajduj± siê tutaj miêdzy innymi assembler, konsolidator (linker), a tak¿e 
+inne narzêdzia do manipulowania binarnymi plikami programów i bibliotek.
 
 %package static
-Summary:     GNU Binutils static libraries
-Summary(pl): Biblioteki statyczne do GNU Binutils
-Group:       Libraries
+Summary:	GNU Binutils static libraries
+Group:		Libraries
+Group(pl):	Biblioteki
+Requires:	%{name} = %{version}
+Summary(pl):	Biblioteki statyczne do GNU Binutils
 
 %description static
 Static libraries for GNU Binutils.
 
 %description -l pl static
-Biblioteki statyczne do GNU Binutils.
+Biblioteki statyczne GNU Binutils.
 
 %prep
-%setup -q
-(cd bfd;
-%patch -p0 -b .secreloc
-)
+%setup -q 
+%patch  -p1
+%patch1 -p1
+%patch2 -p1
+%patch3 -p1
+%patch4 -p1
+%patch5 -p1
 
 %build
-CFLAGS="$RPM_OPT_FLAGS" LDFLAGS="-s" \
+CFLAGS=$RPM_OPT_FLAGS \
 %ifarch sparc sparc64
 sparc32 ./configure \
 %else
-./configure \
+    ./configure \
+	--prefix=/usr \
+	--enable-shared 
 %endif
-	--prefix=/usr --enable-shared
+
 make tooldir=/usr all info
 
 %install
 rm -rf $RPM_BUILD_ROOT
+
 install -d $RPM_BUILD_ROOT/usr
-make	install install-info \
+
+make install install-info \
 	prefix=$RPM_BUILD_ROOT/usr \
 	tooldir=$RPM_BUILD_ROOT/usr
 
-strip $RPM_BUILD_ROOT/usr/{bin/*,lib/lib*.so.*.*}
-gzip -q9f $RPM_BUILD_ROOT/usr/{info/*.info*,man/man1/*}
+gzip -q9f $RPM_BUILD_ROOT/usr/info/*.inf*
+
+strip $RPM_BUILD_ROOT/usr/bin/*
+#strip $RPM_BUILD_ROOT/usr/lib/*.so.*
 
 install include/libiberty.h $RPM_BUILD_ROOT/usr/include
+
+chmod 755 $RPM_BUILD_ROOT/usr/lib/*.so.*
+
+bzip2 -9 $RPM_BUILD_ROOT/usr/man/man1/* README
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %post
+/sbin/install-info  /usr/info/as.info.gz	/etc/info-dir
+/sbin/install-info  /usr/info/bfd.info.gz	/etc/info-dir
+/sbin/install-info  /usr/info/binutils.info.gz	/etc/info-dir 
+/sbin/install-info  /usr/info/ld.info.gz	/etc/info-dir
+/sbin/install-info  /usr/info/gasp.info.gz	/etc/info-dir 
+/sbin/install-info  /usr/info/gprof.info.gz	/etc/info-dir 
 /sbin/ldconfig
-/sbin/install-info --info-dir=/usr/info /usr/info/as.info.gz
-/sbin/install-info --info-dir=/usr/info /usr/info/bfd.info.gz
-/sbin/install-info --info-dir=/usr/info /usr/info/binutils.info.gz
-/sbin/install-info --info-dir=/usr/info /usr/info/gasp.info.gz
-/sbin/install-info --info-dir=/usr/info /usr/info/gprof.info.gz
-/sbin/install-info --info-dir=/usr/info /usr/info/ld.info.gz
-/sbin/install-info --info-dir=/usr/info /usr/info/standards.info.gz
 
 %preun
-/sbin/install-info --delete --info-dir=/usr/info /usr/info/as.info.gz
-/sbin/install-info --delete --info-dir=/usr/info /usr/info/bfd.info.gz
-/sbin/install-info --delete --info-dir=/usr/info /usr/info/binutils.info.gz
-/sbin/install-info --delete --info-dir=/usr/info /usr/info/gasp.info.gz
-/sbin/install-info --delete --info-dir=/usr/info /usr/info/gprof.info.gz
-/sbin/install-info --delete --info-dir=/usr/info /usr/info/ld.info.gz
-/sbin/install-info --delete --info-dir=/usr/info /usr/info/standards.info.gz
+if [ $1 = 0 ]; then
+/sbin/install-info --delete --infodir=/etc/info-dir /usr/info/as.info.gz 
+/sbin/install-info --delete --infodir=/etc/info-dir /usr/info/bfd.info.gz 
+/sbin/install-info --delete --infodir=/etc/info-dir /usr/info/binutils.info.gz 
+/sbin/install-info --delete --infodir=/etc/info-dir /usr/info/ld.info.gz 
+/sbin/install-info --delete --infodir=/etc/info-dir /usr/info/gasp.info.gz 
+/sbin/install-info --delete --infodir=/etc/info-dir /usr/info/gprof.info.gz 
+fi
 
 %postun -p /sbin/ldconfig
 
 %files
-%defattr(644, root, root, 755)
-%attr(755, root, root) /usr/bin/*
-%attr(644, root,  man) /usr/man/man1/*
-/usr/include/*
-%attr(755, root, root) /usr/lib/lib*.so.*.*
-/usr/lib/lib*.so
-/usr/lib/ldscripts
-/usr/info/*info*
-/usr/lib/libiberty.a
+%defattr(644,root,root,755)
+%doc README.bz2
+
+%attr(755,root,root) /usr/bin/*
+
+%dir /usr/lib/ldscripts
+/usr/lib/ldscripts/*
+
+/usr/include/*.h
+
+%attr(755,root,root) /usr/lib/*.so.*
+%attr(755,root,root) /usr/lib/*.so
+
+/usr/info/*.gz
+
+%attr(644,root,root) /usr/lib/*.a
+%attr(644,root, man) /usr/man/man1/*
 
 %files static
-%defattr(644, root, root)
-/usr/lib/libbfd.a
-/usr/lib/libopcodes.a
+%attr(644,root,root) /usr/lib/libbfd.a
+%attr(644,root,root) /usr/lib/libopcodes.a
 
 %changelog
+* Mon Jan 18 1999 Wojtek ¦lusarczyk <wojtek@shadow.eu.org>
+[2.9.1.0.19-4d]
+- fixed %preun && %post,
+- commpresed %doc,
+- added Group(pl),
+- added Prereq: /sbin/ldconfig,
+- added URL,
+
+  by Maciek W. Ró¿ycki <macro@ds2.pg.gda.pl>    
+
+- fixed the binary BFD to correctly output sections,
+- modified gas so it recognizes single-argument aad and aam,
+- modified gas so iret generates a non-prefixed opcode
+  regardless of the current argument size.
+- added support for new Pentium II instructions (see "Addendum
+  -- Intel Architecture Software Developer's Manual, Volume 2:
+  Instruction Set Reference", order number 243689-001),
+- fixed a problem with relative branch distance overflow checking,
+- added a fix for 16-bit PC-relative relocations on i386.
+
+* Sun Dec 20 1998 Wojtek ¦lusarczyk <wojtek@shadow.eu.org>
+[2.9.1.0.19-2d]
+- removed static subpackages,
+- cosmetic changes,
+- final build for Tornado.
+
 * Wed Dec  8 1998 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
-  [2.9.1.0.17-2] 
+[2.9.1.0.17-2] 
 - added using sparc32 for run ./configure script on sparc
   architecture (thanks DaveM).
 
-* Mon Dec  7 1998 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
-  [2.9.1.0.17-1]
-- added gzipping man pages,
-- added using LDFLAGS="-s" to ./configure enviroment,
-- changed base Source url to ftp:ftp.kernel.org/pub/linux/devel/gcc/.
-
 * Fri Oct  9 1998 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
-  [2.9.1.0.14-2]
+[2.9.1.0.15-2]
 - /usr/lib/libiberty.a moved to main.
+
+* Sat Oct 03 1998 Wojtek ¦lusarczyk <wojtek@shadow.eu.org>
+[2.9.1.0.15-1d]
+- fixed pl translation,
+- updated to 2.9.1.0.15.
+
+* Sun Sep 13 1998 Wojtek ¦lusarczyk <wojtek@SHADOW.EU.ORG>
+[2.9.1.0.12-1d]
+- updated to 2.9.1.0.12.
+- install -d instead mkdir -p,
+- restricted ELF binaries permissions.
+
+* Tue Sep 07 1998 Wojtek ¦lusarczyk <wojtek@SHADOW.EU.ORG>
+[2.9.1.0.11-1d]
+- updated to 2.9.1.0.11,
+- build without $RPM_OPT_FLAGS - some problems with egcs & -O6 ...
+- added a static package,
+- build from non root's account.
 
 * Sat Aug 22 1998 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
   [2.9.1.0.10-3]
@@ -123,52 +188,57 @@ rm -rf $RPM_BUILD_ROOT
 - added using %%{name} and %%{version} in Source,
 - added static subpackage,
 - removed /usr/lib/lib*.la files,
-- added using $RPM_OPT_FLAGS during building package,
-- added stripping shared libraries,
-- added %attr and %defattr macros in %files (allows build package from
-  non-root account).
+- added using $RPM_OPT_FLAGS during building package.
 
-* Thu Jul  2 1998 Jeff Johnson <jbj@redhat.com>
-- updated to 2.9.1.0.7.
+* Fri Jun 12 1998 Wojtek ¦lusarczyk <wojtek@SHADOW.EU.ORG>
+[2.9.1.0.6-2]
+- build against GNU libc-2.1.
 
-* Wed Jun 03 1998 Jeff Johnson <jbj@redhat.com>
-- updated to 2.9.1.0.6.
+* Fri May 29 1998 Wojtek ¦lusarczyk <wojtek@SHADOW.EU.ORG>
+- Replaced binutils to binutils-2.9.1.0.6.
 
-* Tue Jun 02 1998 Erik Troan <ewt@redhat.com>
-- added patch from rth to get right offsets for sections in relocateable
-  objects on sparc32
+* Wed May  6 1998 Christian Joensson <chj@lin.foa.se>
+- Replaced binutils to binutils-2.9.1.0.4.
 
-* Thu May 07 1998 Prospector System <bugs@redhat.com>
-- translations modified for de, fr, tr
+* Wed Apr 29 1998 Christian Joensson <chj@lin.foa.se>
+- Replaced binutils to binutils-2.9.1.0.3.
 
-* Tue May 05 1998 Cristian Gafton <gafton@redhat.com>
-- version 2.9.1.0.4 is out; even more, it is public !
+* Tue Apr 28 1998 Christian Joensson <chj@lin.foa.se>
+- Replaced binutils to binutils-2.9.1.0.2.
 
-* Tue May 05 1998 Jeff Johnson <jbj@redhat.com>
-- updated to 2.9.1.0.3.
+* Fri Apr 17 1998 Christian Joensson <chj@lin.foa.se>
+- Replaced binutils to binutils-2.9.0.3.
 
-* Mon Apr 20 1998 Cristian Gafton <gafton@redhat.com>
-- updated to 2.9.0.3
+* Tue Apr 14 1998 Christian Joensson <chj@lin.foa.se>
+- Replaced binutils to binutils-2.9.0.2.
 
-* Tue Apr 14 1998 Cristian Gafton <gafton@redhat.com>
-- upgraded to 2.9.0.2
+* Mon Apr 13 1998 Christian Joensson <chj@lin.foa.se>
+- Replaced binutils to binutils-2.9.0.1.
 
-* Sun Apr 05 1998 Cristian Gafton <gafton@redhat.com>
-- updated to 2.8.1.0.29 (HJ warned me that this thing is a moving target...
-  :-)
-- "fixed" the damn make install command so that all tools get installed
+* Thu Apr  9 1998 Christian Joensson <chj@lin.foa.se>
+- Replaced binutils to binutils-2.8.1.0.30 and changed the conflict of
+  /usr/info/dir.
 
-* Thu Apr 02 1998 Cristian Gafton <gafton@redhat.com>
-- upgraded again to 2.8.1.0.28 (at least on alpha now egcs will compile)
-- added info packages handling
+* Sun Apr  5 1998 Christian Joensson <chj@lin.foa.se>
+- Replaced binutils to binutils-2.8.1.0.29.
 
-* Tue Mar 10 1998 Cristian Gafton <gafton@redhat.com>
-- upgraded to 2.8.1.0.23
+* Thu Apr  2 1998 Christian Joensson <chj@lin.foa.se>
+- Fixed the conflict of /usr/info/dir between the binutils and info packages.
 
-* Mon Mar 02 1998 Cristian Gafton <gafton@redhat.com>
-- updated to 2.8.1.0.15 (required to compile the newer glibc)
-- all patches are obsoleted now
+* Wed Apr  1 1998 Christian Joensson <chj@lin.foa.se>
+- Replaced binutils to binutils-2.8.1.0.28.
+
+* Mon Mar 30 1998 Christian Joensson <chj@lin.foa.se>
+- Replaced binutils to binutils-2.8.1.0.27.
+
+* Thu Mar 26 1998 Christian Joensson <chj@lin.foa.se>
+- Replaced binutils to binutils-2.8.1.0.25.
+
+* Thu Mar 19 1998 Trond Myklebust <trond.myklebust@fys.uio.no>
+- Replaced with hjl's binutils release from tsx-11
+  (patch 0.15-0.23 is far too large).
 
 * Wed Oct 22 1997 Erik Troan <ewt@redhat.com>
+
 - added 2.8.1.0.1 patch from hj
 - added patch for alpha palcode form rth
