@@ -27,6 +27,7 @@ Patch1:		%{name}-info.patch
 Patch2:		%{name}-array-sects-compat.patch
 Patch3:		%{name}-eh-frame-ro.patch
 Patch4:		%{name}-ia64-bootstrap.patch
+Patch5:		%{name}-libtool-relink.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	automake
 BuildRequires:	bison
@@ -115,6 +116,7 @@ niektórych pakietów.
 %ifarch %{ix86}
 %patch2 -p1
 %endif
+%patch5 -p1
 # need update:
 #%patch3 -p1
 #%patch4 -p1
