@@ -2,11 +2,12 @@ Summary:	GNU Binary Utility Development Utilities
 Summary(pl):	Narzêdzia GNU dla programistów
 Name:		binutils
 Version:	2.9.1.0.25
-Release:	1
+Release:	2
 Copyright:	GPL
 Group:		Development/Tools
 Group(pl):	Programowanie/Narzêdzia
-Source:		ftp://ftp.varesearch.com/pub/support/hjl/binutils/%{name}-%{version}.tar.gz
+URL:		ftp://ftp.varesearch.com/pub/support/hjl/binutils
+Source:		%{name}-%{version}.tar.gz
 Patch0:		binutils-info.patch
 BuildRoot:	/tmp/%{name}-%{version}-root
 
@@ -20,7 +21,7 @@ Pakiet binutils zawiera zestaw narzêdzi umo¿liwiaj±cych kompilacjê programów.
 Znajduj± siê tutaj miêdzy innymi assembler, konsolidator (linker), a tak¿e 
 inne narzêdzia do manipulowania binarnymi plikami programów i bibliotek.
 
-%package static
+%package	static
 Summary:	GNU Binutils static libraries
 Summary(pl):	Biblioteki statyczne do GNU Binutils
 Group:		Development/Libraries
@@ -35,18 +36,19 @@ Biblioteki statyczne GNU Binutils.
 
 %prep
 %setup -q 
-%patch0 -p1
+%patch -p1
 
 %build
 CFLAGS="$RPM_OPT_FLAGS" LDFLAGS="-s" \
 %ifarch sparc sparc64
 sparc32 ./configure %{_target} \
 %else
-./configure \
-	 --prefix=%{_prefix} \
-	 --enable-shared \
-	 --disable-debug \
-	 --infodir=%{_infodir} %{_target_platform}
+    ./configure \
+	--prefix=%{_prefix} \
+	--enable-shared \
+	--disable-debug \
+	--infodir=%{_infodir} \
+	%{_target_platform}
 %endif
 
 make tooldir=%{_prefix} all info
@@ -62,7 +64,8 @@ make install install-info \
 	mandir=$RPM_BUILD_ROOT%{_mandir} \
 	infodir=$RPM_BUILD_ROOT%{_infodir}
 
-rm -f $RPM_BUILD_ROOT%{_bindir}/c++filt $RPM_BUILD_ROOT%{_mandir}/man1/c++*
+rm -f $RPM_BUILD_ROOT%{_bindir}/c++filt 
+#$RPM_BUILD_ROOT%{_mandir}/man1/c++*
 
 strip $RPM_BUILD_ROOT%{_bindir}/*
 strip --strip-unneeded $RPM_BUILD_ROOT%{_libdir}/lib*.so
@@ -107,15 +110,12 @@ fi
 %{_includedir}/*.h
 
 %{_infodir}/*.gz
-
-%{_libdir}/libiberty.a
 %{_mandir}/man1/*
 
 %files static
 %defattr(644,root,root,755)
 
-%{_libdir}/libbfd.a
-%{_libdir}/libopcodes.a
+%{_libdir}/lib*.a
 
 %changelog
 * Tue May 25 1999 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
