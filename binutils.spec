@@ -32,7 +32,7 @@ Patch4:		%{name}-pt_pax_flags.patch
 Patch5:		%{name}-mips-relocs.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
-BuildRequires:	automake >= 1.8.2
+BuildRequires:	automake >= 1:1.8.2
 BuildRequires:	bison
 BuildRequires:	flex
 BuildRequires:	gettext-devel
