@@ -11,21 +11,18 @@ Release:	4
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
-Group(de):	Entwicklung/Werkzeuge
-Group(es):	Desarrollo/Herramientas
-Group(fr):	Development/Outils
-Group(pl):	Programowanie/NarzЙdzia
-Group(pt):	Desenvolvimento/Ferramentas
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
+# Source0-md5:	59cb6db4b7642562b5abb3298a25b063
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
+# Source1-md5:	48e506c0a8b87e0a762f990111aed707
 Patch0:		%{name}-info.patch
 Patch1:		%{name}-sparc_unaligned_reloc.patch
 Patch2:		%{name}-preserve_e_flags.patch
 Patch3:		%{name}-getopt.patch
 URL:		http://sourceware.cygnus.com/binutils/
 Prereq:		/sbin/ldconfig
-BuildRequires:	flex
 BuildRequires:	bison
+BuildRequires:	flex
 BuildRequires:	perl-devel
 %ifarch sparc sparc32
 BuildRequires:	sparc32
@@ -65,14 +62,6 @@ programas para trabalhar com formatos executАveis.
 Summary:	GNU Binutils static libraries
 Summary(pl):	Biblioteki statyczne do GNU Binutils
 Group:		Development/Libraries
-Group(de):	Entwicklung/Bibliotheken
-Group(es):	Desarrollo/Bibliotecas
-Group(fr):	Development/Librairies
-Group(pl):	Programowanie/Biblioteki
-Group(pt_BR):	Desenvolvimento/Bibliotecas
-Group(pt):	Desenvolvimento/Bibliotecas
-Group(ru):	Разработка/Библиотеки
-Group(uk):	Розробка/Б╕бл╕отеки
 Requires:	%{name} = %{version}
 
 %description static
@@ -131,8 +120,6 @@ bzip2 -dc %{SOURCE1} | tar xf - -C $RPM_BUILD_ROOT%{_mandir}/
 
 install include/libiberty.h $RPM_BUILD_ROOT%{_includedir}
 
-gzip -9nf README
-
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -146,7 +133,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc *.gz
+%doc README
 %attr(755,root,root) %{_bindir}/*
 %attr(755,root,root) %{_libdir}/*.so
 
