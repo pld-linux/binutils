@@ -27,8 +27,7 @@ Patch1:		%{name}-info.patch
 Patch2:		%{name}-array-sects-compat.patch
 Patch3:		%{name}-libtool-relink.patch
 Patch4:		%{name}-pt_pax_flags.patch
-# needs check
-#Patch5:		%{name}-mips-relocs.patch
+Patch5:		%{name}-mips-relocs.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1.8.2
@@ -124,7 +123,7 @@ niektórych pakietów.
 %endif
 %patch3 -p1
 %patch4 -p1
-#%patch5 -p0
+%patch5 -p0
 
 %build
 # non-standard regeneration (needed because of gasp patch)
