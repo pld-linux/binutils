@@ -118,7 +118,7 @@ rm -f $RPM_BUILD_ROOT%{_infodir}/standards.info*
 # however, this should be done in Makefiles.
 rm -f $RPM_BUILD_ROOT%{_mandir}/man1/{dlltool,nlmconv,windres}.1
 
-tar xzvf %{SOURCE1} -C $RPM_BUILD_ROOT%{_mandir}/
+bzip2 -dc %{SOURCE1} | tar xf - -C $RPM_BUILD_ROOT%{_mandir}/
 
 install include/libiberty.h $RPM_BUILD_ROOT%{_includedir}
 
