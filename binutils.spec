@@ -1,20 +1,13 @@
 Summary:	GNU Binary Utility Development Utilities
 Summary(pl):	Narzêdzia GNU dla programistów
 Name:		binutils
-Version:	2.9.1.0.19a
-Release:	6
+Version:	2.9.1.0.23
+Release:	1
 Copyright:	GPL
 Group:		Development/Tools
 Group(pl):	Programowanie/Narzêdzia
-URL:		ftp://ftp.kernel.org/pub/linux/devel/gcc
-Source:		%{name}-%{version}.tar.bz2
-Patch0:		%{name}-sparc32.patch
-Patch1:		%{name}-2.9.1.0.19-opcodes.patch.gz
-Patch2:		%{name}-%{version}-r_386_pc.patch.gz
-Patch3:		%{name}-%{version}-gas_opcodes.patch.gz
-Patch4:		%{name}-%{version}-pII_opcodes.patch.gz
-Patch5:		%{name}-%{version}-bfd_binary.patch.gz
-Prereq:		/sbin/ldconfig
+Source:		ftp://ftp.varesearch.com/pub/support/hjl/binutils/%{name}-%{version}.tar.gz
+Patch0:		binutils-info.patch
 BuildRoot:	/tmp/%{name}-%{version}-root
 
 %description
@@ -43,20 +36,17 @@ Biblioteki statyczne GNU Binutils.
 %prep
 %setup -q 
 %patch0 -p1
-%patch1 -p1
-%patch2 -p1
-%patch3 -p1
-%patch4 -p1
-%patch5 -p1
 
 %build
-CFLAGS=$RPM_OPT_FLAGS LDFLAGS=-s \
+CFLAGS="$RPM_OPT_FLAGS" LDFLAGS="-s" \
 %ifarch sparc sparc64
 sparc32 ./configure \
 %else
-    ./configure \
+./configure \
 	--prefix=/usr \
-	--enable-shared 
+	--enable-shared \
+	--disable-debug \
+	$RPM_ARCH-pld-linux
 %endif
 
 make tooldir=/usr all info
@@ -76,8 +66,6 @@ strip $RPM_BUILD_ROOT/usr/bin/*
 
 install include/libiberty.h $RPM_BUILD_ROOT/usr/include
 
-chmod 755 $RPM_BUILD_ROOT/usr/lib/*.so.*
-
 gzip -9nf $RPM_BUILD_ROOT/usr/man/man1/* \
 	README
 
@@ -85,38 +73,36 @@ gzip -9nf $RPM_BUILD_ROOT/usr/man/man1/* \
 rm -rf $RPM_BUILD_ROOT
 
 %post
-/sbin/install-info  /usr/info/as.info.gz	/etc/info-dir
-/sbin/install-info  /usr/info/bfd.info.gz	/etc/info-dir
-/sbin/install-info  /usr/info/binutils.info.gz	/etc/info-dir 
-/sbin/install-info  /usr/info/ld.info.gz	/etc/info-dir
-/sbin/install-info  /usr/info/gasp.info.gz	/etc/info-dir 
-/sbin/install-info  /usr/info/gprof.info.gz	/etc/info-dir 
+/sbin/install-info /usr/info/as.info.gz /etc/info-dir
+/sbin/install-info /usr/info/bfd.info.gz /etc/info-dir
+/sbin/install-info /usr/info/binutils.info.gz /etc/info-dir 
+/sbin/install-info /usr/info/ld.info.gz /etc/info-dir
+/sbin/install-info /usr/info/gasp.info.gz /etc/info-dir 
+/sbin/install-info /usr/info/gprof.info.gz /etc/info-dir 
 /sbin/ldconfig
 
 %preun
-if [ $1 = 0 ]; then
-/sbin/install-info --delete --infodir=/etc/info-dir /usr/info/as.info.gz 
-/sbin/install-info --delete --infodir=/etc/info-dir /usr/info/bfd.info.gz 
-/sbin/install-info --delete --infodir=/etc/info-dir /usr/info/binutils.info.gz 
-/sbin/install-info --delete --infodir=/etc/info-dir /usr/info/ld.info.gz 
-/sbin/install-info --delete --infodir=/etc/info-dir /usr/info/gasp.info.gz 
-/sbin/install-info --delete --infodir=/etc/info-dir /usr/info/gprof.info.gz 
+if [ "$1" = "0" ]; then
+	/sbin/install-info --delete /usr/info/as.info.gz /etc/info-dir
+	/sbin/install-info --delete /usr/info/bfd.info.gz /etc/info-dir
+	/sbin/install-info --delete /usr/info/binutils.info.gz /etc/info-dir
+	/sbin/install-info --delete /usr/info/ld.info.gz /etc/info-dir
+	/sbin/install-info --delete /usr/info/gasp.info.gz /etc/info-dir
+	/sbin/install-info --delete /usr/info/gprof.info.gz /etc/info-dir
 fi
 
 %postun -p /sbin/ldconfig
 
 %files
 %defattr(644,root,root,755)
-%doc README.gz
+%doc *.gz
 
 %attr(755,root,root) /usr/bin/*
 
-%dir /usr/lib/ldscripts
-/usr/lib/ldscripts/*
+/usr/lib/ldscripts
 
 /usr/include/*.h
 
-%attr(755,root,root) /usr/lib/*.so.*
 %attr(755,root,root) /usr/lib/*.so
 
 /usr/info/*.gz
@@ -129,6 +115,10 @@ fi
 %attr(644,root,root) /usr/lib/libopcodes.a
 
 %changelog
+* Wed Apr  7 1999 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
+  [2.9.1.0.23-1]
+- standarized {un}registering info pages (added binutils-info.patch).
+
 * Thu Feb 18 1999 Micha³ Kuratczyk <kura@wroclaw.art.pl>
   [2.9.1.0.19-5d]
 - gzipping instead bzipping
