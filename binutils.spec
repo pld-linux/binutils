@@ -118,10 +118,6 @@ niektórych pakietów.
 
 %prep
 %setup -q
-
-%ifnarch sparc64
-/bin/sh patches/README
-%endif
 %patch0 -p1
 %patch1 -p1
 %ifarch %{ix86}
@@ -160,7 +156,6 @@ CC="%{__cc}"; export CC
 %ifarch sparc
 sparc32 \
 %endif
-
 ./configure %{_target_platform} \
 	--enable-shared \
 	--disable-debug \
@@ -178,7 +173,8 @@ sparc32 \
 
 %{__make} configure-bfd
 %{__make} headers -C bfd
-%{__make} tooldir=%{_prefix} all info
+%{__make} all info \
+	tooldir=%{_prefix}
 
 %install
 rm -rf $RPM_BUILD_ROOT
