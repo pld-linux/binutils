@@ -5,7 +5,7 @@ Summary(pl):	Narzêdzia GNU dla programistów
 Summary(tr):	GNU geliþtirme araçlarý
 Name:		binutils
 Version:	2.9.5.0.35
-Release:	2
+Release:	3
 License:	GPL
 Group:		Development/Tools
 Group(fr):	Development/Outils
