@@ -13,13 +13,13 @@ Summary(ru):	Набор инструментов GNU для построения исполняемых программ
 Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.15.92.0.2
-Release:	3
+Version:	2.15.94.0.1
+Release:	1
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	702bc82d8b10914e112fb5c5d8b66498
+# Source0-md5:	4a4cde8e5d0c97249bf6933f095813fe
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -28,8 +28,6 @@ Patch2:		%{name}-array-sects-compat.patch
 Patch3:		%{name}-libtool-relink.patch
 Patch4:		%{name}-pt_pax_flags.patch
 Patch5:		%{name}-mips-relocs.patch
-Patch6:		%{name}-pr414.patch
-Patch7:		%{name}-pr437.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1.8.2
@@ -125,9 +123,8 @@ niektСrych pakietСw.
 %endif
 %patch3 -p1
 %patch4 -p1
-%patch5 -p0
-%patch6 -p0
-%patch7 -p1
+# we don't seem to have mips, updateme anyway
+#%patch5 -p0
 
 %build
 # non-standard regeneration (needed because of gasp patch)
