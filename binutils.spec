@@ -5,7 +5,7 @@ Summary(pl):	Narzêdzia GNU dla programistów
 Summary(tr):	GNU geliþtirme araçlarý
 Name:		binutils
 Version:	2.11.90.0.8
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL
 Group:		Development/Tools
@@ -94,6 +94,8 @@ install -d $RPM_BUILD_ROOT%{_prefix}
 	libdir=$RPM_BUILD_ROOT%{_libdir}
 
 rm -f $RPM_BUILD_ROOT%{_bindir}/c++filt 
+
+rm -f $RPM_BUILD_ROOT%{_infodir}/standards.info*
 
 install include/libiberty.h $RPM_BUILD_ROOT%{_includedir}
 
