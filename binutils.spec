@@ -4,8 +4,8 @@ Summary(fr):	Utilitaires de développement binaire de GNU
 Summary(pl):	Narzêdzia GNU dla programistów
 Summary(tr):	GNU geliþtirme araçlarý
 Name:		binutils
-Version:	2.11.90.0.8
-Release:	2
+Version:	2.11.90.0.15
+Release:	1
 Epoch:		1
 License:	GPL
 Group:		Development/Tools
