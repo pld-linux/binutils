@@ -119,7 +119,9 @@ niektórych pakietów.
 %prep
 %setup -q
 
+%ifarch %{ix86}
 /bin/sh patches/README
+%endif
 %patch0 -p1
 %patch1 -p1
 %ifarch %{ix86}
