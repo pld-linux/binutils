@@ -1,7 +1,8 @@
 Summary:	GNU Binary Utility Development Utilities
+Summary(pl):	Narzêdzia GNU dla programistów
 Name:		binutils
 Version:	2.9.1.0.19a
-Release:	4d
+Release:	5d
 Copyright:	GPL
 Group:		Development/Tools
 Group(pl):	Programowanie/Narzêdzia
@@ -15,7 +16,6 @@ Patch4:		%{name}-%{version}-pII_opcodes.patch.gz
 Patch5:		%{name}-%{version}-bfd_binary.patch.gz
 Prereq:		/sbin/ldconfig
 BuildRoot:	/tmp/%{name}-%{version}-root
-Summary(pl):	Narzêdzia GNU dla programistów
 
 %description
 binutils is a collection of utilities necessary for compiling programs. It
@@ -29,10 +29,10 @@ inne narzêdzia do manipulowania binarnymi plikami programów i bibliotek.
 
 %package static
 Summary:	GNU Binutils static libraries
+Summary(pl):	Biblioteki statyczne do GNU Binutils
 Group:		Libraries
 Group(pl):	Biblioteki
 Requires:	%{name} = %{version}
-Summary(pl):	Biblioteki statyczne do GNU Binutils
 
 %description static
 Static libraries for GNU Binutils.
@@ -50,7 +50,7 @@ Biblioteki statyczne GNU Binutils.
 %patch5 -p1
 
 %build
-CFLAGS=$RPM_OPT_FLAGS \
+CFLAGS=$RPM_OPT_FLAGS LDFLAGS=-s \
 %ifarch sparc sparc64
 sparc32 ./configure \
 %else
@@ -70,7 +70,7 @@ make install install-info \
 	prefix=$RPM_BUILD_ROOT/usr \
 	tooldir=$RPM_BUILD_ROOT/usr
 
-gzip -q9f $RPM_BUILD_ROOT/usr/info/*.inf*
+gzip -9nf $RPM_BUILD_ROOT/usr/info/*.inf*
 
 strip $RPM_BUILD_ROOT/usr/bin/*
 #strip $RPM_BUILD_ROOT/usr/lib/*.so.*
@@ -79,7 +79,7 @@ install include/libiberty.h $RPM_BUILD_ROOT/usr/include
 
 chmod 755 $RPM_BUILD_ROOT/usr/lib/*.so.*
 
-bzip2 -9 $RPM_BUILD_ROOT/usr/man/man1/* README
+gzip -9nf $RPM_BUILD_ROOT/usr/man/man1/* README
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -107,7 +107,7 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc README.bz2
+%doc README.gz
 
 %attr(755,root,root) /usr/bin/*
 
@@ -129,6 +129,12 @@ fi
 %attr(644,root,root) /usr/lib/libopcodes.a
 
 %changelog
+* Thu Feb 18 1999 Micha³ Kuratczyk <kura@wroclaw.art.pl>
+  [2.9.1.0.19-5d]
+- gzipping instead bzipping
+- added LDFLAGS=-s
+- minor changes
+
 * Mon Jan 18 1999 Wojtek ¦lusarczyk <wojtek@shadow.eu.org>
 [2.9.1.0.19-4d]
 - fixed %preun && %post,
