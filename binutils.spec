@@ -42,6 +42,10 @@ Biblioteki statyczne GNU Binutils.
 CFLAGS="$RPM_OPT_FLAGS" LDFLAGS="-s" \
 %ifarch sparc sparc64
 sparc32 ./configure %{_target} \
+	    --prefix=%{_prefix} \
+	    --enable-shared \
+	    --disable-debug \
+	    --infodir=%{_infodir} 
 %else
     ./configure \
 	--prefix=%{_prefix} \
@@ -65,7 +69,6 @@ make install install-info \
 	infodir=$RPM_BUILD_ROOT%{_infodir}
 
 rm -f $RPM_BUILD_ROOT%{_bindir}/c++filt 
-#$RPM_BUILD_ROOT%{_mandir}/man1/c++*
 
 strip $RPM_BUILD_ROOT%{_bindir}/*
 strip --strip-unneeded $RPM_BUILD_ROOT%{_libdir}/lib*.so
