@@ -13,7 +13,7 @@ Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.14.90.0.7
-Release:	1
+Release:	2
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
@@ -125,6 +125,18 @@ niektСrych pakietСw.
 #%patch4 -p1
 
 %build
+# More targets
+TARGETS=
+%ifarch ia64
+TARGETS=i686-linux
+%endif
+%ifarch %{ix86}
+TARGETS=x86_64-linux
+%endif
+%ifarch sparc
+TARGETS=sparc64-linux
+%endif
+
 cp -f /usr/share/automake/config.* .
 CFLAGS="%{rpmcflags}"; export CFLAGS
 CC="%{__cc}"; export CC
@@ -137,8 +149,8 @@ sparc32 \
 	--prefix=%{_prefix} \
 	--infodir=%{_infodir} \
 	--mandir=%{_mandir} \
+	--enable-targets=${TARGETS} \
 %ifarch sparc
-	--enable-targets=sparc64-linux \
 	--enable-64-bit-bfd \
 %endif
 %ifnarch sparc
