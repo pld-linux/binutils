@@ -127,6 +127,7 @@ niektórych pakietów.
 %patch4 -p1
 %patch5 -p0
 %patch6 -p0
+%patch7 -p1
 
 %build
 # non-standard regeneration (needed because of gasp patch)
