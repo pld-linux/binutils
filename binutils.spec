@@ -5,7 +5,7 @@ Summary(pl):	Narzêdzia GNU dla programistów
 Summary(tr):	GNU geliþtirme araçlarý
 Name:		binutils
 Version:	2.9.5.0.35
-Release:	1
+Release:	2
 License:	GPL
 Group:		Development/Tools
 Group(fr):	Development/Outils
@@ -55,7 +55,9 @@ Biblioteki statyczne GNU Binutils.
 %patch0 -p1
 
 %build
-LDFLAGS="-s"; export LDFLAGS
+LDFLAGS="-s"
+CFLAGS="$RPM_OPT_FLAGS"
+export LDFLAGS CFLAGS
 %ifarch sparc sparc64
 sparc32 \
 %endif
