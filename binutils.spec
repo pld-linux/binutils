@@ -2,11 +2,12 @@ Summary:	GNU Binary Utility Development Utilities
 Summary(pl):	Narzêdzia GNU dla programistów
 Name:		binutils
 Version:	2.9.1.0.24
-Release:	1
+Release:	2
 Copyright:	GPL
 Group:		Development/Tools
 Group(pl):	Programowanie/Narzêdzia
-Source:		ftp://ftp.varesearch.com/pub/support/hjl/binutils/%{name}-%{version}.tar.gz
+#######		ftp://ftp.varesearch.com/pub/support/hjl/binutils/
+Source:		%{name}-%{version}.tar.gz
 Patch0:		binutils-info.patch
 BuildRoot:	/tmp/%{name}-%{version}-root
 
@@ -20,7 +21,7 @@ Pakiet binutils zawiera zestaw narzêdzi umo¿liwiaj±cych kompilacjê programów.
 Znajduj± siê tutaj miêdzy innymi assembler, konsolidator (linker), a tak¿e 
 inne narzêdzia do manipulowania binarnymi plikami programów i bibliotek.
 
-%package static
+%package	static
 Summary:	GNU Binutils static libraries
 Summary(pl):	Biblioteki statyczne do GNU Binutils
 Group:		Development/Libraries
@@ -42,11 +43,11 @@ CFLAGS="$RPM_OPT_FLAGS" LDFLAGS="-s" \
 %ifarch sparc sparc64
 sparc32 ./configure %{_target} \
 %else
-./configure %{_target} \
-	--prefix=/usr \
-	--enable-shared \
-	--disable-debug \
-	%{_target_cpu}-pld-linux
+    ./configure \
+	 --prefix=%{_prefix} \
+	 --enable-shared \
+	 --disable-debug \
+	 --infodir=%{_infodir} %{_target_platform}
 %endif
 
 make tooldir=/usr all info
@@ -58,13 +59,18 @@ install -d $RPM_BUILD_ROOT/usr
 
 make install install-info \
 	prefix=$RPM_BUILD_ROOT/usr \
-	tooldir=$RPM_BUILD_ROOT/usr
+	tooldir=$RPM_BUILD_ROOT/usr \
+	mandir=$RPM_BUILD_ROOT%{_mandir} \
+	infodir=$RPM_BUILD_ROOT%{_infodir}
 
 gzip -9nf $RPM_BUILD_ROOT%{_infodir}/*.inf*
 
-strip $RPM_BUILD_ROOT/usr/bin/*
+rm -f $RPM_BUILD_ROOT%{_bindir}/c++filt $RPM_BUILD_ROOT%{_mandir}/man1/c++*
 
-install include/libiberty.h $RPM_BUILD_ROOT/usr/include
+strip $RPM_BUILD_ROOT%{_bindir}/*
+strip --strip-unneeded $RPM_BUILD_ROOT%{_libdir}/lib*.so
+
+install include/libiberty.h $RPM_BUILD_ROOT%{_includedir}
 
 gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man1/* \
 	README
@@ -96,23 +102,31 @@ fi
 %files
 %defattr(644,root,root,755)
 %doc *.gz
-%attr(755,root,root) /usr/bin/*
-%attr(755,root,root) /usr/lib/*.so
 
-/usr/lib/ldscripts
-/usr/include/*.h
+%attr(755,root,root) %{_bindir}/*
+%attr(755,root,root) %{_libdir}/*.so
+
+%{_libdir}/ldscripts
+%{_includedir}/*.h
 
 %{_infodir}/*.gz
 
-/usr/lib/libiberty.a
+%{_libdir}/libiberty.a
 %{_mandir}/man1/*
 
 %files static
-%defattr(644,root,root)
-/usr/lib/libbfd.a
-/usr/lib/libopcodes.a
+%defattr(644,root,root,755)
+
+%{_libdir}/libbfd.a
+%{_libdir}/libopcodes.a
 
 %changelog
+* Mon May 17 1999 Wojtek ¦lusarczyk <wojtek@shadow.eu.org>
+ [2.9.1.0.24-2]
+- removed c++filt -- provides by egcs (at now...) 
+- used some macros,
+- FHS-2.0 changes.
+
 * Thu Apr 22 1999 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
   [2.9.1.0.23-2]
 - recompiles on new rpm.
