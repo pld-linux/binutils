@@ -13,13 +13,13 @@ Summary(ru):	Набор инструментов GNU для построения исполняемых программ
 Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.15.90.0.1
-Release:	2
+Version:	2.15.90.0.1.1
+Release:	1
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	4558a086c778915da83bc58ad540f4c0
+# Source0-md5:	d0427772ccbe68eefd40995d26ca4a78
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -91,7 +91,7 @@ binutils - це наб╕р ╕нструмент╕в, необх╕дних для комп╕ляц╕╖ програм.
 Summary:	GNU Binutils static libraries
 Summary(pl):	Biblioteki statyczne do GNU Binutils
 Group:		Development/Libraries
-Requires:	%{name} = %{epoch}:%{version}
+Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description static
 Static libraries for GNU Binutils.
@@ -103,7 +103,7 @@ Biblioteki statyczne GNU Binutils.
 Summary:	GASP - old preprocessor for assembly programs
 Summary(pl):	GASP - stary preprocesor dla programСw w asemblerze
 Group:		Development/Tools
-Requires:	%{name} = %{epoch}:%{version}
+Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description gasp
 GASP - old preprocessor for assembly programs. It's officially
@@ -127,7 +127,7 @@ niektСrych pakietСw.
 #%patch4 -p1
 
 %build
-# temporary workaround (only for 2.15.90.0.1) for missing files (non-standard regeneration!)
+# non-standard regeneration (needed because of gasp patch)
 cd gas
 aclocal
 automake --cygnus Makefile
