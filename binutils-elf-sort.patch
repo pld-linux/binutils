@@ -1,0 +1,35 @@
+Content-Type: text/x-patch
+Content-Disposition: inline;
+  filename=bfd-elf-sort-symbol-solaris-crash.patch
+
+Index: bfd/ChangeLog
+from  Alexandre Oliva  <aoliva@redhat.com>
+
+	* elflink.c (elf_sort_symbol): Compare section id, not pointers.
+	(elf_link_add_object_symbols): Likewise.
+
+Index: bfd/elflink.c
+===================================================================
+RCS file: /cvs/src/src/bfd/elflink.c,v
+retrieving revision 1.71
+diff -u -p -r1.71 elflink.c
+--- bfd/elflink.c 25 May 2004 06:33:46 -0000 1.71
++++ bfd/elflink.c 9 Jun 2004 13:35:40 -0000
+@@ -2728,7 +2728,7 @@ elf_sort_symbol (const void *arg1, const
+     return vdiff > 0 ? 1 : -1;
+   else
+     {
+-      long sdiff = h1->root.u.def.section - h2->root.u.def.section;
++      long sdiff = h1->root.u.def.section->id - h2->root.u.def.section->id;
+       if (sdiff != 0)
+ 	return sdiff > 0 ? 1 : -1;
+     }
+@@ -3982,7 +3982,7 @@ elf_link_add_object_symbols (bfd *abfd, 
+ 		i = idx + 1;
+ 	      else
+ 		{
+-		  long sdiff = slook - h->root.u.def.section;
++		  long sdiff = slook->id - h->root.u.def.section->id;
+ 		  if (sdiff < 0)
+ 		    j = idx;
+ 		  else if (sdiff > 0)
