@@ -5,7 +5,7 @@ Summary(pl): Narzêdzia GNU dla programistów
 Summary(tr): GNU geliþtirme araçlarý
 Name:        binutils
 Version:     2.9.1.0.14
-Release:     1
+Release:     2
 Copyright:   GPL
 Group:       Development/Tools
 Source:      ftp://tsx-11.mit.edu/pub/linux/packages/GCC/%{name}-%{version}.tar.gz
@@ -71,15 +71,13 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/install-info --info-dir=/usr/info /usr/info/standards.info.gz
 
 %preun
-if [ $1 = 0 ] ;then
-  /sbin/install-info --delete --info-dir=/usr/info /usr/info/as.info.gz
-  /sbin/install-info --delete --info-dir=/usr/info /usr/info/bfd.info.gz
-  /sbin/install-info --delete --info-dir=/usr/info /usr/info/binutils.info.gz
-  /sbin/install-info --delete --info-dir=/usr/info /usr/info/gasp.info.gz
-  /sbin/install-info --delete --info-dir=/usr/info /usr/info/gprof.info.gz
-  /sbin/install-info --delete --info-dir=/usr/info /usr/info/ld.info.gz
-  /sbin/install-info --delete --info-dir=/usr/info /usr/info/standards.info.gz
-fi
+/sbin/install-info --delete --info-dir=/usr/info /usr/info/as.info.gz
+/sbin/install-info --delete --info-dir=/usr/info /usr/info/bfd.info.gz
+/sbin/install-info --delete --info-dir=/usr/info /usr/info/binutils.info.gz
+/sbin/install-info --delete --info-dir=/usr/info /usr/info/gasp.info.gz
+/sbin/install-info --delete --info-dir=/usr/info /usr/info/gprof.info.gz
+/sbin/install-info --delete --info-dir=/usr/info /usr/info/ld.info.gz
+/sbin/install-info --delete --info-dir=/usr/info /usr/info/standards.info.gz
 
 %postun -p /sbin/ldconfig
 
@@ -92,11 +90,18 @@ fi
 /usr/lib/lib*.so
 /usr/lib/ldscripts
 /usr/info/*info*
+/usr/lib/libiberty.a
 
 %files static
-%attr(644, root, root) /usr/lib/lib*.a
+%defattr(644, root, root)
+/usr/lib/libbfd.a
+/usr/lib/libopcodes.a
 
 %changelog
+* Fri Oct  9 1998 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
+  [2.9.1.0.14-2]
+- /usr/lib/libiberty.a moved to main.
+
 * Sat Aug 22 1998 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
   [2.9.1.0.10-3]
 - changed Buildroot to /tmp/%%{name}-%%{version}-root,
