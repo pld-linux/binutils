@@ -59,16 +59,16 @@ Binutils is a collection of binary utilities, including:
 - addr2line - convert addresses to file and line,
 - nlmconv - convert object code into an NLM.
 
+%description -l es
+binutils es una colectánea de utilitarios necesarios para compilar
+programas. Incluye assembler y linker, así como varios otros programas
+para trabajar con formatos que se puedan ejecutar.
+
 %description -l pl
 Pakiet binutils zawiera zestaw narzêdzi umo¿liwiaj±cych kompilacjê
 programów. Znajduj± siê tutaj miêdzy innymi assembler, konsolidator
 (linker), a tak¿e inne narzêdzia do manipulowania binarnymi plikami
 programów i bibliotek.
-
-%description -l es
-binutils es una colectánea de utilitarios necesarios para compilar
-programas. Incluye assembler y linker, así como varios otros programas
-para trabajar con formatos que se puedan ejecutar.
 
 %description -l pt_BR
 binutils é uma coletânea de utilitários necessários para compilar
