@@ -39,15 +39,13 @@ Biblioteki statyczne GNU Binutils.
 %patch -p1
 
 %build
-CFLAGS="$RPM_OPT_FLAGS" LDFLAGS="-s" \
+LDFLAGS="-s"; export LDFLAGS
 %ifarch sparc sparc64
 sparc32 \
 %endif
-./configure %{_target_platform} \
-	--prefix=%{_prefix} \
+%configure \
 	--enable-shared \
-	--disable-debug \
-	--infodir=%{_infodir}
+	--disable-debug
 
 make tooldir=%{_prefix} all info
 
@@ -60,7 +58,9 @@ make install install-info \
 	prefix=$RPM_BUILD_ROOT%{_prefix} \
 	tooldir=$RPM_BUILD_ROOT%{_prefix} \
 	mandir=$RPM_BUILD_ROOT%{_mandir} \
-	infodir=$RPM_BUILD_ROOT%{_infodir}
+	infodir=$RPM_BUILD_ROOT%{_infodir} \
+	includedir=$RPM_BUILD_ROOT%{_includedir} \
+	libdir=$RPM_BUILD_ROOT%{_libdir}
 
 rm -f $RPM_BUILD_ROOT%{_bindir}/c++filt 
 
