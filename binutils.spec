@@ -6,8 +6,8 @@ Summary(pl):	Narzêdzia GNU dla programistów
 Summary(pt_BR):	Utilitários para desenvolvimento de binários da GNU
 Summary(tr):	GNU geliþtirme araçlarý
 Name:		binutils
-Version:	2.12.90.0.7
-Release:	2
+Version:	2.12.90.0.9
+Release:	1
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
