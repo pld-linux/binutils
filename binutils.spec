@@ -33,6 +33,7 @@ BuildRequires:	perl-tools-pod
 %ifarch sparc sparc32
 BuildRequires:	sparc32
 %endif
+BuildRequires:	texinfo >= 4.2
 Requires(post,postun):	/sbin/ldconfig
 Conflicts:	modutils < 2.4.17
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
