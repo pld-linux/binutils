@@ -4,12 +4,13 @@ Summary(fr):	Utilitaires de développement binaire de GNU
 Summary(pl):	Narzêdzia GNU dla programistów
 Summary(tr):	GNU geliþtirme araçlarý
 Name:		binutils
-Version:	2.9.5.0.29
+Version:	2.9.5.0.35
 Release:	1
-Copyright:	GPL
+License:	GPL
 Group:		Development/Tools
+Group(fr):	Development/Outils
 Group(pl):	Programowanie/Narzêdzia
-Source:		ftp://ftp.varesearch.com/pub/support/hjl/binutils/%{name}-%{version}.tar.gz
+Source0:	ftp://ftp.varesearch.com/pub/support/hjl/binutils/%{name}-%{version}.tar.gz
 Patch0:		binutils-info.patch
 Prereq:		/usr/sbin/fix-info-dir
 Prereq:		/sbin/ldconfig
@@ -30,14 +31,16 @@ Binutils is a collection of binary utilities, including:
 - nlmconv - convert object code into an NLM.
 
 %description -l pl
-Pakiet binutils zawiera zestaw narzêdzi umo¿liwiaj±cych kompilacjê programów. 
-Znajduj± siê tutaj miêdzy innymi assembler, konsolidator (linker), a tak¿e 
-inne narzêdzia do manipulowania binarnymi plikami programów i bibliotek.
+Pakiet binutils zawiera zestaw narzêdzi umo¿liwiaj±cych kompilacjê
+programów. Znajduj± siê tutaj miêdzy innymi assembler, konsolidator
+(linker), a tak¿e inne narzêdzia do manipulowania binarnymi plikami
+programów i bibliotek.
 
 %package static
 Summary:	GNU Binutils static libraries
 Summary(pl):	Biblioteki statyczne do GNU Binutils
 Group:		Development/Libraries
+Group(fr):	Development/Librairies
 Group(pl):	Programowanie/Biblioteki
 Requires:	%{name} = %{version}
 
