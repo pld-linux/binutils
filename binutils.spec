@@ -13,7 +13,7 @@ Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.14.90.0.7
-Release:	2
+Release:	3
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
@@ -27,6 +27,7 @@ Patch2:		%{name}-array-sects-compat.patch
 Patch3:		%{name}-eh-frame-ro.patch
 Patch4:		%{name}-ia64-bootstrap.patch
 Patch5:		%{name}-libtool-relink.patch
+Patch6:		%{name}-gas-alpha-segv.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	automake
 BuildRequires:	bison
@@ -120,6 +121,7 @@ niektСrych pakietСw.
 %patch2 -p1
 %endif
 %patch5 -p1
+%patch6 -p1
 # need update:
 #%patch3 -p1
 #%patch4 -p1
