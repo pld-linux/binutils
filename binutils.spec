@@ -29,6 +29,7 @@ Patch3:		%{name}-eh-frame-ro.patch
 Patch4:		%{name}-ia64-bootstrap.patch
 Patch5:		%{name}-libtool-relink.patch
 Patch6:		%{name}-pt_pax_flags.patch
+Patch7:		%{name}-mips-relocs.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1.8.2
@@ -124,6 +125,7 @@ niektórych pakietów.
 %endif
 %patch5 -p1
 %patch6 -p1
+%patch7 -p1
 # need update:
 #%patch3 -p1
 #%patch4 -p1
