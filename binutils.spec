@@ -12,16 +12,16 @@ Summary(ru):	Набор инструментов GNU для построения исполняемых программ
 Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.14.90.0.2
+Version:	2.14.90.0.4
 Release:	1
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5: 62b779abb60cc8ce08687fb218b829be
+# Source0-md5:	b7b394b8a001bc3102053b29c9dd44fa
 #Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 Source1:	%{name}-non-english-man-pages.tar.bz2
-# Source1-md5: a717d9707ec77d82acb6ec9078c472d6
+# Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
 Patch1:		%{name}-info.patch
 Patch2:		%{name}-array-sects-compat.patch
