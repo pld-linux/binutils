@@ -2,7 +2,7 @@ Summary:	GNU Binary Utility Development Utilities
 Summary(pl):	Narzêdzia GNU dla programistów
 Name:		binutils
 Version:	2.9.1.0.23
-Release:	1
+Release:	2
 Copyright:	GPL
 Group:		Development/Tools
 Group(pl):	Programowanie/Narzêdzia
@@ -96,25 +96,27 @@ fi
 %files
 %defattr(644,root,root,755)
 %doc *.gz
-
 %attr(755,root,root) /usr/bin/*
+%attr(755,root,root) /usr/lib/*.so
 
 /usr/lib/ldscripts
-
 /usr/include/*.h
-
-%attr(755,root,root) /usr/lib/*.so
 
 /usr/info/*.gz
 
-%attr(644,root,root) /usr/lib/libiberty.a
+/usr/lib/libiberty.a
 /usr/man/man1/*
 
 %files static
-%attr(644,root,root) /usr/lib/libbfd.a
-%attr(644,root,root) /usr/lib/libopcodes.a
+%defattr(644,root,root)
+/usr/lib/libbfd.a
+/usr/lib/libopcodes.a
 
 %changelog
+* Thu Apr 22 1999 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
+  [2.9.1.0.23-2]
+- recompiles on new rpm.
+
 * Wed Apr  7 1999 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
   [2.9.1.0.23-1]
 - standarized {un}registering info pages (added binutils-info.patch).
