@@ -78,9 +78,8 @@ install include/libiberty.h $RPM_BUILD_ROOT/usr/include
 
 chmod 755 $RPM_BUILD_ROOT/usr/lib/*.so.*
 
-gzip -9nf $RPM_BUILD_ROOT/usr/man/man1/* 
-
-bzip2 -9 README
+gzip -9nf $RPM_BUILD_ROOT/usr/man/man1/* \
+	README
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -108,7 +107,7 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc README.bz2
+%doc README.gz
 
 %attr(755,root,root) /usr/bin/*
 
@@ -123,7 +122,7 @@ fi
 /usr/info/*.gz
 
 %attr(644,root,root) /usr/lib/libiberty.a
-%attr(644,root, man) /usr/man/man1/*
+/usr/man/man1/*
 
 %files static
 %attr(644,root,root) /usr/lib/libbfd.a
