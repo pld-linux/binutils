@@ -116,7 +116,7 @@ rm -rf $RPM_BUILD_ROOT
 - removed /usr/lib/lib*.la files,
 - added using $RPM_OPT_FLAGS during building package,
 - added stripping shared libraries,
-- added %attr and %defattr macros in %files (allow build package from
+- added %attr and %defattr macros in %files (allows build package from
   non-root account).
 
 * Thu Jul  2 1998 Jeff Johnson <jbj@redhat.com>
