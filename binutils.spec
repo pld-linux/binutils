@@ -1,6 +1,7 @@
 #
 # BUGS:
 #		- http://sources.redhat.com/bugzilla/show_bug.cgi?id=189
+#		- http://sources.redhat.com/bugzilla/show_bug.cgi?id=414
 #
 # Conditional build:
 %bcond_with	allarchs	# enable all targets
