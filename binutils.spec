@@ -14,7 +14,6 @@ Group(fr):	Development/Outils
 Group(pl):	Programowanie/Narzêdzia
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2 	
 Patch0:		%{name}-info.patch
-PAtch1:		%{name}-sparc_unaligned_reloc.patch
 URL:		http://sourceware.cygnus.com/binutils/
 Prereq:		/sbin/ldconfig
 BuildRequires:	flex
@@ -63,7 +62,6 @@ Biblioteki statyczne GNU Binutils.
 %prep
 %setup -q 
 %patch0 -p1
-%patch1 -p1
 
 %build
 CFLAGS="%{rpmcflags}"
