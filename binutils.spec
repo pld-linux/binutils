@@ -7,15 +7,24 @@ Copyright:	GPL
 Group:		Development/Tools
 Group(pl):	Programowanie/Narzêdzia
 Source:		ftp://ftp.varesearch.com/pub/support/hjl/binutils/%{name}-%{version}.tar.gz
-Patch:		binutils-info.patch
+Patch0:		binutils-info.patch
 Prereq:		/usr/sbin/fix-info-dir
 Prereq:		/sbin/ldconfig
 BuildRoot:	/tmp/%{name}-%{version}-root
 
 %description
-binutils is a collection of utilities necessary for compiling programs. It
-includes the assembler and linker, as well as a number of other
-miscellaneous programs for dealing with executable formats.
+Binutils is a collection of binary utilities, including:
+- ar - create, modify and extract from archives,
+- nm - lists symbols from object files,
+- objcopy - copy and translate object files,
+- objdump - display information from object files,
+- ranlib - generate an index for the contents of an archive,
+- size - list the section sizes of an object or archive file,
+- strings - list printable strings from files,
+- strip - discard symbols,
+- c++filt - a filter for demangling encoded C++ symbols,
+- addr2line - convert addresses to file and line,
+- nlmconv - convert object code into an NLM.
 
 %description -l pl
 Pakiet binutils zawiera zestaw narzêdzi umo¿liwiaj±cych kompilacjê programów. 
@@ -37,7 +46,7 @@ Biblioteki statyczne GNU Binutils.
 
 %prep
 %setup -q 
-%patch -p1
+%patch0 -p1
 
 %build
 LDFLAGS="-s"; export LDFLAGS
