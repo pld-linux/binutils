@@ -16,6 +16,7 @@ Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-ma
 Patch0:		%{name}-info.patch
 URL:		http://sourceware.cygnus.com/binutils/
 Prereq:		/sbin/ldconfig
+BuildRequires:	automake
 BuildRequires:	flex
 BuildRequires:	bison
 BuildRequires:	perl-devel
@@ -70,8 +71,9 @@ Biblioteki statyczne GNU Binutils.
 %patch0 -p1
 
 %build
-CFLAGS="%{rpmcflags}"
-export CFLAGS
+cp -f /usr/share/automake/config.* .
+CFLAGS="%{rpmcflags}"; export CFLAGS
+CC="%{__cc}"; export CC
 %ifarch sparc 
 sparc32 \
 %endif
