@@ -5,7 +5,7 @@ Summary(pl):	Narzêdzia GNU dla programistów
 Summary(tr):	GNU geliþtirme araçlarý
 Name:		binutils
 Version:	2.10.1.0.4
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL
 Group:		Development/Tools
@@ -65,7 +65,7 @@ Biblioteki statyczne GNU Binutils.
 %build
 CFLAGS="%{!?debug:$RPM_OPT_FLAGS}%{?debug:-g -O0}"
 export CFLAGS
-%ifarch sparc sparc64
+%ifarch sparc
 sparc32 \
 %endif
 ./configure %{_target_platform} \
@@ -74,12 +74,14 @@ sparc32 \
 	--prefix=%{_prefix} \
 	--infodir=%{_infodir} \
 	--mandir=%{_mandir}
+%ifarch sparc
+	--enable-targets=sparc64-pld-linux
+%endif
 
 %{__make} tooldir=%{_prefix} all info
 
 %install
 rm -rf $RPM_BUILD_ROOT
-
 install -d $RPM_BUILD_ROOT%{_prefix}
 
 %{__make} install install-info \
