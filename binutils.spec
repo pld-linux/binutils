@@ -23,6 +23,17 @@ Pakiet binutils zawiera zestaw narzêdzi umo¿liwiaj±cych kompilacjê
 programów. Zawiera on assembler, konsolidator (linker), a tak¿e inne narzêdzia
 do manipulowania na binarnych plikach programów i bibliotek.
 
+%package static
+Summary:     GNU Binutils static libraries
+Summary(pl): Biblioteki statyczne do GNU Binutils
+Group:       Libraries
+
+%description static
+Static libraries for GNU Binutils.
+
+%description -l pl static
+Biblioteki statyczne do GNU Binutils.
+
 %prep
 %setup -q
 (cd bfd;
@@ -41,7 +52,7 @@ make	install install-info \
 	prefix=$RPM_BUILD_ROOT/usr \
 	tooldir=$RPM_BUILD_ROOT/usr
 
-strip $RPM_BUILD_ROOT/usr/bin/*
+strip $RPM_BUILD_ROOT/usr/{bin/*,lib/lib*.so.*.*}
 gzip -q9f $RPM_BUILD_ROOT/usr/info/*.info*
 
 install include/libiberty.h $RPM_BUILD_ROOT/usr/include
@@ -77,8 +88,13 @@ fi
 /usr/bin/*
 %attr(644, root,  man) /usr/man/man1/*
 /usr/include/*
-/usr/lib/*
+%attr(755, root, root) /usr/lib/lib*.so.*.*
+/usr/lib/lib*.so
+/usr/lib/ldscripts
 /usr/info/*info*
+
+%files static
+/usr/lib/lib*.a
 
 %changelog
 * Sat Aug 22 1998 Tomasz K³oczko <kloczek@rudy.mif.pg.gda.pl>
@@ -86,6 +102,7 @@ fi
 - changed Buildroot to /tmp/%%{name}-%%{version}-root,
 - added using %%{name} and %%{version} in Source,
 - added static subpackage,
+- removed /usr/lib/lib*.la files,
 - added using $RPM_OPT_FLAGS during building package,
 - added striping shared libraries,
 - added %attr and %defattr macros in %files (allow build package from
