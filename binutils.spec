@@ -6,9 +6,9 @@ Summary(pl):	Narzêdzia GNU dla programistów
 Summary(pt_BR):	Utilitários para desenvolvimento de binários da GNU
 Summary(tr):	GNU geliþtirme araçlarý
 Name:		binutils
-Version:	2.11.92.0.12.3
-Release:	1
-Epoch:		1
+Version:	2.11.90.0.19
+Release:	2
+Epoch:		2
 License:	GPL
 Group:		Development/Tools
 Group(de):	Entwicklung/Werkzeuge
@@ -17,6 +17,7 @@ Group(pl):	Programowanie/Narzêdzia
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
 Source1:	%{name}-non-english-man-pages.tar.bz2
 Patch0:		%{name}-info.patch
+Patch1:		%{name}-sparc_unaligned_reloc.patch
 URL:		http://sourceware.cygnus.com/binutils/
 Prereq:		/sbin/ldconfig
 BuildRequires:	flex
@@ -78,6 +79,7 @@ Biblioteki statyczne GNU Binutils.
 %prep
 %setup -q 
 %patch0 -p1
+%patch1 -p1
 
 %build
 CFLAGS="%{rpmcflags}"
