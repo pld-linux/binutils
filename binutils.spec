@@ -4,8 +4,8 @@ Summary(fr):	Utilitaires de développement binaire de GNU
 Summary(pl):	Narzêdzia GNU dla programistów
 Summary(tr):	GNU geliþtirme araçlarý
 Name:		binutils
-Version:	2.11.90.0.25
-Release:	2
+Version:	2.11.90.0.27
+Release:	0
 Epoch:		1
 License:	GPL
 Group:		Development/Tools
@@ -63,7 +63,7 @@ Biblioteki statyczne GNU Binutils.
 %prep
 %setup -q 
 %patch0 -p1
-%patch1 -p0
+#%patch1 -p0
 
 %build
 CFLAGS="%{rpmcflags}"
