@@ -36,7 +36,6 @@ Binutils is a collection of binary utilities, including:
 - size - list the section sizes of an object or archive file,
 - strings - list printable strings from files,
 - strip - discard symbols,
-- c++filt - a filter for demangling encoded C++ symbols,
 - addr2line - convert addresses to file and line,
 - nlmconv - convert object code into an NLM.
 
