@@ -1,0 +1,11 @@
+--- binutils-2.14.90.0.7/gas/config/tc-alpha.c.orig	2003-07-23 17:08:10.000000000 +0200
++++ binutils-2.14.90.0.7/gas/config/tc-alpha.c	2003-11-24 00:54:28.922310488 +0100
+@@ -4494,7 +4494,7 @@
+ 	    as_warn (_(".end directive names different symbol than .ent"));
+ 
+ 	  /* Create an expression to calculate the size of the function.  */
+-	  if (sym)
++	  if (sym && cur_frame_data)
+ 	    {
+ 	      OBJ_SYMFIELD_TYPE *obj = symbol_get_obj (sym);
+ 	      expressionS *exp = xmalloc (sizeof (expressionS));
