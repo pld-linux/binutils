@@ -53,7 +53,7 @@ make	install install-info \
 	tooldir=$RPM_BUILD_ROOT/usr
 
 strip $RPM_BUILD_ROOT/usr/{bin/*,lib/lib*.so.*.*}
-gzip -q9f $RPM_BUILD_ROOT/usr/info/*.info*
+gzip -q9f $RPM_BUILD_ROOT/usr/{info/*.info*,man/man1/*}
 
 install include/libiberty.h $RPM_BUILD_ROOT/usr/include
 
