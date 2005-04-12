@@ -1,3 +1,4 @@
+# TODO: broken ld? (linking with libs linked with libstdc++ fails on libgcc_s symbols)
 #
 # Conditional build:
 %bcond_with	allarchs	# enable all targets
@@ -13,22 +14,21 @@ Summary(ru):	Набор инструментов GNU для построения исполняемых программ
 Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.15.96
+Version:	2.16.90.0.1
 Release:	0.1
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
-#Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-Source0:	ftp://sources.redhat.com/pub/binutils/snapshots/%{name}-%{version}.tar.bz2
-# Source0-md5:	62c526341a7121dd7476319b381262ea
+Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
+# Source0-md5:	b231856d84a6181572b0b3371cfc6843
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
 Patch1:		%{name}-info.patch
-Patch2:		%{name}-array-sects-compat.patch
-Patch3:		%{name}-libtool-relink.patch
-Patch4:		%{name}-pt_pax_flags.patch
-Patch5:		%{name}-mips-relocs.patch
+Patch2:		%{name}-libtool-relink.patch
+Patch3:		%{name}-pt_pax_flags.patch
+Patch4:		%{name}-mips-relocs.patch
+Patch5:		%{name}-flex.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1:1.8.2
@@ -119,12 +119,10 @@ niektСrych pakietСw.
 %setup -q
 %patch0 -p1
 %patch1 -p1
-%ifarch %{ix86}
 %patch2 -p1
-%endif
 %patch3 -p1
-%patch4 -p1
-%patch5 -p0
+%patch4 -p0
+%patch5 -p1
 
 %build
 # non-standard regeneration (needed because of gasp patch)
@@ -156,8 +154,9 @@ CC="%{__cc}"; export CC
 sparc32 \
 %endif
 ./configure %{_target_platform} \
-	--enable-shared \
 	--disable-debug \
+	--enable-build-warnings=,-Wno-missing-prototypes \
+	--enable-shared \
 	--prefix=%{_prefix} \
 	--libdir=%{_libdir} \
 	--infodir=%{_infodir} \
