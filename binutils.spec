@@ -1,4 +1,3 @@
-# TODO: broken ld? (linking with libs linked with libstdc++ fails on libgcc_s symbols)
 #
 # Conditional build:
 %bcond_with	allarchs	# enable all targets
@@ -15,7 +14,7 @@ Summary(tr):	GNU geliþtirme araçlarý
 Summary(uk):	îÁÂ¦Ò ¦ÎÓÔÒÕÍÅÎÔ¦× GNU ÄÌÑ ÐÏÂÕÄÏ×É ×ÉËÏÎÕ×ÁÎÉÈ ÐÒÏÇÒÁÍ
 Name:		binutils
 Version:	2.16.90.0.1
-Release:	0.1
+Release:	0.2
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
@@ -29,6 +28,7 @@ Patch2:		%{name}-libtool-relink.patch
 Patch3:		%{name}-pt_pax_flags.patch
 Patch4:		%{name}-mips-relocs.patch
 Patch5:		%{name}-flex.patch
+Patch6:		%{name}-needed.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1:1.8.2
@@ -123,6 +123,7 @@ niektórych pakietów.
 %patch3 -p1
 %patch4 -p0
 %patch5 -p1
+%patch6 -p0
 
 %build
 # non-standard regeneration (needed because of gasp patch)
