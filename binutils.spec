@@ -14,7 +14,7 @@ Summary(tr):	GNU geliþtirme araçlarý
 Summary(uk):	îÁÂ¦Ò ¦ÎÓÔÒÕÍÅÎÔ¦× GNU ÄÌÑ ÐÏÂÕÄÏ×É ×ÉËÏÎÕ×ÁÎÉÈ ÐÒÏÇÒÁÍ
 Name:		binutils
 Version:	2.16.90.0.1
-Release:	1
+Release:	2
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
@@ -30,6 +30,7 @@ Patch4:		%{name}-mips-relocs.patch
 Patch5:		%{name}-flex.patch
 Patch6:		%{name}-needed.patch
 Patch7:		%{name}-pr815.patch
+Patch8:		%{name}-pr872.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1:1.8.2
@@ -126,6 +127,7 @@ niektórych pakietów.
 %patch5 -p1
 %patch6 -p0
 %patch7 -p0
+%patch8 -p0
 
 %build
 # non-standard regeneration (needed because of gasp patch)
