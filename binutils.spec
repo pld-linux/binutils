@@ -44,10 +44,6 @@ Conflicts:	gcc-c++ < 5:3.3
 Conflicts:	modutils < 2.4.17
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
-%ifarch sparc64
-%define		_libdir		/usr/lib
-%endif
-
 %description
 Binutils is a collection of binary utilities, including:
 - ar - create, modify and extract from archives,
@@ -216,9 +212,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc README
 %attr(755,root,root) %{_bindir}/[!g]*
 %attr(755,root,root) %{_bindir}/g[!a]*
-%attr(755,root,root) %{_libdir}*/*.so
-%{_libdir}*/libiberty.a
-%{_libdir}*/lib*.la
+%attr(755,root,root) %{_libdir}/*.so
+%{_libdir}/libiberty.a
+%{_libdir}/lib*.la
 
 %{_prefix}/lib/ldscripts
 %{_includedir}/*.h
@@ -237,7 +233,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files static
 %defattr(644,root,root,755)
-%{_libdir}*/lib[!i]*.a
+%{_libdir}/lib[!i]*.a
 
 %files gasp
 %defattr(644,root,root,755)
