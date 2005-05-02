@@ -13,13 +13,13 @@ Summary(ru):	Набор инструментов GNU для построения исполняемых программ
 Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.16.90.0.1
-Release:	2
+Version:	2.16.90.0.2
+Release:	1
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	b231856d84a6181572b0b3371cfc6843
+# Source0-md5:	4c03bb2c97fb06ecd5e8e8dbb44a1878
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -28,9 +28,6 @@ Patch2:		%{name}-libtool-relink.patch
 Patch3:		%{name}-pt_pax_flags.patch
 Patch4:		%{name}-mips-relocs.patch
 Patch5:		%{name}-flex.patch
-Patch6:		%{name}-needed.patch
-Patch7:		%{name}-pr815.patch
-Patch8:		%{name}-pr872.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1:1.8.2
@@ -125,9 +122,6 @@ niektСrych pakietСw.
 %patch3 -p1
 %patch4 -p0
 %patch5 -p1
-%patch6 -p0
-%patch7 -p0
-%patch8 -p0
 
 %build
 # non-standard regeneration (needed because of gasp patch)
