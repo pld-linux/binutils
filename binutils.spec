@@ -156,6 +156,7 @@ sparc32 \
 	--libdir=%{_libdir} \
 	--infodir=%{_infodir} \
 	--mandir=%{_mandir} \
+	--disable-werror \
 	%{!?with_allarchs:`[ -n "${TARGETS}" ] && echo "--enable-targets=${TARGETS}"`} \
 %ifarch sparc
 	--enable-64-bit-bfd \
