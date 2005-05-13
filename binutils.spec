@@ -14,7 +14,7 @@ Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.16.90.0.3
-Release:	2
+Release:	3
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
@@ -122,6 +122,7 @@ niektСrych pakietСw.
 %patch6 -p1
 
 %build
+%if 0
 # non-standard regeneration (needed because of gasp patch)
 cd gas
 aclocal
@@ -129,6 +130,7 @@ automake --cygnus Makefile
 automake --cygnus doc/Makefile
 autoconf
 cd ..
+%endif
 
 # More targets
 TARGETS=
