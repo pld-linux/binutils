@@ -1,3 +1,5 @@
+# TODO
+# - security  http://security.gentoo.org/glsa/glsa-200506-01.xml
 #
 # Conditional build:
 %bcond_with	allarchs	# enable all targets
