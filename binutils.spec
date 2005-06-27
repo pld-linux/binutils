@@ -1,5 +1,3 @@
-# TODO
-# - security  http://security.gentoo.org/glsa/glsa-200506-01.xml
 #
 # Conditional build:
 %bcond_with	allarchs	# enable all targets
@@ -15,13 +13,13 @@ Summary(ru):	Набор инструментов GNU для построения исполняемых программ
 Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.16.90.0.3
-Release:	4
+Version:	2.16.91.0.1
+Release:	1
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	46637559faa3157b189e0835a9bed08b
+# Source0-md5:	ab7fd509b5eee531982909ae05db715a
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -30,7 +28,6 @@ Patch2:		%{name}-libtool-relink.patch
 Patch3:		%{name}-pt_pax_flags.patch
 Patch4:		%{name}-mips-relocs.patch
 Patch5:		%{name}-flex.patch
-Patch6:		%{name}-discarded.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1:1.8.2
@@ -121,7 +118,6 @@ niektСrych pakietСw.
 %patch3 -p1
 %patch4 -p0
 %patch5 -p1
-%patch6 -p1
 
 %build
 # non-standard regeneration (needed because of gasp patch)
