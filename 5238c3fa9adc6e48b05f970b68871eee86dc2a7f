@@ -1,0 +1,2 @@
+- updated to 2.16.91.0.1 (seems to fix CAN-2005-1704)
+- removed obsolete (again) discarded patch, updated gasp patch
