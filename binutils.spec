@@ -30,6 +30,15 @@ Patch2:		%{name}-array-sects-compat.patch
 Patch3:		%{name}-libtool-relink.patch
 Patch4:		%{name}-pt_pax_flags.patch
 Patch5:		%{name}-mips-relocs.patch
+Patch6:		%{name}-arhdr.patch
+Patch7:		%{name}-ld-speedup.patch
+Patch8:		%{name}-readelf-overflows.patch
+Patch9:		%{name}-robustify.patch
+Patch10:	%{name}-robustify2.patch
+Patch11:	%{name}-robustify3.patch
+Patch12:	%{name}-robustify4.patch
+Patch13:	%{name}-robustify5.patch
+Patch14:	%{name}-robustify6.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1:1.8.2
@@ -126,6 +135,15 @@ niektórych pakietów.
 %patch3 -p1
 %patch4 -p1
 %patch5 -p0
+%patch6 -p0
+%patch7 -p0
+%patch8 -p0
+%patch9 -p0
+%patch10 -p0
+%patch11 -p0
+%patch12 -p0
+%patch13 -p0
+%patch14 -p0
 
 %build
 # non-standard regeneration (needed because of gasp patch)
