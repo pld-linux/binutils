@@ -145,7 +145,7 @@ TARGETS=sparc64-linux
 %{?addtargets:TARGETS="%{addtargets}"}
 
 cp -f /usr/share/automake/config.* .
-CFLAGS="%{rpmcflags}"; export CFLAGS
+CFLAGS="%{rpmcflags} -fno-strict-aliasing"; export CFLAGS
 CC="%{__cc}"; export CC
 %ifarch sparc
 sparc32 \
@@ -158,7 +158,6 @@ sparc32 \
 	--libdir=%{_libdir} \
 	--infodir=%{_infodir} \
 	--mandir=%{_mandir} \
-	--disable-werror \
 	%{!?with_allarchs:`[ -n "${TARGETS}" ] && echo "--enable-targets=${TARGETS}"`} \
 %ifarch sparc
 	--enable-64-bit-bfd \
