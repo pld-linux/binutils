@@ -14,7 +14,7 @@ Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.16.91.0.3
-Release:	2
+Release:	3
 Epoch:		2
 License:	GPL
 Group:		Development/Tools
@@ -152,6 +152,7 @@ sparc32 \
 %endif
 ./configure %{_target_platform} \
 	--disable-debug \
+	--disable-werror \
 	--enable-build-warnings=,-Wno-missing-prototypes \
 	--enable-shared \
 	--prefix=%{_prefix} \
