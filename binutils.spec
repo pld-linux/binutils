@@ -15,7 +15,7 @@ Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.16.91.0.3
 Release:	3
-Epoch:		2
+Epoch:		3
 License:	GPL
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
