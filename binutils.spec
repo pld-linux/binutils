@@ -13,13 +13,13 @@ Summary(ru):	Набор инструментов GNU для построения исполняемых программ
 Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.17.50.0.1
+Version:	2.17.50.0.2
 Release:	1
 Epoch:		3
 License:	GPL
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	cfecfb29e260225fa192654f3763c2f8
+# Source0-md5:	af337e084c3a4c019fd297a622889d40
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
