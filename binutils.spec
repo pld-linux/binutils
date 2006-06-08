@@ -175,7 +175,7 @@ sparc32 \
 %install
 rm -rf $RPM_BUILD_ROOT
 
-%{__make} install install-info \
+%{__make} install \
 	prefix=$RPM_BUILD_ROOT%{_prefix} \
 	tooldir=$RPM_BUILD_ROOT%{_prefix} \
 	mandir=$RPM_BUILD_ROOT%{_mandir} \
