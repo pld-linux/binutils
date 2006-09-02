@@ -14,7 +14,7 @@ Summary(tr):	GNU geliþtirme araçlarý
 Summary(uk):	îÁÂ¦Ò ¦ÎÓÔÒÕÍÅÎÔ¦× GNU ÄÌÑ ÐÏÂÕÄÏ×É ×ÉËÏÎÕ×ÁÎÉÈ ÐÒÏÇÒÁÍ
 Name:		binutils
 Version:	2.17.50.0.3
-Release:	1
+Release:	1.1
 Epoch:		3
 License:	GPL
 Group:		Development/Tools
@@ -29,6 +29,7 @@ Patch3:		%{name}-pt_pax_flags.patch
 Patch4:		%{name}-mips-relocs.patch
 Patch5:		%{name}-flex.patch
 Patch6:		%{name}-discarded.patch
+Patch7:		%{name}-absolute-gnu_debuglink-path.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1:1.8.2
@@ -120,6 +121,7 @@ niektórych pakietów.
 %patch4 -p0
 %patch5 -p1
 %patch6 -p1
+%patch7 -p1
 
 %build
 # non-standard regeneration (needed because of gasp patch)
