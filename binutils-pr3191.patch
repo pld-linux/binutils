@@ -1,0 +1,27 @@
+2006-09-19  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/3191
+	* dwarf2.c (read_attribute_value): Properly handle
+	DW_FORM_ref_addr.
+
+--- bfd/dwarf2.c.ref_addr	2006-05-02 03:01:56.000000000 -0700
++++ bfd/dwarf2.c	2006-09-19 21:26:37.000000000 -0700
+@@ -562,11 +562,16 @@ read_attribute_value (struct attribute *
+   switch (form)
+     {
+     case DW_FORM_addr:
+-      /* FIXME: DWARF3 draft says DW_FORM_ref_addr is offset_size.  */
+-    case DW_FORM_ref_addr:
+       attr->u.val = read_address (unit, info_ptr);
+       info_ptr += unit->addr_size;
+       break;
++    case DW_FORM_ref_addr:
++      if (unit->offset_size == 4)
++	attr->u.val = read_4_bytes (abfd, info_ptr);
++      else
++	attr->u.val = read_8_bytes (abfd, info_ptr);
++      info_ptr += unit->offset_size;
++      break;
+     case DW_FORM_block2:
+       amt = sizeof (struct dwarf_block);
+       blk = bfd_alloc (abfd, amt);
