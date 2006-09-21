@@ -1,27 +1,73 @@
 2006-09-19  H.J. Lu  <hongjiu.lu@intel.com>
 
 	PR ld/3191
-	* dwarf2.c (read_attribute_value): Properly handle
-	DW_FORM_ref_addr.
+	* dwarf2.c (_bfd_dwarf2_find_nearest_line): Adjust debug_info
+	section vma when needed.
 
 --- bfd/dwarf2.c.ref_addr	2006-05-02 03:01:56.000000000 -0700
-+++ bfd/dwarf2.c	2006-09-19 21:26:37.000000000 -0700
-@@ -562,11 +562,16 @@ read_attribute_value (struct attribute *
-   switch (form)
++++ bfd/dwarf2.c	2006-09-20 15:15:17.000000000 -0700
+@@ -2354,6 +2354,9 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd
      {
-     case DW_FORM_addr:
--      /* FIXME: DWARF3 draft says DW_FORM_ref_addr is offset_size.  */
--    case DW_FORM_ref_addr:
-       attr->u.val = read_address (unit, info_ptr);
-       info_ptr += unit->addr_size;
-       break;
-+    case DW_FORM_ref_addr:
-+      if (unit->offset_size == 4)
-+	attr->u.val = read_4_bytes (abfd, info_ptr);
-+      else
-+	attr->u.val = read_8_bytes (abfd, info_ptr);
-+      info_ptr += unit->offset_size;
-+      break;
-     case DW_FORM_block2:
-       amt = sizeof (struct dwarf_block);
-       blk = bfd_alloc (abfd, amt);
+       bfd_size_type total_size;
+       asection *msec;
++      bfd_vma last_vma;
++      bfd_size_type size;
++      asection *first_msec;
+ 
+       *pinfo = stash;
+ 
+@@ -2368,9 +2371,26 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd
+ 	 Read them all in and produce one large stash.  We do this in two
+ 	 passes - in the first pass we just accumulate the section sizes.
+ 	 In the second pass we read in the section's contents.  The allows
+-	 us to avoid reallocing the data as we add sections to the stash.  */
++	 us to avoid reallocing the data as we add sections to the stash.
++       
++	 We may need to adjust debug_info section vmas since we will
++	 concatenate them together.  Otherwise relocations may be
++	 incorrect.  */
++      first_msec = msec;
++      last_vma = 0;
+       for (total_size = 0; msec; msec = find_debug_info (abfd, msec))
+-	total_size += msec->size;
++	{
++	  size = msec->size;
++	  if (size == 0)
++	    continue;
++
++	  total_size += size;
++
++	  BFD_ASSERT (msec->alignment_power == 0);
++
++	  msec->vma += last_vma;
++	  last_vma += size;
++	}
+ 
+       stash->info_ptr = bfd_alloc (abfd, total_size);
+       if (stash->info_ptr == NULL)
+@@ -2378,7 +2398,7 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd
+ 
+       stash->info_ptr_end = stash->info_ptr;
+ 
+-      for (msec = find_debug_info (abfd, NULL);
++      for (msec = first_msec;
+ 	   msec;
+ 	   msec = find_debug_info (abfd, msec))
+ 	{
+@@ -2398,9 +2418,15 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd
+ 	  stash->info_ptr_end = stash->info_ptr + start + size;
+ 	}
+ 
++      /* Restore section vma. */
++      for (msec = first_msec;
++	   msec;
++	   msec = find_debug_info (abfd, msec))
++	msec->vma = 0;
++
+       BFD_ASSERT (stash->info_ptr_end == stash->info_ptr + total_size);
+ 
+-      stash->sec = find_debug_info (abfd, NULL);
++      stash->sec = first_msec;
+       stash->sec_info_ptr = stash->info_ptr;
+       stash->syms = symbols;
+     }
