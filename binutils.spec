@@ -14,7 +14,7 @@ Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.17.50.0.3
-Release:	2.1
+Release:	2.2
 Epoch:		3
 License:	GPL
 Group:		Development/Tools
