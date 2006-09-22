@@ -1,22 +1,24 @@
-2006-09-19  H.J. Lu  <hongjiu.lu@intel.com>
+2006-09-21  H.J. Lu  <hongjiu.lu@intel.com>
 
 	PR ld/3191
 	* dwarf2.c (_bfd_dwarf2_find_nearest_line): Adjust debug_info
 	section vma when needed.
 
---- bfd/dwarf2.c.ref_addr	2006-05-02 03:01:56.000000000 -0700
-+++ bfd/dwarf2.c	2006-09-20 15:15:17.000000000 -0700
-@@ -2354,6 +2354,9 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd
+--- bfd/dwarf2.c.ref_addr	2006-09-16 19:44:38.000000000 -0700
++++ bfd/dwarf2.c	2006-09-21 08:01:13.000000000 -0700
+@@ -2375,6 +2375,11 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd
      {
        bfd_size_type total_size;
        asection *msec;
 +      bfd_vma last_vma;
 +      bfd_size_type size;
 +      asection *first_msec;
++      asection **msecs = NULL;
++      unsigned int i, count;
  
        *pinfo = stash;
  
-@@ -2368,9 +2371,26 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd
+@@ -2389,9 +2394,28 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd
  	 Read them all in and produce one large stash.  We do this in two
  	 passes - in the first pass we just accumulate the section sizes.
  	 In the second pass we read in the section's contents.  The allows
@@ -28,6 +30,7 @@
 +	 incorrect.  */
 +      first_msec = msec;
 +      last_vma = 0;
++      count = 0;
        for (total_size = 0; msec; msec = find_debug_info (abfd, msec))
 -	total_size += msec->size;
 +	{
@@ -37,32 +40,66 @@
 +
 +	  total_size += size;
 +
-+	  BFD_ASSERT (msec->alignment_power == 0);
++	  BFD_ASSERT (msec->vma == 0 && msec->alignment_power == 0);
 +
-+	  msec->vma += last_vma;
++	  msec->vma = last_vma;
 +	  last_vma += size;
++	  count++;
 +	}
  
        stash->info_ptr = bfd_alloc (abfd, total_size);
        if (stash->info_ptr == NULL)
-@@ -2378,7 +2398,7 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd
+@@ -2399,17 +2423,27 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd
  
        stash->info_ptr_end = stash->info_ptr;
  
 -      for (msec = find_debug_info (abfd, NULL);
-+      for (msec = first_msec;
++      if (count > 1)
++	{
++	  count--;
++	  msecs = (asection **) bfd_malloc2 (count, sizeof (*msecs));
++	}
++
++      for (i = 0, msec = first_msec;
  	   msec;
  	   msec = find_debug_info (abfd, msec))
  	{
-@@ -2398,9 +2418,15 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd
+-	  bfd_size_type size;
+ 	  bfd_size_type start;
+ 
+ 	  size = msec->size;
+ 	  if (size == 0)
+ 	    continue;
+ 
++	  if (i && msecs)
++	    msecs [i - 1] = msec;
++
++	  i++;
++
+ 	  start = stash->info_ptr_end - stash->info_ptr;
+ 
+ 	  if ((bfd_simple_get_relocated_section_contents
+@@ -2419,9 +2453,27 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd
  	  stash->info_ptr_end = stash->info_ptr + start + size;
  	}
  
 +      /* Restore section vma. */
-+      for (msec = first_msec;
-+	   msec;
-+	   msec = find_debug_info (abfd, msec))
-+	msec->vma = 0;
++      if (count)
++	{
++	  if (msecs)
++	    {
++	      for (i = 0; i < count; i++)
++		msecs [i]->vma = 0;
++	      free (msecs);
++	    }
++	  else
++	    {
++	      for (msec = find_debug_info (abfd, first_msec);
++		   msec;
++		   msec = find_debug_info (abfd, msec))
++		msec->vma = 0;
++	    }
++	}
 +
        BFD_ASSERT (stash->info_ptr_end == stash->info_ptr + total_size);
  
