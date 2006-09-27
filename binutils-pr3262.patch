@@ -1,0 +1,27 @@
+2006-09-26  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR binutils/3262
+	* elf.c (rewrite_elf_program_header): Use bfd_zalloc instead of
+	bfd_alloc to allocate segment map.
+	(copy_elf_program_header): Likewise.
+
+--- bfd/elf.c.zero	2006-09-24 10:26:59.000000000 -0700
++++ bfd/elf.c	2006-09-26 12:02:35.000000000 -0700
+@@ -5401,7 +5401,7 @@ rewrite_elf_program_header (bfd *ibfd, b
+ 	 all of the sections we have selected.  */
+       amt = sizeof (struct elf_segment_map);
+       amt += ((bfd_size_type) section_count - 1) * sizeof (asection *);
+-      map = bfd_alloc (obfd, amt);
++      map = bfd_zalloc (obfd, amt);
+       if (map == NULL)
+ 	return FALSE;
+ 
+@@ -5796,7 +5796,7 @@ copy_elf_program_header (bfd *ibfd, bfd 
+       amt = sizeof (struct elf_segment_map);
+       if (section_count != 0)
+ 	amt += ((bfd_size_type) section_count - 1) * sizeof (asection *);
+-      map = bfd_alloc (obfd, amt);
++      map = bfd_zalloc (obfd, amt);
+       if (map == NULL)
+ 	return FALSE;
+ 
