@@ -31,7 +31,6 @@ Patch5:		%{name}-flex.patch
 Patch6:		%{name}-discarded.patch
 Patch7:		%{name}-absolute-gnu_debuglink-path.patch
 Patch8:		%{name}-pr3191.patch
-Patch9:		%{name}-pr3262.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1:1.8.2
@@ -125,7 +124,6 @@ niektórych pakietów.
 %patch6 -p1
 %patch7 -p1
 %patch8 -p0
-%patch9 -p0
 
 %build
 # non-standard regeneration (needed because of gasp patch)
