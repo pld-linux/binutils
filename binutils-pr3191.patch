@@ -1,12 +1,67 @@
-2006-09-21  H.J. Lu  <hongjiu.lu@intel.com>
+2006-09-29  H.J. Lu  <hongjiu.lu@intel.com>
 
 	PR ld/3191
-	* dwarf2.c (_bfd_dwarf2_find_nearest_line): Adjust debug_info
+	* dwarf2.c (find_abstract_instance_name): Pass a pointer to
+	attribute instead of offset.  For DW_FORM_ref_addr, get the
+	entry at the offset from the .debug_info section.
+	(scan_unit_for_symbols): Updated.
+	(_bfd_dwarf2_find_nearest_line): Adjust debug_info
 	section vma when needed.
 
---- bfd/dwarf2.c.ref_addr	2006-09-16 19:44:38.000000000 -0700
-+++ bfd/dwarf2.c	2006-09-21 08:01:13.000000000 -0700
-@@ -2375,6 +2375,11 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd
+--- bfd/dwarf2.c.ref_addr	2006-09-21 13:55:25.000000000 -0700
++++ bfd/dwarf2.c	2006-09-29 10:07:14.000000000 -0700
+@@ -1556,16 +1556,30 @@ lookup_symbol_in_variable_table (struct 
+ }
+ 
+ static char *
+-find_abstract_instance_name (struct comp_unit *unit, bfd_uint64_t die_ref)
++find_abstract_instance_name (struct comp_unit *unit,
++			     struct attribute *attr_ptr)
+ {
+   bfd *abfd = unit->abfd;
+   bfd_byte *info_ptr;
+   unsigned int abbrev_number, bytes_read, i;
+   struct abbrev_info *abbrev;
++  bfd_uint64_t die_ref = attr_ptr->u.val;
+   struct attribute attr;
+   char *name = 0;
+ 
+-  info_ptr = unit->info_ptr_unit + die_ref;
++  /* DW_FORM_ref_addr can reference an entry in a different CU. It
++     is an offset from the .debug_info section, not the current CU.  */
++  if (attr_ptr->form == DW_FORM_ref_addr)
++    {
++      /* FIXME: How to handle DW_FORM_ref_addr references an entry in
++	 a different file?  */ 
++      if (!die_ref)
++	abort ();
++
++      info_ptr = unit->stash->sec_info_ptr + die_ref;
++    }
++  else 
++    info_ptr = unit->info_ptr_unit + die_ref;
+   abbrev_number = read_unsigned_leb128 (abfd, info_ptr, &bytes_read);
+   info_ptr += bytes_read;
+ 
+@@ -1591,7 +1605,7 @@ find_abstract_instance_name (struct comp
+ 		    name = attr.u.str;
+ 		  break;
+ 		case DW_AT_specification:
+-		  name = find_abstract_instance_name (unit, attr.u.val);
++		  name = find_abstract_instance_name (unit, &attr);
+ 		  break;
+ 		case DW_AT_MIPS_linkage_name:
+ 		  name = attr.u.str;
+@@ -1751,7 +1765,7 @@ scan_unit_for_symbols (struct comp_unit 
+ 		  break;
+ 
+ 		case DW_AT_abstract_origin:
+-		  func->name = find_abstract_instance_name (unit, attr.u.val);
++		  func->name = find_abstract_instance_name (unit, &attr);
+ 		  break;
+ 
+ 		case DW_AT_name:
+@@ -2375,6 +2389,11 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd
      {
        bfd_size_type total_size;
        asection *msec;
@@ -18,7 +73,7 @@
  
        *pinfo = stash;
  
-@@ -2389,9 +2394,28 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd
+@@ -2389,9 +2408,28 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd
  	 Read them all in and produce one large stash.  We do this in two
  	 passes - in the first pass we just accumulate the section sizes.
  	 In the second pass we read in the section's contents.  The allows
@@ -49,7 +104,7 @@
  
        stash->info_ptr = bfd_alloc (abfd, total_size);
        if (stash->info_ptr == NULL)
-@@ -2399,17 +2423,27 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd
+@@ -2399,17 +2437,27 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd
  
        stash->info_ptr_end = stash->info_ptr;
  
@@ -79,7 +134,7 @@
  	  start = stash->info_ptr_end - stash->info_ptr;
  
  	  if ((bfd_simple_get_relocated_section_contents
-@@ -2419,9 +2453,27 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd
+@@ -2419,9 +2467,27 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd
  	  stash->info_ptr_end = stash->info_ptr + start + size;
  	}
  
