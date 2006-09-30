@@ -1,0 +1,47 @@
+"gcc -g -feliminate-dwarf2-dups" may generate symbols relative to debug
+section. When "ld -s" removes debug section, it changes those symbols
+to absolute. The resulting shared library may not be usable. strip is
+even worse. When .debug_info section is removed, section index of
+debug symbol is totally wrong.
+
+This patch will hide debug symbols.
+
+2006-09-29  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/3290
+	* elfcode.h (elf_slurp_symbol_table): Mark a debug symbol if it
+	is in a debug section.
+
+	* elflink.c (elf_link_add_object_symbols): Hide debug symbols.
+
+--- bfd/elfcode.h.debug	2006-09-23 16:37:33.000000000 -0700
++++ bfd/elfcode.h	2006-09-29 17:15:14.000000000 -0700
+@@ -1184,6 +1184,12 @@ elf_slurp_symbol_table (bfd *abfd, asymb
+ 		     although it is wrong.  FIXME.  */
+ 		  sym->symbol.section = bfd_abs_section_ptr;
+ 		}
++	      else if ((sym->symbol.section->flags & SEC_DEBUGGING))
++		{
++		  /* If this symbol is in a debug section, it must be a
++		     debug symbol.  */
++		  sym->symbol.flags |= BSF_DEBUGGING;
++		}
+ 	    }
+ 	  else if (isym->st_shndx == SHN_ABS)
+ 	    {
+--- bfd/elflink.c.debug	2006-09-29 09:00:21.000000000 -0700
++++ bfd/elflink.c	2006-09-29 17:13:25.000000000 -0700
+@@ -4137,6 +4137,13 @@ elf_link_add_object_symbols (bfd *abfd, 
+ 		dynsym = TRUE;
+ 	    }
+ 
++	  if ((sec->flags & SEC_DEBUGGING))
++	    {
++	      /* We don't want to make debug symbol dynamic.  */
++	      (*bed->elf_backend_hide_symbol) (info, h, TRUE);
++	      dynsym = FALSE;
++	    }
++
+ 	  /* Check to see if we need to add an indirect symbol for
+ 	     the default name.  */
+ 	  if (definition || h->root.type == bfd_link_hash_common)
