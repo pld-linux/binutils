@@ -13,13 +13,13 @@ Summary(ru):	Набор инструментов GNU для построения исполняемых программ
 Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.17.50.0.5
-Release:	3
+Version:	2.17.50.0.6
+Release:	1
 Epoch:		3
 License:	GPL
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	00eccd47e19a9f24410a137a849aa3fc
+# Source0-md5:	7e82f67aed569b1489f1ba79988f0e64
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -31,8 +31,6 @@ Patch5:		%{name}-flex.patch
 Patch6:		%{name}-discarded.patch
 Patch7:		%{name}-absolute-gnu_debuglink-path.patch
 Patch8:		%{name}-pr3191.patch
-Patch9:		%{name}-pr3290.patch
-Patch10:	%{name}-pr3314.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1:1.8.2
@@ -126,8 +124,6 @@ niektСrych pakietСw.
 %patch6 -p1
 %patch7 -p1
 %patch8 -p0
-%patch9 -p0
-%patch10 -p0
 
 %build
 # non-standard regeneration (needed because of gasp patch)
