@@ -237,8 +237,8 @@ perl -pi -e 's@-L[^ ]*/pic @@g' $RPM_BUILD_ROOT%{_libdir}/libbfd.la
 %find_lang gprof
 %find_lang ld
 %find_lang opcodes
-cat bfd opcodes > %{name}-libs.lang
-cat gas gprof ld >> %{name}.lang
+cat bfd.lang opcodes.lang > %{name}-libs.lang
+cat gas.lang gprof.lang ld.lang >> %{name}.lang
 
 %clean
 rm -rf $RPM_BUILD_ROOT
