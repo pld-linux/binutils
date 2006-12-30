@@ -14,7 +14,7 @@ Summary(tr):	GNU geliЧtirme araГlarЩ
 Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.17.50.0.8
-Release:	2
+Release:	3
 Epoch:		3
 License:	GPL
 Group:		Development/Tools
@@ -45,6 +45,7 @@ BuildRequires:	sparc32
 %endif
 BuildRequires:	texinfo >= 4.2
 Requires(post,postun):	/sbin/ldconfig
+Requires:	%{name} = %{epoch}:%{version}-%{release}
 Conflicts:	gcc-c++ < 5:3.3
 Conflicts:	modutils < 2.4.17
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -88,17 +89,42 @@ binutils - це наб╕р ╕нструмент╕в, необх╕дних для комп╕ляц╕╖ програм.
 М╕стить асемблер, компоновщик та ╕нш╕ програми, необх╕дн╕ для роботи з
 виконуваними файлами р╕зних формат╕в.
 
-%package static
-Summary:	GNU Binutils static libraries
-Summary(pl):	Biblioteki statyczne do GNU Binutils
+%package libs
+Summary:	GNU binutils shared libraries
+Summary(pl):	Biblioteki wspСЁdzielone GNU binutils
+Group:		Libraries
+
+%description libs
+GNU binutils shared libraries (libbfd, libopcodes).
+
+%description libs -l pl
+Biblioteki wspСЁdzielone GNU binutils (libbfd, libopcodes).
+
+%package devel
+Summary:	Development files for GNU binutils libraries
+Summary(pl):	Pliki programistyczne bibliotek GNU binutils
 Group:		Development/Libraries
-Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
+
+%description devel
+Development files for GNU binutils libraries (libbfd, libopcodes)
+and static libiberty library.
+
+%description devel -l pl
+Pliki programistyczne bibliotek GNU binutils (libbfd, libopcodes) oraz
+statyczna biblioteka libiberty.
+
+%package static
+Summary:	GNU binutils static libraries
+Summary(pl):	Biblioteki statyczne do GNU binutils
+Group:		Development/Libraries
+Requires:	%{name}-devel = %{epoch}:%{version}-%{release}
 
 %description static
-Static libraries for GNU Binutils.
+Static GNU binutils libraries (libbfd, libopcodes).
 
 %description static -l pl
-Biblioteki statyczne GNU Binutils.
+Biblioteki statyczne GNU binutils (libbfd, libopcodes).
 
 %package gasp
 Summary:	GASP - old preprocessor for assembly programs
@@ -205,17 +231,31 @@ install libiberty/pic/libiberty.a $RPM_BUILD_ROOT%{_libdir}
 # remove evil -L pointing inside builder's home
 perl -pi -e 's@-L[^ ]*/pic @@g' $RPM_BUILD_ROOT%{_libdir}/libbfd.la
 
-%find_lang %{name} --all-name
+%find_lang bfd
+%find_lang binutils
+%find_lang gas
+%find_lang gprof
+%find_lang ld
+%find_lang opcodes
+cat bfd opcodes > %{name}-libs.lang
+cat gas gprof ld >> %{name}.lang
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %post
-/sbin/ldconfig
 [ ! -x /usr/sbin/fix-info-dir ] || /usr/sbin/fix-info-dir -c %{_infodir} >/dev/null 2>&1
 
 %postun
-/sbin/ldconfig
+[ ! -x /usr/sbin/fix-info-dir ] || /usr/sbin/fix-info-dir -c %{_infodir} >/dev/null 2>&1
+
+%post	libs -p /sbin/ldconfig
+%postun	libs -p /sbin/ldconfig
+
+%post devel
+[ ! -x /usr/sbin/fix-info-dir ] || /usr/sbin/fix-info-dir -c %{_infodir} >/dev/null 2>&1
+
+%postun devel
 [ ! -x /usr/sbin/fix-info-dir ] || /usr/sbin/fix-info-dir -c %{_infodir} >/dev/null 2>&1
 
 %files -f %{name}.lang
@@ -223,15 +263,12 @@ rm -rf $RPM_BUILD_ROOT
 %doc README
 %attr(755,root,root) %{_bindir}/[!g]*
 %attr(755,root,root) %{_bindir}/g[!a]*
-%attr(755,root,root) %{_libdir}/*.so
-%{_libdir}/libiberty.a
-%{_libdir}/lib*.la
-
 %{_prefix}/lib/ldscripts
-%{_includedir}/*.h
-
-%{_infodir}/[!g]*.info*
-%{_infodir}/g[!a]*.info*
+%{_infodir}/as.info*
+%{_infodir}/binutils.info*
+%{_infodir}/configure.info*
+%{_infodir}/gprof.info*
+%{_infodir}/ld.info*
 %{_mandir}/man1/*
 %lang(cs) %{_mandir}/cs/man1/*
 %lang(de) %{_mandir}/de/man1/*
@@ -242,9 +279,25 @@ rm -rf $RPM_BUILD_ROOT
 %lang(ja) %{_mandir}/ja/man1/*
 %lang(pl) %{_mandir}/pl/man1/*
 
+%files libs -f %{name}-libs.lang
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libbfd-*.so
+%attr(755,root,root) %{_libdir}/libopcodes-*.so
+
+%files devel
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libbfd.so
+%attr(755,root,root) %{_libdir}/libopcodes.so
+%{_libdir}/libbfd.la
+%{_libdir}/libopcodes.la
+%{_libdir}/libiberty.a
+%{_includedir}/*.h
+%{_infodir}/bfd.info*
+
 %files static
 %defattr(644,root,root,755)
-%{_libdir}/lib[!i]*.a
+%{_libdir}/libbfd.a
+%{_libdir}/libopcodes.a
 
 %files gasp
 %defattr(644,root,root,755)
