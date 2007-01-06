@@ -92,7 +92,7 @@ binutils - це наб╕р ╕нструмент╕в, необх╕дних для комп╕ляц╕╖ програм.
 Summary:	GNU binutils shared libraries
 Summary(pl):	Biblioteki wspСЁdzielone GNU binutils
 Group:		Libraries
-Conflicts:	%{name} < 3:2.17.50.0.8-3
+Conflicts:	binutils < 3:2.17.50.0.8-3
 
 %description libs
 GNU binutils shared libraries (libbfd, libopcodes).
