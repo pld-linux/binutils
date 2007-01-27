@@ -198,15 +198,15 @@ sparc32 \
 %endif
 	%{?with_allarchs:--enable-targets=alpha-linux,arm-linux,cris-linux,hppa-linux,i386-linux,ia64-linux,x86_64-linux,m68k-linux,mips-linux,mips64-linux,mips64el-linux,mipsel-linux,ppc-linux,s390-linux,s390x-linux,sh-linux,sparc-linux,sparc64-linux,i386-linuxaout}
 
-%{__make} configure-bfd
-%{__make} headers -C bfd
-%{__make} all info \
+%{__make} -j1 configure-bfd
+%{__make} -j1 headers -C bfd
+%{__make} -j1 all info \
 	tooldir=%{_prefix}
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
-%{__make} install \
+%{__make} -j1 install \
 	prefix=$RPM_BUILD_ROOT%{_prefix} \
 	tooldir=$RPM_BUILD_ROOT%{_prefix} \
 	mandir=$RPM_BUILD_ROOT%{_mandir} \
