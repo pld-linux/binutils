@@ -4,14 +4,14 @@
 # define addtargets x,y,z	# build with additional targets x,y,z (e.g. x86_64-linux)
 #
 Summary:	GNU Binary Utility Development Utilities
-Summary(de):	GNU Binary Utility Development Utilities
-Summary(es):	Utilitarios para desarrollo de binarios de la GNU
-Summary(fr):	Utilitaires de dИveloppement binaire de GNU
-Summary(pl):	NarzЙdzia GNU dla programistСw
-Summary(pt_BR):	UtilitАrios para desenvolvimento de binАrios da GNU
-Summary(ru):	Набор инструментов GNU для построения исполняемых программ
-Summary(tr):	GNU geliЧtirme araГlarЩ
-Summary(uk):	Наб╕р ╕нструмент╕в GNU для побудови виконуваних програм
+Summary(de.UTF-8):   GNU Binary Utility Development Utilities
+Summary(es.UTF-8):   Utilitarios para desarrollo de binarios de la GNU
+Summary(fr.UTF-8):   Utilitaires de dц╘veloppement binaire de GNU
+Summary(pl.UTF-8):   Narzд≥dzia GNU dla programistцЁw
+Summary(pt_BR.UTF-8):   Utilitц║rios para desenvolvimento de binц║rios da GNU
+Summary(ru.UTF-8):   п²п╟п╠п╬я─ п╦п╫я│я┌я─я┐п╪п╣п╫я┌п╬п╡ GNU п╢п╩я▐ п©п╬я│я┌я─п╬п╣п╫п╦я▐ п╦я│п©п╬п╩п╫я▐п╣п╪я▀я┘ п©я─п╬пЁя─п╟п╪п╪
+Summary(tr.UTF-8):   GNU geliе÷tirme araц╖larд╠
+Summary(uk.UTF-8):   п²п╟п╠я√я─ я√п╫я│я┌я─я┐п╪п╣п╫я┌я√п╡ GNU п╢п╩я▐ п©п╬п╠я┐п╢п╬п╡п╦ п╡п╦п╨п╬п╫я┐п╡п╟п╫п╦я┘ п©я─п╬пЁя─п╟п╪
 Name:		binutils
 Version:	2.17.50.0.12
 Release:	1
@@ -61,47 +61,47 @@ Binutils is a collection of binary utilities, including:
 - addr2line - convert addresses to file and line,
 - nlmconv - convert object code into an NLM.
 
-%description -l es
-Binutils es una colecciСn de utilitarios necesarios para compilar
-programas. Incluye assembler y linker, asМ como varios otros programas
+%description -l es.UTF-8
+Binutils es una colecciцЁn de utilitarios necesarios para compilar
+programas. Incluye assembler y linker, asц╜ como varios otros programas
 para trabajar con formatos que se puedan ejecutar.
 
-%description -l pl
-Pakiet binutils zawiera zestaw narzЙdzi umo©liwiaj╠cych kompilacjЙ
-programСw. Znajduj╠ siЙ tutaj miЙdzy innymi assembler, konsolidator
-(linker), a tak©e inne narzЙdzia do manipulowania binarnymi plikami
-programСw i bibliotek.
+%description -l pl.UTF-8
+Pakiet binutils zawiera zestaw narzд≥dzi umoе╪liwiajд┘cych kompilacjд≥
+programцЁw. Znajdujд┘ siд≥ tutaj miд≥dzy innymi assembler, konsolidator
+(linker), a takе╪e inne narzд≥dzia do manipulowania binarnymi plikami
+programцЁw i bibliotek.
 
-%description -l pt_BR
-binutils И uma coletБnea de utilitАrios necessАrios para compilar
-programas. Inclui assembler e linker, assim como vАrios outros
-programas para trabalhar com formatos executАveis.
+%description -l pt_BR.UTF-8
+binutils ц╘ uma coletц╒nea de utilitц║rios necessц║rios para compilar
+programas. Inclui assembler e linker, assim como vц║rios outros
+programas para trabalhar com formatos executц║veis.
 
-%description -l ru
-binutils - это набор инструментов, необходимых для компилляции
-программ. Включает ассемблер, компоновщик и набор других программ для
-работы с исполняемыми файлами разнообразных форматов.
+%description -l ru.UTF-8
+binutils - я█я┌п╬ п╫п╟п╠п╬я─ п╦п╫я│я┌я─я┐п╪п╣п╫я┌п╬п╡, п╫п╣п╬п╠я┘п╬п╢п╦п╪я▀я┘ п╢п╩я▐ п╨п╬п╪п©п╦п╩п╩я▐я├п╦п╦
+п©я─п╬пЁя─п╟п╪п╪. п▓п╨п╩я▌я┤п╟п╣я┌ п╟я│я│п╣п╪п╠п╩п╣я─, п╨п╬п╪п©п╬п╫п╬п╡я┴п╦п╨ п╦ п╫п╟п╠п╬я─ п╢я─я┐пЁп╦я┘ п©я─п╬пЁя─п╟п╪п╪ п╢п╩я▐
+я─п╟п╠п╬я┌я▀ я│ п╦я│п©п╬п╩п╫я▐п╣п╪я▀п╪п╦ я└п╟п╧п╩п╟п╪п╦ я─п╟п╥п╫п╬п╬п╠я─п╟п╥п╫я▀я┘ я└п╬я─п╪п╟я┌п╬п╡.
 
-%description -l uk
-binutils - це наб╕р ╕нструмент╕в, необх╕дних для комп╕ляц╕╖ програм.
-М╕стить асемблер, компоновщик та ╕нш╕ програми, необх╕дн╕ для роботи з
-виконуваними файлами р╕зних формат╕в.
+%description -l uk.UTF-8
+binutils - я├п╣ п╫п╟п╠я√я─ я√п╫я│я┌я─я┐п╪п╣п╫я┌я√п╡, п╫п╣п╬п╠я┘я√п╢п╫п╦я┘ п╢п╩я▐ п╨п╬п╪п©я√п╩я▐я├я√я≈ п©я─п╬пЁя─п╟п╪.
+п°я√я│я┌п╦я┌я▄ п╟я│п╣п╪п╠п╩п╣я─, п╨п╬п╪п©п╬п╫п╬п╡я┴п╦п╨ я┌п╟ я√п╫я┬я√ п©я─п╬пЁя─п╟п╪п╦, п╫п╣п╬п╠я┘я√п╢п╫я√ п╢п╩я▐ я─п╬п╠п╬я┌п╦ п╥
+п╡п╦п╨п╬п╫я┐п╡п╟п╫п╦п╪п╦ я└п╟п╧п╩п╟п╪п╦ я─я√п╥п╫п╦я┘ я└п╬я─п╪п╟я┌я√п╡.
 
 %package libs
 Summary:	GNU binutils shared libraries
-Summary(pl):	Biblioteki wspСЁdzielone GNU binutils
+Summary(pl.UTF-8):   Biblioteki wspцЁе┌dzielone GNU binutils
 Group:		Libraries
 Conflicts:	binutils < 3:2.17.50.0.8-3
 
 %description libs
 GNU binutils shared libraries (libbfd, libopcodes).
 
-%description libs -l pl
-Biblioteki wspСЁdzielone GNU binutils (libbfd, libopcodes).
+%description libs -l pl.UTF-8
+Biblioteki wspцЁе┌dzielone GNU binutils (libbfd, libopcodes).
 
 %package devel
 Summary:	Development files for GNU binutils libraries
-Summary(pl):	Pliki programistyczne bibliotek GNU binutils
+Summary(pl.UTF-8):   Pliki programistyczne bibliotek GNU binutils
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
 
@@ -109,25 +109,25 @@ Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
 Development files for GNU binutils libraries (libbfd, libopcodes) and
 static libiberty library.
 
-%description devel -l pl
+%description devel -l pl.UTF-8
 Pliki programistyczne bibliotek GNU binutils (libbfd, libopcodes) oraz
 statyczna biblioteka libiberty.
 
 %package static
 Summary:	GNU binutils static libraries
-Summary(pl):	Biblioteki statyczne do GNU binutils
+Summary(pl.UTF-8):   Biblioteki statyczne do GNU binutils
 Group:		Development/Libraries
 Requires:	%{name}-devel = %{epoch}:%{version}-%{release}
 
 %description static
 Static GNU binutils libraries (libbfd, libopcodes).
 
-%description static -l pl
+%description static -l pl.UTF-8
 Biblioteki statyczne GNU binutils (libbfd, libopcodes).
 
 %package gasp
 Summary:	GASP - old preprocessor for assembly programs
-Summary(pl):	GASP - stary preprocesor dla programСw w asemblerze
+Summary(pl.UTF-8):   GASP - stary preprocesor dla programцЁw w asemblerze
 Group:		Development/Tools
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
@@ -135,10 +135,10 @@ Requires:	%{name} = %{epoch}:%{version}-%{release}
 GASP - old preprocessor for assembly programs. It's officially
 obsoleted, but it's still needed to build some packages.
 
-%description gasp -l pl
-GASP - stary preprocesor dla programСw w asemblerze. Jest oficjalnie
-uznany za przestarzaЁy, ale jest nadal potrzebny do zbudowania
-niektСrych pakietСw.
+%description gasp -l pl.UTF-8
+GASP - stary preprocesor dla programцЁw w asemblerze. Jest oficjalnie
+uznany za przestarzaе┌y, ale jest nadal potrzebny do zbudowania
+niektцЁrych pakietцЁw.
 
 %prep
 %setup -q
