@@ -4,14 +4,14 @@
 # define addtargets x,y,z	# build with additional targets x,y,z (e.g. x86_64-linux)
 #
 Summary:	GNU Binary Utility Development Utilities
-Summary(de.UTF-8):   GNU Binary Utility Development Utilities
-Summary(es.UTF-8):   Utilitarios para desarrollo de binarios de la GNU
-Summary(fr.UTF-8):   Utilitaires de développement binaire de GNU
-Summary(pl.UTF-8):   Narzędzia GNU dla programistów
-Summary(pt_BR.UTF-8):   Utilitários para desenvolvimento de binários da GNU
-Summary(ru.UTF-8):   Набор инструментов GNU для построения исполняемых программ
-Summary(tr.UTF-8):   GNU geliştirme araçları
-Summary(uk.UTF-8):   Набір інструментів GNU для побудови виконуваних програм
+Summary(de.UTF-8):	GNU Binary Utility Development Utilities
+Summary(es.UTF-8):	Utilitarios para desarrollo de binarios de la GNU
+Summary(fr.UTF-8):	Utilitaires de développement binaire de GNU
+Summary(pl.UTF-8):	Narzędzia GNU dla programistów
+Summary(pt_BR.UTF-8):	Utilitários para desenvolvimento de binários da GNU
+Summary(ru.UTF-8):	Набор инструментов GNU для построения исполняемых программ
+Summary(tr.UTF-8):	GNU geliştirme araçları
+Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.17.50.0.12
 Release:	1
@@ -89,7 +89,7 @@ binutils - це набір інструментів, необхідних для
 
 %package libs
 Summary:	GNU binutils shared libraries
-Summary(pl.UTF-8):   Biblioteki współdzielone GNU binutils
+Summary(pl.UTF-8):	Biblioteki współdzielone GNU binutils
 Group:		Libraries
 Conflicts:	binutils < 3:2.17.50.0.8-3
 
@@ -101,7 +101,7 @@ Biblioteki współdzielone GNU binutils (libbfd, libopcodes).
 
 %package devel
 Summary:	Development files for GNU binutils libraries
-Summary(pl.UTF-8):   Pliki programistyczne bibliotek GNU binutils
+Summary(pl.UTF-8):	Pliki programistyczne bibliotek GNU binutils
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
 
@@ -115,7 +115,7 @@ statyczna biblioteka libiberty.
 
 %package static
 Summary:	GNU binutils static libraries
-Summary(pl.UTF-8):   Biblioteki statyczne do GNU binutils
+Summary(pl.UTF-8):	Biblioteki statyczne do GNU binutils
 Group:		Development/Libraries
 Requires:	%{name}-devel = %{epoch}:%{version}-%{release}
 
@@ -127,7 +127,7 @@ Biblioteki statyczne GNU binutils (libbfd, libopcodes).
 
 %package gasp
 Summary:	GASP - old preprocessor for assembly programs
-Summary(pl.UTF-8):   GASP - stary preprocesor dla programów w asemblerze
+Summary(pl.UTF-8):	GASP - stary preprocesor dla programów w asemblerze
 Group:		Development/Tools
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
