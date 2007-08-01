@@ -16,7 +16,7 @@ Name:		binutils
 Version:	2.17.50.0.18
 Release:	1
 Epoch:		3
-License:	GPL v3
+License:	GPL v3+
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
 # Source0-md5:	98e21a7c0d82b318fe29f2e04d273344
