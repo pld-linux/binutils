@@ -1,0 +1,3 @@
+- updated to 2.9.5.0.16,
+- added /sbin/ldconfig to Prereq and fixed %postun,
+- back to using ./configure instead %configure (this need much more work).
