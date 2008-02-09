@@ -1,0 +1,4 @@
+- downgraded to 2.11.90.0.19
+- release 2, epoch 2
+- kept new man-pages and translations.
+  NOTE: new versions cat /dev/branch
