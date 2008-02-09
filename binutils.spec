@@ -43,7 +43,6 @@ BuildRequires:	perl-tools-pod
 BuildRequires:	sparc32
 %endif
 BuildRequires:	texinfo >= 4.2
-Requires(post,postun):	/sbin/ldconfig
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 Conflicts:	gcc-c++ < 5:3.3
 Conflicts:	modutils < 2.4.17
