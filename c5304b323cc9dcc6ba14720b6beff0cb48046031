@@ -1,0 +1,2 @@
+- added handle %{_with_allarchs} bcond,
+- merge all current RH patches.
