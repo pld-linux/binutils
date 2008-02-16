@@ -1,0 +1,1572 @@
+diff -urN binutils-2.18.50.0.4.org/bfd/arange-set.c binutils-2.18.50.0.4/bfd/arange-set.c
+--- binutils-2.18.50.0.4.org/bfd/arange-set.c	2008-02-08 17:44:56.000000000 +0100
++++ binutils-2.18.50.0.4/bfd/arange-set.c	1970-01-01 01:00:00.000000000 +0100
+@@ -1,737 +0,0 @@
+-/* DWARF 2 Arange-Set.
+-   Copyright 2007 Free Software Foundation, Inc.
+-   Contributed by Doug Kwan, Google Inc.
+- 
+-   This file is part of BFD.
+-
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published by
+-   the Free Software Foundation; either version 3 of the License, or (at
+-   your option) any later version.
+-
+-   This program is distributed in the hope that it will be useful, but
+-   WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   General Public License for more details.
+-
+-   You should have received a copy of the GNU General Public License
+-   along with this program; if not, write to the Free Software
+-   Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+-   MA 02110-1301, USA.  */
+-
+-#include "sysdep.h"
+-#include "bfd.h"
+-#include "libiberty.h"
+-#include "libbfd.h"
+-#include "arange-set.h"
+-#include "splay-tree.h"
+-
+-/* Implementation of an arange-set.  The set is implemented using the
+-   splay tree support in libiberty.  The advantage of using this is
+-   that it has been well tested and is relatively simple to use.  The
+-   disadvantage is that it is too general and it does not fit our design
+-   exactly.  So we waste a bit of memory for unneeded generality and work
+-   around for mis-match between the splay tree API and the arange-set
+-   internals.  A specialized implentation of a balanced tree type for
+-   arange-set exclusively may speed up things a little and reduce memory
+-   consumption.  Until there is a pressing need, we stick to the splay
+-   tree in libiberty.  */
+-
+-struct arange_set_s
+-{
+-  /* Splay tree containing aranges.  */
+-  splay_tree ranges;
+-
+-  /* Lowest address in set.  If set is empty, it is ~0.  */
+-  bfd_vma lower_bound;
+-
+-  /* Highest address in set.  If set is empty, it is 0.  */
+-  bfd_vma upper_bound;
+-
+-  /* TRUE if aranges in this set have values.  */
+-  bfd_boolean value_p;
+-
+-  /* Function to compare arange values.  */
+-  arange_value_equal_fn value_equal_fn;
+-
+-  /* Function to copy an arange value.  */
+-  arange_value_copy_fn value_copy_fn;
+-
+-  /* Function to combine arange values.  */
+-  arange_value_combine_fn value_combine_fn;
+-
+-  /* Function to delete an arange value.  */
+-  arange_value_delete_fn value_delete_fn;
+-
+-  /* Function to allocate a piece of memory.  */
+-  arange_set_allocate_fn allocate_fn;
+-
+-  /* Function to deallocate a piece of memory.  */
+-  arange_set_deallocate_fn deallocate_fn;
+-
+-  /* Call back data shared by all callbacks.  */
+-  void *data;
+-};
+-
+-/* Structure for aranges with a value attached.  Since a splay tree
+-   node can only hold one value,  we need to use the container struct
+-   to store data associated with an arange and have the splay tree value
+-   to be a pointer to this struct. */
+-
+-typedef struct
+-{
+-  /* High-pc of an arange.  This is different from the DWARF2 semantics that
+-     the high-pc is really the last location in an arange.  */
+-  bfd_vma high;
+-
+-  /* We need to store a pointer to the set because splay_tree_value_delete
+-     only takes a pointer to the value deleted.  If we use a deallocator
+-     that need extra information like a pointer to the memory pool, we need to
+-     look up via the set pointer.  This adds one extra pointer per arange. */
+-  arange_set set;
+-
+-  /* Value associated with this arange.  */
+-  arange_value_type value;
+-
+-} arange_value_container_t;
+-
+-
+-
+-static void
+-arange_set_delete_value (arange_set set, arange_value_type value)
+-{
+-  if (set->value_delete_fn)
+-    (set->value_delete_fn) (value, set->data);
+-}
+-
+-/* Compare two VMAs as keys of splay tree nodes.  */
+-
+-static int
+-splay_tree_compare_bfd_vmas (splay_tree_key k1, splay_tree_key k2)
+-{
+-  if ((bfd_vma) k1 < (bfd_vma) k2)
+-    return -1;
+-  else if ((bfd_vma) k1 > (bfd_vma) k2)
+-    return 1;
+-
+-  return 0;
+-}
+-
+-/* Default memory allocator and deallocator.  */
+-
+-void *
+-arange_set_allocate (arange_set set, int size)
+-{
+-  if (set->allocate_fn)
+-    return (set->allocate_fn) (size, set->data); 
+-
+-  return xmalloc (size);
+-}
+-
+-void
+-arange_set_deallocate (arange_set set, void *object)
+-{
+-  if (set->deallocate_fn)
+-    (set->deallocate_fn) (object, set->data); 
+-  else
+-    free (object);
+-}
+-
+-static void
+-arange_set_delete_value_container (splay_tree_value value)
+-{
+-  arange_value_container_t *container;
+-
+-  container = (arange_value_container_t*) value;
+-  arange_set_delete_value (container->set, container->value);
+-  arange_set_deallocate (container->set, container);
+-}
+-
+-/* Create an arange set.  Return the new set of NULL if there is any
+-   error.  
+-
+-   allocate_fn is the memory allocator function of this arange set. If
+-   it is NULL, the default allocator will be used.
+-
+-   deallocate_fn is the memory deallocator function of this arange set. If
+-   it is NULL, the default allocator will be used.
+-
+-   value_p specifies whether an arange set supports values.  If it is
+-   TURE.  Each arange can be associated with a value of type arange_value_type.
+-   If it is FALSE, the following parameters value_equal_fn, value_copy_fn,
+-   value_combine_fn and value_delete_fn will be ignored.
+-
+-   value_equal_fn is the value equality function.  An arange uses it to
+-   check if two values are the same.  If it is NULL, the default bit-wise
+-   equality function will be used.
+-
+-   value_copy_fn is the value copy function.  An arange uses it to copy
+-   values of type arange_value_type.  If it is NULL, the default bit-wise
+-   copy function will be used.
+-
+-   value_combine_fn is the value combine function. An arange uses it to
+-   combine values of two identical arange.  If it is NULL, the default
+-   constant zero function will be used.
+-
+-   value_delete_fn is the value deletion function. If it is not NULL,
+-   it will be called when an arange deletes a value.
+-
+-   data is pointer to an object, which will be passed to all allocate_fn,
+-   deallocate_fn, value_equal_fn, value_copy_fn, value_combine_fn and
+-   value_delete_fn.  */
+-
+-arange_set
+-arange_set_new (arange_set_allocate_fn allocate_fn,
+-		arange_set_deallocate_fn deallocate_fn,
+-		bfd_boolean value_p,
+-		arange_value_equal_fn value_equal_fn,
+-		arange_value_copy_fn value_copy_fn,
+-		arange_value_combine_fn value_combine_fn,
+-		arange_value_delete_fn value_delete_fn,
+-		void *data)
+-{
+-  arange_set set;
+-  splay_tree sp;
+-  splay_tree_delete_value_fn fn;
+-
+-  if (sizeof (bfd_vma) > sizeof (splay_tree_key)
+-      || sizeof (bfd_vma) > sizeof (splay_tree_value))
+-    {
+-      (*_bfd_error_handler)
+-	(_("size of bfd_vma > size of splay_tree types"));
+-      abort ();
+-    }
+-
+-  /* Allocate space for arange structure.  */
+-  set = (arange_set)
+-    (*allocate_fn) (sizeof (struct arange_set_s), data);
+-  if (!set)
+-    return set;
+-  
+-  fn = value_p ? arange_set_delete_value_container : NULL;
+-  sp = splay_tree_new_with_allocator (splay_tree_compare_bfd_vmas, NULL,
+-				      fn, allocate_fn, deallocate_fn,
+-				      data);
+-  if (!sp)
+-    {
+-      (deallocate_fn) (set, data);
+-      return NULL;
+-    }
+-
+-  set->ranges = sp;
+-  set->lower_bound = ~0;
+-  set->upper_bound = 0;
+-  set->value_p = value_p;
+-  set->allocate_fn = allocate_fn;
+-  set->deallocate_fn = deallocate_fn;
+-  set->value_equal_fn = value_equal_fn;
+-  set->value_copy_fn = value_copy_fn;
+-  set->value_combine_fn = value_combine_fn;
+-  set->value_delete_fn = value_delete_fn;
+-  set->data = data;
+-  return set;
+-}
+-
+-/*  Delete an arange set.  */
+-
+-void
+-arange_set_delete (arange_set set)
+-{
+-  splay_tree_delete (set->ranges);
+-  (*set->deallocate_fn) (set, set->data);
+-}
+-
+-/* Return TRUE if and only if arange set is empty.  */
+-
+-bfd_boolean
+-arange_set_empty_p (arange_set set)
+-{
+-  return set->lower_bound > set->upper_bound;
+-}
+-
+-/* Accessors for low and high of an arange.
+- 
+-   There is no arange_set_node_set_low since the low address is the
+-   key of the splay tree node.  */
+-
+-/* Get the high VMA address of a node.  */
+-
+-static bfd_vma
+-arange_set_node_high (arange_set set, splay_tree_node node)
+-{
+-  arange_value_container_t *container;
+-
+-  if (set->value_p)
+-    {
+-      container = (arange_value_container_t*) node->value;
+-      return container->high;
+-    }
+-
+-  return (bfd_vma) node->value;
+-}
+-
+-/* Set the high VMA address of a node.  */
+-
+-static void
+-arange_set_node_set_high (arange_set set, splay_tree_node node, bfd_vma address)
+-{
+-  arange_value_container_t *container;
+-
+-  if (set->value_p)
+-    {
+-      container = (arange_value_container_t*) node->value;
+-      container->high = address;
+-    }
+-  else
+-    node->value = (splay_tree_value) address;
+-}
+-
+-/* Get the low VMA address of a node.  */
+-
+-static bfd_vma
+-arange_set_node_low (splay_tree_node node)
+-{
+-  return (bfd_vma) node->key;
+-}
+-
+-/* If arange set supports values, return value of an arange; otheriwse
+-   always return 0 so that it appears that all aranges have the same value.  */
+-
+-static arange_value_type
+-arange_set_node_value (arange_set set, splay_tree_node node)
+-{
+-  arange_value_container_t *container;
+-
+-  if (set->value_p)
+-    {
+-      container = (arange_value_container_t*) node->value;
+-      return container->value;
+-    }
+-
+-  return 0;
+-}
+-
+-/* If arange set supports values, return value of an arange; otheriwse
+-   always return 0 so that it appears that all aranges have the same value.  */
+-
+-static void
+-arange_set_node_set_value (arange_set set,
+-			   splay_tree_node node,
+-			   arange_value_type value)
+-{
+-  arange_value_container_t *container;
+-
+-  if (set->value_p)
+-    {
+-      container = (arange_value_container_t*) node->value;
+-      container->value = value;
+-    }
+-}
+-
+-/* Return TRUE if and only if arange set supports values.  */
+-
+-bfd_boolean
+-arange_set_has_values_p (arange_set set)
+-{
+-  return set->value_p;
+-}
+-
+-/* Copy a value using the value copying function of an arange set.  If
+-   the set does not support values or if there is not value copying
+-   function specified, it simply returns the input value.  */
+-
+-arange_value_type
+-arange_set_copy_value (arange_set set, arange_value_type value)
+-{
+-  /* If no copy function is specified or set does not support values,
+-     default is bit-wise copy.  */
+-  if (set->value_p && set->value_copy_fn)
+-    return (set->value_copy_fn) (value, set->data);
+-
+-  return value;
+-}
+-
+-static arange_value_type
+-arange_set_combine_value (arange_set set,
+-			  arange_value_type value1,
+-			  arange_value_type value2)
+-{
+-  /* If no combine function is specified or set does not support values,
+-     default is returning 0.  */
+-  if (set->value_p && set->value_combine_fn)
+-    return (set->value_combine_fn) (value1, value2, set->data);
+-
+-  return (arange_value_type) 0;
+-}
+-
+-/* Compares two values for equality.  If the arange set does not support values
+-   or if no value equality function is specified, this function simply does
+-   a bit-wise comparison.  */
+-
+-bfd_boolean
+-arange_set_value_equal_p (arange_set set,
+-			  arange_value_type value1,
+-			  arange_value_type value2)
+-{
+-  /* If no equality function is specified or set does not support values,
+-     default is bit-wise comparison.  */
+-  if (set->value_p && set->value_equal_fn)
+-    return (set->value_equal_fn) (value1, value2, set->data);
+-
+-  return value1 == value2;
+-}
+-
+-/* Check to see if a given address is in an arange set.  Return TRUE if the
+-   address is inside one of the aranges. If low_ptr, high_ptr and value_ptr are
+-   used to return lower address, upper address and value associated with a
+-   found arounge.  If anyone of them is NULL, the corresponding information
+-   is not returned.  For arange set without values, no information is returned
+-   through the pointer value_ptr.  */
+-
+-bfd_boolean
+-arange_set_lookup_address (arange_set set, bfd_vma address,
+-			   bfd_vma *low_ptr, bfd_vma *high_ptr,
+-			   arange_value_type *value_ptr)
+-{
+-  splay_tree_node pred, node;
+-
+-  if (address < set->lower_bound || address > set->upper_bound)
+-    return FALSE;
+-
+-  /* Find immediate predecessor.  */
+-  pred = splay_tree_predecessor (set->ranges, (splay_tree_key) address);
+-  if (pred
+-      && arange_set_node_high (set, pred) >= address)
+-    node = pred;
+-  else
+-    /* If the predecessor range does not cover this address, the address
+-       is in the arange set only if itself starts an arange.  */
+-    node = splay_tree_lookup (set->ranges, (splay_tree_key) address);
+-
+-  if (node)
+-    {
+-      /* Also return arange boundaries if caller supplies pointers.  */
+-      if (low_ptr)
+-	*low_ptr = arange_set_node_low (node);
+-      if (high_ptr)
+-	*high_ptr = arange_set_node_high (set, node);
+-      if (set->value_p && value_ptr)
+-	*value_ptr = arange_set_node_value (set, node);
+-      return TRUE;
+-    }
+-
+-  return FALSE;
+-}
+-
+-/* Insert an arange [low, high] into a set's splay tree.  If the set supports
+-   value, also insert with the given value.  Return the inserted node if there
+-   is no error or NULL otherwise.  */
+-
+-static splay_tree_node
+-arange_set_splay_tree_insert (arange_set set,
+-			      bfd_vma low,
+-			      bfd_vma high,
+-			      arange_value_type value)
+-{
+-  splay_tree_value sp_value;
+-  arange_value_container_t *container;
+-   
+-  if (set->value_p)
+-    {
+-      int size = sizeof (arange_value_container_t);
+-      void *data = set->ranges->allocate_data;
+-
+-      container =
+-	(arange_value_container_t*) (*set->ranges->allocate) (size, data);
+-      if (!container)
+-	return NULL;
+-      container->high = high;
+-
+-      /* Due to the design of splay tree API, there is no way of passing
+-	 callback data to the splay tree value delete function.  Hence we need
+-	 to store a pointer to set in every containier!  */
+-      container->set = set;
+-
+-      container->value = value;
+-      sp_value = (splay_tree_value) container;
+-    }
+-  else
+-    sp_value = (splay_tree_value) high;	
+-
+-  /* Currently splay_tree_insert does not return any status to tell if there
+-     is an error.  */
+-  return splay_tree_insert (set->ranges, (splay_tree_key) low, sp_value);
+-}
+-
+-/* Split [low, high] to [low, address) & [address, high].  */
+-
+-static bfd_boolean
+-arange_set_split_node (arange_set set, splay_tree_node node, bfd_vma address)
+-{
+-  splay_tree_node node2;
+-  arange_value_type value;
+-  bfd_vma low, high;
+-
+-  low = arange_set_node_low (node);
+-  high = arange_set_node_high (set, node);
+-
+-  BFD_ASSERT (low < address && address <= high);
+-  
+-  value = arange_set_copy_value (set, arange_set_node_value (set, node));
+-  node2 = arange_set_splay_tree_insert (set, address, high, value);
+-  if (!node2)
+-    return FALSE;
+-
+-  arange_set_node_set_high (set, node, address - 1);
+-  return TRUE;
+-}
+-
+-static splay_tree_node
+-arange_set_maybe_merge_with_predecessor (arange_set set, splay_tree_node node)
+-{
+-  splay_tree_node pred;
+-  bfd_vma low, high;
+-
+-  low = arange_set_node_low (node);
+-  high = arange_set_node_high (set, node);
+-
+-  pred = splay_tree_predecessor (set->ranges, low);
+-  if (! pred)
+-    return node;
+-
+-  if (arange_set_node_high (set, pred) + 1 == low
+-      && arange_set_value_equal_p (set,
+-				   arange_set_node_value (set, pred),
+-				   arange_set_node_value (set, node)))
+-    {
+-      splay_tree_remove (set->ranges, arange_set_node_low (node));
+-      arange_set_node_set_high (set, pred, high);
+-      return arange_set_maybe_merge_with_predecessor (set, pred);	
+-    }
+-
+-  return node;
+-}
+-
+-/* Insert an arange [low,high] into a set. Return TRUE if and only if there
+-   is no error.  Note that the address high is also included where as in
+-   DWARF2 an address range between low & high means [low,high).
+-
+-   This only handles sets with values. For the simpler case of sets without
+-   value, it is handled in arange_set_insert().  This function is
+-   tail-recurive.  It is guaranteed to terminate because it only recurses
+-   with a smaller range than it is given.  */
+-
+-static bfd_boolean
+-arange_set_insert_value (arange_set set,
+-			 bfd_vma low,
+-			 bfd_vma high,
+-			 arange_value_type value)
+-{
+-  splay_tree_node succ, pred, node;
+-  bfd_vma succ_high, succ_low;
+-  arange_value_type combined, old_value;
+-
+-  if (low > high)
+-    {
+-      arange_set_delete_value (set, value);
+-      return FALSE;
+-    }
+-
+-  pred = splay_tree_predecessor (set->ranges, low);
+-  if (pred && arange_set_node_high (set, pred) >= low)
+-    arange_set_split_node (set, pred, low);
+-
+-  node = splay_tree_lookup (set->ranges, low);
+-  if (node)
+-    {
+-      /* Split node if its arange is larger than inserted arange. */
+-      if (arange_set_node_high (set, node) > high)
+-	arange_set_split_node (set, node, high + 1);
+-
+-      old_value = arange_set_node_value (set, node);
+-      combined = arange_set_combine_value (set, old_value, value); 
+-      arange_set_node_set_value (set, node, combined);
+-      node = arange_set_maybe_merge_with_predecessor (set, node);
+-      arange_set_delete_value (set, old_value);
+-
+-      /* Insert remaining arange by tail-recursion.  */
+-      if (high > arange_set_node_high (set, node))
+-	return arange_set_insert_value (set,
+-					arange_set_node_high (set, node) + 1,
+-					high, value);
+-      else
+-	{
+-	  /* Node must cover exactly the range. */
+-	  BFD_ASSERT (high == arange_set_node_high (set, node));
+-	  arange_set_delete_value (set, value);
+-	  succ = splay_tree_successor (set->ranges, arange_set_node_low (node));
+-	  if (succ)
+-	    succ = arange_set_maybe_merge_with_predecessor (set, succ);	
+-	  return TRUE;
+-	}
+-    }
+-  
+-  succ = splay_tree_successor (set->ranges, low);
+-  if (succ)
+-    {
+-      succ_low = arange_set_node_low (succ);	
+-      succ_high = arange_set_node_high (set, succ);
+-
+-      if (succ_low <= high)
+-	{
+-	  node = arange_set_splay_tree_insert (set, low, succ_low - 1, value); 
+-	  if (!node)
+-	    return FALSE;
+-
+-	  /* Update set lower bound only after insertion is successful.  */
+-	  if (low < set->lower_bound)
+-	    set->lower_bound = low;
+-
+-	  node = arange_set_maybe_merge_with_predecessor (set, node);
+-
+-	  /* Recurse to handle rest of insertion.  Note that we have to copy
+-	     value here since it has already been used in the node above.  */
+-	  return arange_set_insert_value (set, succ_low, high,
+-					  arange_set_copy_value (set, value));
+-	}
+-     }
+-  
+-  node = arange_set_splay_tree_insert (set, low, high, value);
+-  if (!node)
+-    return FALSE;
+-
+-  /* Update set boundaries only after insertion is successful.  */
+-  if (low < set->lower_bound)
+-    set->lower_bound = low;
+-  if (high > set->upper_bound)
+-    set->upper_bound = high;
+-
+-  node = arange_set_maybe_merge_with_predecessor (set, node);
+-
+-  succ = splay_tree_successor (set->ranges, arange_set_node_low (node));
+-  if (succ)
+-    succ = arange_set_maybe_merge_with_predecessor (set, succ);	
+-
+-  return TRUE;
+-}
+-
+-bfd_boolean
+-arange_set_insert (arange_set set,
+-		   bfd_vma low,
+-		   bfd_vma high,
+-		   arange_value_type value)
+-{
+-  splay_tree tree = set->ranges;
+-  splay_tree_node pred, succ, node = NULL;
+-  bfd_vma pred_high, node_low;
+-
+-  if (set->value_p)
+-    return arange_set_insert_value (set, low, high, value);
+-
+-  if (low > high)
+-    return FALSE;
+-
+-  pred = splay_tree_predecessor (tree, low);
+-  if (pred)
+-    {
+-      pred_high = arange_set_node_high (set, pred);
+-
+-      /* Nothing to be done if predecessor contains new aranges.  */ 
+-      if (pred_high >= high)
+-	return TRUE;
+-
+-      /* If we can expand predecessor, do so.  Test for the case in which
+-	 predecessor does not contain new arange but touches it.  */
+-      if (pred_high >= low || pred_high + 1 == low)
+-	{
+-	  node = pred;
+-	  arange_set_node_set_high (set, node, high);
+-	}
+-    }
+-
+-  /* Try to see if [low,something] is already in splay tree.  */ 
+-  if (node == NULL)
+-    {
+-      node = splay_tree_lookup (tree, low); 	
+-      if (node)
+-	{
+-	  /* Nothing to be done if node contains new aranges.  */ 
+-	  if (arange_set_node_high (set, node) >= high)
+-	    return TRUE;
+-
+-	  arange_set_node_set_high (set, node, high);
+-	}
+-    }
+-
+-  if (node == NULL)
+-    {
+-      node = arange_set_splay_tree_insert (set, low, high, 0);
+-      if (!node)
+-	return FALSE;
+-    }
+-
+-  BFD_ASSERT (node
+-	      && arange_set_node_low (node) <= low
+-	      && arange_set_node_high (set, node) >= high);
+-
+-  /* Update set upper and lower bounds.  */
+-  if (low < set->lower_bound)
+-    set->lower_bound = low;
+-  if (high > set->upper_bound)
+-    set->upper_bound = high;
+-
+-  /* Merge successor if it overlaps or touches node.  */
+-  node_low = arange_set_node_low (node);
+-  while ((succ = splay_tree_successor (tree, node_low)) != NULL
+-	 && ((arange_set_node_high (set, node) >= arange_set_node_low (succ))
+-	     || (arange_set_node_high (set, node) + 1
+-		 == arange_set_node_low (succ))))
+-    {
+-      if (arange_set_node_high (set, succ) > high)
+-        arange_set_node_set_high (set, node, arange_set_node_high (set, succ));
+-      splay_tree_remove (tree, arange_set_node_low (succ));
+-    }
+-  return TRUE;
+-}
+-
+-struct arange_set_foreach_adapter_data
+-{
+-  void *data;
+-  arange_set set;
+-  arange_set_foreach_fn foreach_fn;
+-};
+-
+-/* Adaptor to make arange_set_foreach works with splay_tree_foreach.  */
+-
+-static int
+-arange_set_foreach_adapter (splay_tree_node node, void *data)
+-{
+-  struct arange_set_foreach_adapter_data *adapter_data;
+-  arange_set set;
+-
+-  adapter_data = data;
+-  set = adapter_data->set;
+-  return (adapter_data->foreach_fn) (arange_set_node_low (node),
+-				     arange_set_node_high (set, node),
+-				     arange_set_node_value (set, node),
+-				     adapter_data->data);
+-}
+-
+-/* Traverse aranges in a set.  For each arange in ascending order of
+-   low addresses, call foreach_fn with arange boundaries and data.
+-   If any invocation of foreach_fn returns a non-zero value, stop traversal
+-   and return that value. Otherwise, return 0.  */
+-
+-int
+-arange_set_foreach (arange_set set,
+-		    arange_set_foreach_fn foreach_fn,
+-		    void *data)
+-{
+-  struct arange_set_foreach_adapter_data adapter_data;
+-
+-  adapter_data.data = data;
+-  adapter_data.foreach_fn = foreach_fn;
+-  adapter_data.set = set;
+-  return splay_tree_foreach (set->ranges, arange_set_foreach_adapter,
+-			     (void *) &adapter_data);
+-}
+diff -urN binutils-2.18.50.0.4.org/bfd/arange-set.h binutils-2.18.50.0.4/bfd/arange-set.h
+--- binutils-2.18.50.0.4.org/bfd/arange-set.h	2007-10-03 17:52:57.000000000 +0200
++++ binutils-2.18.50.0.4/bfd/arange-set.h	1970-01-01 01:00:00.000000000 +0100
+@@ -1,187 +0,0 @@
+-/* DWARF 2 Arange-Set.
+-   Copyright 2007 Free Software Foundation, Inc.
+-   Contributed by Doug Kwan, Google Inc.
+- 
+-   This file is part of BFD.
+-
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published by
+-   the Free Software Foundation; either version 3 of the License, or (at
+-   your option) any later version.
+-
+-   This program is distributed in the hope that it will be useful, but
+-   WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   General Public License for more details.
+-
+-   You should have received a copy of the GNU General Public License
+-   along with this program; if not, write to the Free Software
+-   Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+-   MA 02110-1301, USA.  */
+-
+-/* Scalable DWARF2 Arange Set.
+- 
+-   The original code in dwarf2.c uses an unsorted singly-linked list to
+-   represent aranges in a compilation unit.  Looking up for an address
+-   became very in-efficient for extremely large binaries with many
+-   compilation units, each of which having long list of aranges.
+-
+-   The arange-set implemented here supports insertion and address
+-   containment queries for an arbitrary large collection of aranges in
+-   an efficient manner.  In addition, it also supports aranges with
+-   values.
+-
+-     Arange insertion with value.
+-
+-   For valued arange-set, we need to specify 4 operations during set
+-   creation.  If unspecified, reasonable default behaviours are assumed.
+-   The operations define how arange insertion merges two identical aranges
+-   with different values. The 4 operations are:
+-
+-	Equality
+-	Copy
+-	Combination
+-	Deletion
+-
+-   When arange_set_insert () inserts an arange. It breaks the to-be-inserted
+-   arange into smaller aranges using the boundaries of any overlapping
+-   aranges as cutting point.  In addition, arange_set_insert () may also
+-   splilt any existing arange that overlap the ends of the to-be-inserted
+-   arange.  After such splitting of the new and existing aranges, the
+-   to-be-inserted arange becomes a collection of smaller aranges, each of
+-   which either does not overlapping with any existing arange or overlapping
+-   completely with one existing arange.  While splitting aranges, values
+-   are copied using the Copy operation specified in the set.
+-
+-   The for each smaller new arange, arange_set_insert () inserts the new
+-   arange according to these rules:
+-
+-   1. If there is no overlapping existing arange, insert new arange.
+-
+-   2. If there is an overlapping existing arange and its value equals
+-      to the inserted value according to the value equality operation
+-      of the set, do nothing.
+-
+-   3. If there is an overlapping existing arange and its value is not
+-      the inserted value according to the value equality operation,
+-      combine the inserted value with that of the existing arange using
+-      the value combination operation of set.
+- 
+-   If as a result of insertion, there are adjacent aranges with equal values,
+-   the adjacent aranges will be merge.  */
+-
+-#ifndef ARANGE_SET_H
+-#define ARANGE_SET_H
+-
+-#include "sysdep.h"
+-#include "bfd.h"
+-
+-/* An arange_set is a pointer to an arange_set_s struct, whose implementation
+-   is opaque to clients using the arange set.  */
+-typedef struct arange_set_s *arange_set;
+-
+-#ifndef _WIN64
+-  typedef unsigned long int arange_set_uhostptr_t;
+-#else
+-  typedef unsigned long long arange_set_uhostptr_t;
+-#endif
+-
+-/* Type of value attached to an arange.  This should be wide enough to be
+-   converted from and back to any type without loss.  */
+-typedef arange_set_uhostptr_t arange_value_type;
+-
+-/* Type of function that is used to allocate memory for an arange-set.  */
+-typedef void* (*arange_set_allocate_fn)(int, void*);
+-
+-/* Type of function that is used to deallocate memory of an arange-set.  */
+-typedef void (*arange_set_deallocate_fn)(void*, void*);
+-
+-/* Type of function that is called for each arange during a traversal of
+-   the set containing that arange.  */
+-typedef int (*arange_set_foreach_fn)(bfd_vma, bfd_vma, arange_value_type,
+-				     void *);
+-
+-/* Type of function that is called to test equality of range values. */
+-typedef bfd_boolean (*arange_value_equal_fn)(arange_value_type,
+-					     arange_value_type, void *);
+-
+-/* Type of function that is called to copy a range value. */
+-typedef arange_value_type (*arange_value_copy_fn)(arange_value_type, void *);
+-
+-/* Type of function that is called to combine two range values. */
+-typedef arange_value_type (*arange_value_combine_fn)(arange_value_type,
+-						     arange_value_type,
+-						     void *);
+-
+-/* Type of function that is called to delete a range value. */
+-typedef void (*arange_value_delete_fn)(arange_value_type, void *);
+-
+-/* Create an arange set.  Return the new set of NULL if there is any
+-   error.  */
+-extern arange_set arange_set_new (arange_set_allocate_fn,
+-				  arange_set_deallocate_fn,
+-				  bfd_boolean,
+-				  arange_value_equal_fn,
+-				  arange_value_copy_fn,
+-				  arange_value_combine_fn,
+-				  arange_value_delete_fn,
+-				  void *);
+-
+-/*  Delete an arange set.  */
+-extern void arange_set_delete (arange_set);
+-
+-/* Return TRUE if an only if arange set is empty.  */
+-extern bfd_boolean arange_set_empty_p (arange_set);
+-
+-/* Check to see if a given address is in an arange set.  Return TRUE if the
+-   address is inside one of the aranges and if also low_ptr and high_ptr are
+-   not NULL, return the boundaries of the arange.
+-
+-   If the address is not in any arange in set, return FALSE. */
+-extern bfd_boolean arange_set_lookup_address (arange_set, bfd_vma, bfd_vma *,
+-					      bfd_vma *, arange_value_type *);
+-
+-/* Insert an arange [low,high] into a set.  Note that the address high is
+-   also included where as in DWARF2 an address range between low & high means
+-   [low,high).
+-
+-   If the set is created with no capability of storing values, the value
+-   argument is ignored.  Otherwise, the value is stored in the inserted range.
+-   If there are overlapping ranges, values are combined according to
+-   value_combine_fn.
+-
+-   If value is an object, arange_set_insert () takes ownership of that objec.
+-   Caller should not deallocate objects that are passed to arange_set_insert().
+-
+-   Return TRUE if and only if there is no error.  */
+-extern bfd_boolean arange_set_insert (arange_set, bfd_vma, bfd_vma,
+-				      arange_value_type);
+-
+-/* Return TRUE if and only if arange set supports arang evalues.  */
+-extern bfd_boolean arange_set_has_values_p (arange_set);
+-
+-/* Traverse aranges in a set.  For each arange in ascending order of
+-   low addresses, call foreach_fn with arange boundaries and data.
+-   If any invocation of foreach_fn returns a non-zero value, stop traversal
+-   and return that value. Otherwise, return 0.  */
+-extern int arange_set_foreach (arange_set, arange_set_foreach_fn, void *);
+-
+-/* Return TRUE if two values are considered equal by the value comparison
+-   function of an arange_set.  If the arange set does not support values or
+-   if it has no value equality function specified, this function performs
+-   a bit-wise comparison of its input.  */
+-extern bfd_boolean arange_set_value_equal_p (arange_set, arange_value_type,
+-					     arange_value_type);
+-
+-/* Duplicate a value. If the arange set does not support values or if it
+-   has no value copying function specified, this function returns the input
+-   value.  */
+-extern arange_value_type arange_set_copy_value (arange_set, arange_value_type);
+-
+-/* Allocate memory using the allocator of an arange set.  */
+-extern void * arange_set_allocate (arange_set, int);
+-
+-/* Deallocate memory allocated from arange_set_allocate ().  */
+-extern void arange_set_deallocate (arange_set, void *);
+-
+-#endif /* ARANGE_SET_H */
+diff -urN binutils-2.18.50.0.4.org/bfd/dwarf2.c binutils-2.18.50.0.4/bfd/dwarf2.c
+--- binutils-2.18.50.0.4.org/bfd/dwarf2.c	2008-02-08 17:44:55.000000000 +0100
++++ binutils-2.18.50.0.4/bfd/dwarf2.c	2008-02-16 21:39:52.643275415 +0100
+@@ -1,6 +1,6 @@
+ /* DWARF 2 support.
+    Copyright 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+-   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
++   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+ 
+    Adapted from gdb/dwarf2read.c by Gavin Koch of Cygnus Solutions
+    (gavin@cygnus.com).
+@@ -36,7 +36,6 @@
+ #include "libbfd.h"
+ #include "elf-bfd.h"
+ #include "elf/dwarf2.h"
+-#include "arange-set.h"
+ 
+ /* The data in the .debug_line statement prologue looks like this.  */
+ 
+@@ -90,9 +89,6 @@
+   /* Last comp unit in list above.  */
+   struct comp_unit *last_comp_unit;
+ 
+-  /* Number of comp units. */
+-  int comp_unit_count;
+-
+   /* The next unread compilation unit within the .debug_info section.
+      Zero indicates that the .debug_info section has not been loaded
+      into a buffer yet.  */
+@@ -167,33 +163,11 @@
+ #define STASH_INFO_HASH_OFF        0
+ #define STASH_INFO_HASH_ON         1
+ #define STASH_INFO_HASH_DISABLED   2
+-
+-  /* Arange-set for fast lookup.  The aranges in this set have pointers
+-     to compilation units containing them.  In the unlikely case that there
+-     are multiple compilation units associated with an arange, the arange-set
+-     is a NULL pointer and we need to fall back to sequential search.  */
+-  arange_set comp_unit_arange_set;
+-
+-  /* Status of global arange set.  */
+-  int arange_set_status;
+-#define STASH_ARANGE_SET_OFF		0
+-#define STASH_ARANGE_SET_ON		1
+-#define STASH_ARANGE_SET_DISABLED	2
+-
+-  /* Build a whole binary arange-set for compilation unit look-up
+-     if there are at least this many compilation units.  */
+-#define STASH_ARANGE_SET_TRIGGER	500
+ };
+ 
+-/* Simple singly linked list for aranges.  We now use a more scalable
+-   arange-set for aranges in compilation units.  For functions, we still
+-   use this since it is more efficient for simple cases.  */
+-
+ struct arange
+ {
+   struct arange *next;
+-  /* The lowest and highest addresses contained a compilation
+-     unit as specified in the compilation unit's header.  */
+   bfd_vma low;
+   bfd_vma high;
+ };
+@@ -213,8 +187,9 @@
+   /* Keep the bfd convenient (for memory allocation).  */
+   bfd *abfd;
+ 
+-  /* The set of aranges in a compilation unit.  */
+-  arange_set arange_set;
++  /* The lowest and highest addresses contained in this compilation
++     unit as specified in the compilation unit header.  */
++  struct arange arange;
+ 
+   /* The DW_AT_name attribute (for error messages).  */
+   char *name;
+@@ -895,8 +870,8 @@
+   char *comp_dir;
+   char **dirs;
+   struct fileinfo* files;
+-  struct line_info* last_line;  /* Largest VMA.  */
+-  struct line_info* lcl_head;   /* Local head; used in 'add_line_info'.  */
++  struct line_info* last_line;  /* largest VMA */
++  struct line_info* lcl_head;   /* local head; used in 'add_line_info' */
+ };
+ 
+ /* Remember some information about each function.  If the function is
+@@ -906,121 +881,35 @@
+ 
+ struct funcinfo
+ {
+-  struct funcinfo *prev_func;		/* Pointer to previous function in list of all functions.  */
+-  struct funcinfo *caller_func;		/* Pointer to function one scope higher.  */
+-  char *caller_file;			/* Source location file name where caller_func inlines this func.  */
+-  int caller_line;			/* Source location line number where caller_func inlines this func.  */
+-  char *file;				/* Source location file name.  */
+-  int line;				/* Source location line number.  */
++  struct funcinfo *prev_func;		/* Pointer to previous function in list of all functions */
++  struct funcinfo *caller_func;		/* Pointer to function one scope higher */
++  char *caller_file;			/* Source location file name where caller_func inlines this func */
++  int caller_line;			/* Source location line number where caller_func inlines this func */
++  char *file;				/* Source location file name */
++  int line;				/* Source location line number */
+   int tag;
+   char *name;
+   struct arange arange;
+-  asection *sec;			/* Where the symbol is defined.  */
++  asection *sec;			/* Where the symbol is defined */
+ };
+ 
+ struct varinfo
+ {
+-  /* Pointer to previous variable in list of all variables.  */
++  /* Pointer to previous variable in list of all variables */
+   struct varinfo *prev_var;
+-  /* Source location file name.  */
++  /* Source location file name */
+   char *file;
+-  /* Source location line number.  */
++  /* Source location line number */
+   int line;
+   int tag;
+   char *name;
+   bfd_vma addr;
+-  /* Where the symbol is defined.  */
++  /* Where the symbol is defined */
+   asection *sec;
+-  /* Is this a stack variable?  */
++  /* Is this a stack variable? */
+   unsigned int stack: 1;
+ };
+ 
+-/* Arange-sets:
+- 
+-   To handle extremely large binaries, we want to use a more efficient data
+-   structure than a singly-linked list to represent aranges.  So instead we
+-   use an arange-set, which supports efficient insertions and queries.  We
+-   use a simple arange-set with no values attached to represent the aranges
+-   in a compilation unit and we also use a global arange-set to store all
+-   the aranges in all the compilation units.  The global arange-set stores
+-   values which are pointers to the compilation units.
+-
+-   Normally aranges in the global set do not overlap, but this can happen.
+-   To simplify things and to prevent excessive memory usage, an arange in
+-   the global set can only point to at most one compilation unit.  In case
+-   of an overlap, the pointer is set to NULL, meaning that there are more
+-   than one compilation units containing that arange.  Code that looks up
+-   the global set should fall back to searching all compilation units if
+-   that happens.  */
+- 
+-/* Allocate memory for an arange set.  */ 
+-
+-static void *
+-dwarf2_arange_set_allocate (int size, void *data)
+-{
+-  return bfd_alloc ((bfd *) data, size);
+-}
+-
+-/* Deallocate memory of an arange set.  */ 
+-
+-static void
+-dwarf2_arange_set_deallocate (void *object ATTRIBUTE_UNUSED,
+-			      void *data ATTRIBUTE_UNUSED)
+-{
+-  /* Do nothing. Let BFD clean up when it's done.  */
+-}
+-
+-/* Combine two comp unit pointers.  If they are the same,
+-   return either one, otherwise return NULL.  */
+-
+-static arange_value_type
+-dwarf2_combine_arange_value (arange_value_type value1,
+-			     arange_value_type value2,
+-			     void *data ATTRIBUTE_UNUSED)
+-{
+-  return ((value1 == value2) ? value1 : 0); 
+-}
+-
+-/* Create a simple arange set that does not store values.  */
+-
+-static arange_set
+-dwarf2_arange_set_new (bfd *abfd)
+-{
+-  return arange_set_new (dwarf2_arange_set_allocate,
+-			 dwarf2_arange_set_deallocate,
+-			 FALSE, NULL, NULL, NULL, NULL, (void *) abfd);
+-}
+-
+-/* Create an arange set that stores pointers to compilation units.  */
+-
+-static arange_set
+-dwarf2_arange_set_with_value_new (bfd *abfd)
+-{
+-  return arange_set_new (dwarf2_arange_set_allocate,
+-			 dwarf2_arange_set_deallocate,
+-			 TRUE, NULL, NULL, dwarf2_combine_arange_value,
+-			 NULL, (void *) abfd);
+-}
+-
+-/* Add an arange to a compilation unit.  Add the arange to both the
+-   unit's valueless arange set and the global arange set.  */
+-
+-static void
+-dwarf2_comp_unit_arange_add (struct comp_unit *unit,
+-			     bfd_vma low, 
+-			     bfd_vma high)
+-{
+-  /* Add arange to unit's local arange set.  */
+-  arange_set_insert (unit->arange_set, low, high - 1, 0);
+-
+-  if (unit->stash->arange_set_status == STASH_ARANGE_SET_ON)
+-    {
+-      BFD_ASSERT (unit->stash->comp_unit_arange_set);
+-      arange_set_insert (unit->stash->comp_unit_arange_set, low, high - 1,
+-			 (arange_value_type) unit);
+-    }
+-}
+-
+ /* Return TRUE if NEW_LINE should sort after LINE.  */
+ 
+ static inline bfd_boolean
+@@ -1046,7 +935,7 @@
+ 	       int end_sequence)
+ {
+   bfd_size_type amt = sizeof (struct line_info);
+-  struct line_info * info = bfd_alloc (table->abfd, amt);
++  struct line_info* info = bfd_alloc (table->abfd, amt);
+ 
+   /* Set member data of 'info'.  */
+   info->address = address;
+@@ -1090,9 +979,9 @@
+       table->last_line = info;
+     }
+   else if (!table->last_line
+-	   || new_line_sorts_after (info, table->last_line))
++      || new_line_sorts_after (info, table->last_line))
+     {
+-      /* Normal case: add 'info' to the beginning of the list.  */
++      /* Normal case: add 'info' to the beginning of the list */
+       info->prev_line = table->last_line;
+       table->last_line = info;
+ 
+@@ -1112,7 +1001,7 @@
+     {
+       /* Abnormal and hard: Neither 'last_line' nor 'lcl_head' are valid
+ 	 heads for 'info'.  Reset 'lcl_head'.  */
+-      struct line_info* li2 = table->last_line; /* Always non-NULL.  */
++      struct line_info* li2 = table->last_line; /* always non-NULL */
+       struct line_info* li1 = li2->prev_line;
+ 
+       while (li1)
+@@ -1121,7 +1010,7 @@
+ 	      && new_line_sorts_after (info, li1))
+ 	    break;
+ 
+-	  li2 = li1; /* Always non-NULL.  */
++	  li2 = li1; /* always non-NULL */
+ 	  li1 = li1->prev_line;
+ 	}
+       table->lcl_head = li2;
+@@ -1195,12 +1084,11 @@
+ }
+ 
+ static void
+-arange_add (bfd *abfd, struct arange *first_arange, bfd_vma low_pc,
+-	    bfd_vma high_pc)
++arange_add (bfd *abfd, struct arange *first_arange, bfd_vma low_pc, bfd_vma high_pc)
+ {
+   struct arange *arange;
+ 
+-  /* If the first arange is empty, use it.  */
++  /* If the first arange is empty, use it. */
+   if (first_arange->high == 0)
+     {
+       first_arange->low = low_pc;
+@@ -1227,7 +1115,7 @@
+   while (arange);
+ 
+   /* Need to allocate a new arange and insert it into the arange list.
+-     Order isn't significant, so just insert after the first arange.  */
++     Order isn't significant, so just insert after the first arange. */
+   arange = bfd_zalloc (abfd, sizeof (*arange));
+   arange->low = low_pc;
+   arange->high = high_pc;
+@@ -1462,7 +1350,7 @@
+ 		    low_pc = address;
+ 		  if (address > high_pc)
+ 		    high_pc = address;
+-		  dwarf2_comp_unit_arange_add (unit, low_pc, high_pc);
++		  arange_add (unit->abfd, &unit->arange, low_pc, high_pc);
+ 		  break;
+ 		case DW_LNE_set_address:
+ 		  address = read_address (unit, line_ptr);
+@@ -1893,44 +1781,11 @@
+ 	    }
+ 	}
+     }
+-  return name;
+-}
+-
+-/* Type of callback function used in read_rangelist below.  */
+-
+-typedef void (*read_rangelist_callback_t)(struct comp_unit*, bfd_vma,
+-					  bfd_vma, void*);
+-
+-/* Call back to add an arange to the old-style arange list.  */
+-
+-static void
+-read_rangelist_insert_arange_list (struct comp_unit *unit,
+-				   bfd_vma low,
+-				   bfd_vma high,
+-				   void *data)
+-{
+-  arange_add (unit->abfd, (struct arange*) data, low, high);
++  return (name);
+ }
+ 
+-/* Callback to add an arange in the arange set of a compilation unit.  */
+-
+-static void
+-read_rangelist_comp_unit_arange_add (struct comp_unit *unit,
+-				     bfd_vma low,
+-				     bfd_vma high,
+-				     void *data ATTRIBUTE_UNUSED)
+-{
+-  dwarf2_comp_unit_arange_add (unit, low, high);
+-}
+-
+-/* Read ARANGE list of a compilation unit.  For each read arange,
+-   call the supplied callback function for further processing.  */
+-
+ static void
+-read_rangelist (struct comp_unit *unit,
+-	        bfd_uint64_t offset,
+-		read_rangelist_callback_t callback,
+-		void *callback_data)
++read_rangelist (struct comp_unit *unit, struct arange *arange, bfd_uint64_t offset)
+ {
+   bfd_byte *ranges_ptr;
+   bfd_vma base_address = unit->base_address;
+@@ -1966,9 +1821,7 @@
+       if (low_pc == -1UL && high_pc != -1UL)
+ 	base_address = high_pc;
+       else
+-	/* Call callback to process new arange.  */
+-	(callback) (unit, base_address + low_pc, base_address + high_pc,
+-		    callback_data);
++	arange_add (unit->abfd, arange, base_address + low_pc, base_address + high_pc);
+     }
+ }
+ 
+@@ -2101,9 +1954,7 @@
+ 		  break;
+ 
+ 		case DW_AT_ranges:
+-		  read_rangelist (unit, attr.u.val,
+-				  read_rangelist_insert_arange_list,
+-				  & func->arange);
++		  read_rangelist (unit, &func->arange, attr.u.val);
+ 		  break;
+ 
+ 		case DW_AT_decl_file:
+@@ -2305,7 +2156,6 @@
+   unit->end_ptr = end_ptr;
+   unit->stash = stash;
+   unit->info_ptr_unit = info_ptr_unit;
+-  unit->arange_set = dwarf2_arange_set_new (abfd);
+ 
+   for (i = 0; i < abbrev->num_attrs; ++i)
+     {
+@@ -2337,14 +2187,12 @@
+ 	  break;
+ 
+ 	case DW_AT_ranges:
+-	  read_rangelist (unit, attr.u.val,
+-			  read_rangelist_comp_unit_arange_add, NULL);
++	  read_rangelist (unit, &unit->arange, attr.u.val);
+ 	  break;
+ 
+ 	case DW_AT_comp_dir:
+ 	  {
+ 	    char *comp_dir = attr.u.str;
+-
+ 	    if (comp_dir)
+ 	      {
+ 		/* Irix 6.2 native cc prepends <machine>.: to the compilation
+@@ -2362,9 +2210,10 @@
+ 	  break;
+ 	}
+     }
+-
+   if (high_pc != 0)
+-    dwarf2_comp_unit_arange_add (unit, low_pc, high_pc);
++    {
++      arange_add (unit->abfd, &unit->arange, low_pc, high_pc);
++    }
+ 
+   unit->first_child_die_ptr = info_ptr;
+   return unit;
+@@ -2379,7 +2228,21 @@
+ static bfd_boolean
+ comp_unit_contains_address (struct comp_unit *unit, bfd_vma addr)
+ {
+-  return arange_set_lookup_address (unit->arange_set, addr, NULL, NULL, NULL);
++  struct arange *arange;
++
++  if (unit->error)
++    return FALSE;
++
++  arange = &unit->arange;
++  do
++    {
++      if (addr >= arange->low && addr < arange->high)
++	return TRUE;
++      arange = arange->next;
++    }
++  while (arange);
++
++  return FALSE;
+ }
+ 
+ /* If UNIT contains ADDR, set the output parameters to the values for
+@@ -2951,107 +2814,6 @@
+ 				   filename_ptr, linenumber_ptr);
+ }
+ 
+-typedef struct
+-{
+-  struct dwarf2_debug * stash;
+-  arange_set            set;
+-  struct comp_unit *    unit;
+-} stash_copy_local_aranges_data_t;
+-
+-static int
+-stash_copy_local_aranges (bfd_vma low,
+-			  bfd_vma high,
+-			  arange_value_type data ATTRIBUTE_UNUSED,
+-			  void *info)
+-{
+-  bfd_boolean status;
+-
+-  stash_copy_local_aranges_data_t *copy_data = info;
+-  status = arange_set_insert (copy_data->set, low, high,
+-			      (arange_value_type) copy_data->unit);
+-
+-  return status ? 0 : 1;
+-}
+-
+-static bfd_boolean
+-stash_maybe_enable_arange_set (bfd *abfd, struct dwarf2_debug *stash)
+-{
+-  struct comp_unit *unit;
+-  stash_copy_local_aranges_data_t copy_data;
+-
+-  if (stash->arange_set_status != STASH_ARANGE_SET_OFF)
+-    return TRUE;
+-
+-  if (stash->comp_unit_count < STASH_ARANGE_SET_TRIGGER)
+-    return TRUE;
+-
+-  if (stash->comp_unit_arange_set == NULL)
+-    {
+-      stash->comp_unit_arange_set =
+-	dwarf2_arange_set_with_value_new (abfd);
+-      if (!stash->comp_unit_arange_set)
+-	{
+-	  stash->arange_set_status = STASH_ARANGE_SET_DISABLED;
+-	  return FALSE;
+-	}
+-    }
+-
+-  copy_data.stash = stash;
+-  copy_data.set = stash->comp_unit_arange_set;
+-  for (unit = stash->all_comp_units; unit; unit = unit->next_unit)
+-    {
+-      copy_data.unit = unit;
+-      if (arange_set_foreach (unit->arange_set, stash_copy_local_aranges, 
+-			      & copy_data))
+-	{
+-	  stash->arange_set_status = STASH_ARANGE_SET_DISABLED;
+-	  return FALSE;
+-	}
+-    }
+-  stash->arange_set_status = STASH_ARANGE_SET_ON;
+-  return TRUE;
+-}
+-
+-/* Find the nearest line to a given address and record filename,
+-   function name and line number if found.  Return TRUE if a line is
+-   found or FALSE otherwise.  */
+-
+-static bfd_boolean ATTRIBUTE_UNUSED
+-stash_find_nearest_line_fast (struct dwarf2_debug *stash,
+-			      bfd_vma addr,
+-			      const char **filename_ptr,
+-			      const char **functionname_ptr,
+-			      unsigned int *linenumber_ptr)
+-{
+-  arange_value_type value;
+-  struct comp_unit *unit;
+-
+-  /* Try looking up global arange set first.  */
+-  if (stash->arange_set_status == STASH_ARANGE_SET_ON
+-      && arange_set_lookup_address (stash->comp_unit_arange_set, addr, NULL,
+-				    NULL, &value))
+-    {
+-      if ((unit = (struct comp_unit *) value) != NULL)
+-	/* There is only one compilation unit containing this address.  */
+-	return comp_unit_find_nearest_line (unit, addr, filename_ptr,
+-					    functionname_ptr, linenumber_ptr,
+-					    stash);
+-    }
+-
+-  /* The arange set is not available or there are multiple compilation
+-     units containing this address.  Search all compilation units.  */
+-  for (unit = stash->all_comp_units; unit; unit = unit->next_unit)
+-    {
+-      if (comp_unit_contains_address (unit, addr)
+-	  && comp_unit_find_nearest_line (unit, addr, filename_ptr,
+-					  functionname_ptr,
+-					  linenumber_ptr, stash))
+-	  return TRUE;
+-    }
+-
+-  return FALSE;
+-}
+-
+ /* Find the source code location of SYMBOL.  If SYMBOL is NULL
+    then find the nearest source code location corresponding to
+    the address SECTION + OFFSET.
+@@ -3306,13 +3068,17 @@
+     }
+   else
+     {
+-      if (stash->arange_set_status == STASH_ARANGE_SET_OFF)
+-	stash_maybe_enable_arange_set (abfd, stash);
+-
+-      found = stash_find_nearest_line_fast (stash, addr, filename_ptr,
+-					    functionname_ptr, linenumber_ptr);
+-      if (found)
+-	goto done;
++      for (each = stash->all_comp_units; each; each = each->next_unit)
++	{
++	  found = (comp_unit_contains_address (each, addr)
++		   && comp_unit_find_nearest_line (each, addr,
++						   filename_ptr,
++						   functionname_ptr,
++						   linenumber_ptr,
++						   stash));
++	  if (found)
++	    goto done;
++	}
+     }
+ 
+   /* The DWARF2 spec says that the initial length field, and the
+@@ -3386,22 +3152,22 @@
+ 
+ 	      each->next_unit = stash->all_comp_units;
+ 	      stash->all_comp_units = each;
+-	      stash->comp_unit_count++;
+ 
+ 	      /* DW_AT_low_pc and DW_AT_high_pc are optional for
+-		 compilation units.  If we don't have them, we need to
+-		 consult the line info table to see if a compilation unit
+-		 contains the given address.  */
++		 compilation units.  If we don't have them (i.e.,
++		 unit->high == 0), we need to consult the line info
++		 table to see if a compilation unit contains the given
++		 address.  */
+ 	      if (do_line)
+ 		found = (((symbol->flags & BSF_FUNCTION) == 0
+-			  || arange_set_empty_p (each->arange_set)
++			  || each->arange.high == 0
+ 			  || comp_unit_contains_address (each, addr))
+ 			 && comp_unit_find_line (each, symbol, addr,
+ 						 filename_ptr,
+ 						 linenumber_ptr,
+ 						 stash));
+ 	      else
+-		found = ((arange_set_empty_p (each->arange_set)
++		found = ((each->arange.high == 0
+ 			  || comp_unit_contains_address (each, addr))
+ 			 && comp_unit_find_nearest_line (each, addr,
+ 							 filename_ptr,
+diff -urN binutils-2.18.50.0.4.org/bfd/Makefile.am binutils-2.18.50.0.4/bfd/Makefile.am
+--- binutils-2.18.50.0.4.org/bfd/Makefile.am	2008-02-08 17:44:09.000000000 +0100
++++ binutils-2.18.50.0.4/bfd/Makefile.am	2008-02-16 21:39:52.643275415 +0100
+@@ -42,7 +42,7 @@
+ 	format.lo init.lo libbfd.lo opncls.lo reloc.lo \
+ 	section.lo syms.lo targets.lo hash.lo linker.lo \
+ 	srec.lo binary.lo tekhex.lo ihex.lo stabs.lo stab-syms.lo \
+-	merge.lo dwarf2.lo simple.lo arange-set.lo
++	merge.lo dwarf2.lo simple.lo
+ 
+ BFD64_LIBS = archive64.lo
+ 
+@@ -52,7 +52,7 @@
+ 	format.c init.c libbfd.c opncls.c reloc.c \
+ 	section.c syms.c targets.c hash.c linker.c \
+ 	srec.c binary.c tekhex.c ihex.c stabs.c stab-syms.c \
+-	merge.c dwarf2.c simple.c arange-set.c
++	merge.c dwarf2.c simple.c
+ 
+ BFD64_LIBS_CFILES = archive64.c
+ 
+@@ -665,8 +665,8 @@
+ 
+ ## This is a list of all .h files which are in the source tree.
+ SOURCE_HFILES = \
+-	arange-set.h aout-target.h aoutf1.h aoutx.h coffcode.h coffswap.h \
+-	ecoffswap.h elf-bfd.h elf-hppa.h elf32-hppa.h \
++	aout-target.h aoutf1.h aoutx.h coffcode.h coffswap.h ecoffswap.h \
++	elf-bfd.h elf-hppa.h elf32-hppa.h \
+ 	elf64-hppa.h elfcode.h elfcore.h \
+ 	freebsd.h genlink.h go32stub.h \
+ 	libaout.h libbfd.h libcoff.h libecoff.h libhppa.h libieee.h \
+@@ -1049,11 +1049,9 @@
+ dwarf2.lo: dwarf2.c $(INCDIR)/filenames.h $(INCDIR)/libiberty.h \
+   $(INCDIR)/hashtab.h elf-bfd.h $(INCDIR)/elf/common.h \
+   $(INCDIR)/elf/internal.h $(INCDIR)/elf/external.h $(INCDIR)/bfdlink.h \
+-  $(INCDIR)/elf/dwarf2.h arange-set.h
++  $(INCDIR)/elf/dwarf2.h
+ simple.lo: simple.c $(INCDIR)/filenames.h $(INCDIR)/hashtab.h \
+   $(INCDIR)/bfdlink.h
+-arange-set.lo: arange-set.c $(INCDIR)/filenames.h $(INCDIR)/libiberty.h \
+-  $(INCDIR)/hashtab.h arange-set.h $(INCDIR)/splay-tree.h
+ archive64.lo: archive64.c $(INCDIR)/filenames.h $(INCDIR)/hashtab.h \
+   $(INCDIR)/aout/ar.h
+ cpu-alpha.lo: cpu-alpha.c $(INCDIR)/filenames.h $(INCDIR)/hashtab.h
+diff -urN binutils-2.18.50.0.4.org/bfd/po/SRC-POTFILES.in binutils-2.18.50.0.4/bfd/po/SRC-POTFILES.in
+--- binutils-2.18.50.0.4.org/bfd/po/SRC-POTFILES.in	2007-11-03 21:40:36.000000000 +0100
++++ binutils-2.18.50.0.4/bfd/po/SRC-POTFILES.in	2008-02-16 21:39:52.643275415 +0100
+@@ -12,8 +12,6 @@
+ aout-target.h
+ aout-tic30.c
+ aoutx.h
+-arange-set.c
+-arange-set.h
+ archive64.c
+ archive.c
+ archures.c
