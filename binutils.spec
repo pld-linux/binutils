@@ -15,7 +15,7 @@ Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.18.50.0.4
-Release:	1
+Release:	2
 Epoch:		3
 License:	GPL v3+
 Group:		Development/Tools
@@ -32,6 +32,7 @@ Patch5:		%{name}-flex.patch
 Patch6:		%{name}-discarded.patch
 Patch7:		%{name}-absolute-gnu_debuglink-path.patch
 Patch8:		%{name}-libtool-m.patch
+Patch9:		%{name}-pr-5755.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1:1.8.2
@@ -151,16 +152,19 @@ niektórych pakietów.
 %patch6 -p1
 %patch7 -p1
 %patch8 -p1
+%patch9 -p1
 
 %build
 # non-standard regeneration (needed because of gasp patch)
 # AM_BINUTILS_WARNINGS in bfd/warning.m4, ZW_GNU_GETTEXT_SISTER_DIR in config/gettext-sister.m4
-cd gas
-aclocal -I ../bfd -I ../config -I ..
-automake --cygnus Makefile
-automake --cygnus doc/Makefile
-autoconf
-cd ..
+for dir in gas bfd; do
+	cd $dir || exit 1
+	aclocal -I ../bfd -I ../config -I ..
+	automake --cygnus Makefile
+	automake --cygnus doc/Makefile
+	autoconf
+	cd ..
+done
 
 # More targets
 TARGETS=
