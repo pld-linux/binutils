@@ -16,7 +16,7 @@ Summary(uk.UTF-8):	Набір інструментів GNU для побудов
 Name:		binutils
 Version:	2.18.50.0.4
 Release:	3
-Epoch:		3
+Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
@@ -33,6 +33,7 @@ Patch6:		%{name}-discarded.patch
 Patch7:		%{name}-absolute-gnu_debuglink-path.patch
 Patch8:		%{name}-libtool-m.patch
 Patch9:		%{name}-pr-5755.patch
+Patch10:	%{name}-pr-5788.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1:1.8.2
@@ -153,6 +154,7 @@ niektórych pakietów.
 %patch7 -p1
 %patch8 -p1
 %patch9 -p1
+%patch10 -p0
 
 %build
 # non-standard regeneration (needed because of gasp patch)
