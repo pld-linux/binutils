@@ -1,0 +1,539 @@
+2008-03-16  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/5789
+	PR ld/5943
+	* elf32-i386.c  (elf_i386_relocate_section): Issue an error
+	for R_386_GOTOFF relocaton against undefined hidden/internal
+	symbols when building a shared object.
+
+	* elf64-x86-64.c (elf64_x86_64_relocate_section): Issue an
+	error for R_X86_64_PC8/R_X86_64_PC16/R_X86_64_PC32
+	relocaton against undefined hidden/internal symbols when
+	building a shared object.
+	(elf64_x86_64_finish_dynamic_symbol): Return FALSE when symbol
+	is referenced locally, but isn't defined in a regular file.
+
+ld/testsuite/
+
+2008-03-16  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/5789
+	PR ld/5943
+	* ld-i386/hidden1.d: New.
+	* ld-i386/hidden1.s: Likewise.
+	* ld-i386/hidden2.d: Likewise.
+	* ld-i386/hidden2.s: Likewise.
+	* ld-i386/hidden3.d: Likewise.
+	* ld-i386/hidden4.s: Likewise.
+	* ld-i386/protected1.d: Likewise.
+	* ld-i386/protected1.s: Likewise.
+	* ld-i386/protected2.d: Likewise.
+	* ld-i386/protected2.s: Likewise.
+	* ld-i386/protected3.d: Likewise.
+	* ld-i386/protected3.s: Likewise.
+	* ld-x86-64/hidden1.d: Likewise.
+	* ld-x86-64/hidden1.s: Likewise.
+	* ld-x86-64/hidden2.d: Likewise.
+	* ld-x86-64/hidden2.s: Likewise.
+	* ld-x86-64/hidden3.d: Likewise.
+	* ld-x86-64/hidden3.s: Likewise.
+	* ld-x86-64/protected1.d: Likewise.
+	* ld-x86-64/protected1.s: Likewise.
+	* ld-x86-64/protected2.d: Likewise.
+	* ld-x86-64/protected2.s: Likewise.
+	* ld-x86-64/protected3.d: Likewise.
+	* ld-x86-64/protected3.s: Likewise.
+
+	* ld-i386/i386.exp: Run hidden1, hidden2, hidden3, protected1,
+	protected2 and protected3.
+	* ld-x86-64/x86-64.exp: Likewise.
+
+--- binutils/bfd/elf32-i386.c.bad	2008-03-15 07:28:10.000000000 -0700
++++ binutils/bfd/elf32-i386.c	2008-03-16 09:54:26.000000000 -0700
+@@ -2773,19 +2773,46 @@ elf_i386_relocate_section (bfd *output_b
+ 
+ 	  /* Check to make sure it isn't a protected function symbol
+ 	     for shared library since it may not be local when used
+-	     as function address.  */
+-	  if (info->shared
+-	      && !info->executable
+-	      && h
+-	      && h->def_regular
+-	      && h->type == STT_FUNC
+-	      && ELF_ST_VISIBILITY (h->other) == STV_PROTECTED)
++	     as function address.  We also need to make sure that a
++	     symbol is defined locally.  */
++	  if (info->shared && h)
+ 	    {
+-	      (*_bfd_error_handler)
+-		(_("%B: relocation R_386_GOTOFF against protected function `%s' can not be used when making a shared object"),
+-		 input_bfd, h->root.root.string);
+-	      bfd_set_error (bfd_error_bad_value);
+-	      return FALSE;
++	      if (!h->def_regular)
++		{
++		  const char *v;
++
++		  switch (ELF_ST_VISIBILITY (h->other))
++		    {
++		    case STV_HIDDEN:
++		      v = _("hidden symbol");
++		      break;
++		    case STV_INTERNAL:
++		      v = _("internal symbol");
++		      break;
++		    case STV_PROTECTED:
++		      v = _("protected symbol");
++		      break;
++		    default:
++		      v = _("symbol");
++		      break;
++		    }
++
++		  (*_bfd_error_handler)
++		    (_("%B: relocation R_386_GOTOFF against undefined %s `%s' can not be used when making a shared object"),
++		     input_bfd, v, h->root.root.string);
++		  bfd_set_error (bfd_error_bad_value);
++		  return FALSE;
++		}
++	      else if (!info->executable
++		       && h->type == STT_FUNC
++		       && ELF_ST_VISIBILITY (h->other) == STV_PROTECTED)
++		{
++		  (*_bfd_error_handler)
++		    (_("%B: relocation R_386_GOTOFF against protected function `%s' can not be used when making a shared object"),
++		     input_bfd, h->root.root.string);
++		  bfd_set_error (bfd_error_bad_value);
++		  return FALSE;
++		}
+ 	    }
+ 
+ 	  /* Note that sgot is not involved in this
+--- binutils/bfd/elf64-x86-64.c.bad	2008-03-15 07:28:10.000000000 -0700
++++ binutils/bfd/elf64-x86-64.c	2008-03-16 09:53:21.000000000 -0700
+@@ -2615,30 +2615,63 @@ elf64_x86_64_relocate_section (bfd *outp
+ 	case R_X86_64_PC16:
+ 	case R_X86_64_PC32:
+ 	  if (info->shared
+-	      && !SYMBOL_REFERENCES_LOCAL (info, h)
+ 	      && (input_section->flags & SEC_ALLOC) != 0
+ 	      && (input_section->flags & SEC_READONLY) != 0
+-	      && (!h->def_regular
+-		  || r_type != R_X86_64_PC32
+-		  || h->type != STT_FUNC
+-		  || ELF_ST_VISIBILITY (h->other) != STV_PROTECTED
+-		  || !is_32bit_relative_branch (contents,
+-						rel->r_offset)))
++	      && h != NULL)
+ 	    {
+-	      if (h->def_regular
+-		  && r_type == R_X86_64_PC32
+-		  && h->type == STT_FUNC
+-		  && ELF_ST_VISIBILITY (h->other) == STV_PROTECTED)
+-		(*_bfd_error_handler)
+-		   (_("%B: relocation R_X86_64_PC32 against protected function `%s' can not be used when making a shared object"),
+-		    input_bfd, h->root.root.string);
++	      bfd_boolean fail = FALSE;
++	      bfd_boolean branch
++		= (r_type == R_X86_64_PC32
++		   && is_32bit_relative_branch (contents, rel->r_offset));
++
++	      if (SYMBOL_REFERENCES_LOCAL (info, h))
++		{
++		  /* Symbol is referenced locally.  Make sure it is
++		     defined locally or for a branch.  */
++		  fail = !h->def_regular && !branch;
++		}
+ 	      else
+-		(*_bfd_error_handler)
+-		  (_("%B: relocation %s against `%s' can not be used when making a shared object; recompile with -fPIC"),
+-		   input_bfd, x86_64_elf_howto_table[r_type].name,
+-		   h->root.root.string);
+-	      bfd_set_error (bfd_error_bad_value);
+-	      return FALSE;
++		{
++		  /* Symbol isn't referenced locally.  We only allow
++		     branch to symbol with non-default visibility. */
++		  fail = (!branch
++			  || ELF_ST_VISIBILITY (h->other) == STV_DEFAULT);
++		}
++
++	      if (fail)
++		{
++		  const char *fmt;
++		  const char *v;
++		  const char *pic = "";
++
++		  switch (ELF_ST_VISIBILITY (h->other))
++		    {
++		    case STV_HIDDEN:
++		      v = _("hidden symbol");
++		      break;
++		    case STV_INTERNAL:
++		      v = _("internal symbol");
++		      break;
++		    case STV_PROTECTED:
++		      v = _("protected symbol");
++		      break;
++		    default:
++		      v = _("symbol");
++		      pic = _("; recompile with -fPIC");
++		      break;
++		    }
++
++		  if (h->def_regular)
++		    fmt = _("%B: relocation %s against %s `%s' can not be used when making a shared object%s");
++		  else
++		    fmt = _("%B: relocation %s against undefined %s `%s' can not be used when making a shared object%s");
++
++		  (*_bfd_error_handler) (fmt, input_bfd,
++					 x86_64_elf_howto_table[r_type].name,
++					 v,  h->root.root.string, pic);
++		  bfd_set_error (bfd_error_bad_value);
++		  return FALSE;
++		}
+ 	    }
+ 	  /* Fall through.  */
+ 
+@@ -3363,6 +3396,8 @@ elf64_x86_64_finish_dynamic_symbol (bfd 
+       if (info->shared
+ 	  && SYMBOL_REFERENCES_LOCAL (info, h))
+ 	{
++	  if (!h->def_regular)
++	    return FALSE;
+ 	  BFD_ASSERT((h->got.offset & 1) != 0);
+ 	  rela.r_info = ELF64_R_INFO (0, R_X86_64_RELATIVE);
+ 	  rela.r_addend = (h->root.u.def.value
+--- binutils/ld/testsuite/ld-i386/hidden1.d.bad	2008-03-16 09:29:54.000000000 -0700
++++ binutils/ld/testsuite/ld-i386/hidden1.d	2008-03-16 09:21:52.000000000 -0700
+@@ -0,0 +1,3 @@
++#as: --32
++#ld: -shared -melf_i386
++#error: .*relocation R_386_GOTOFF against undefined hidden symbol `foo' can not be used when making a shared object
+--- binutils/ld/testsuite/ld-i386/hidden1.s.bad	2008-03-16 09:29:54.000000000 -0700
++++ binutils/ld/testsuite/ld-i386/hidden1.s	2008-03-16 09:15:16.000000000 -0700
+@@ -0,0 +1,9 @@
++	.text
++.globl bar
++	.type	bar, @function
++bar:
++	leal	foo@GOTOFF(%ecx), %eax
++	ret
++	.size	bar, .-bar
++	.weak	foo
++	.hidden	foo
+--- binutils/ld/testsuite/ld-i386/hidden2.d.bad	2008-03-16 09:29:54.000000000 -0700
++++ binutils/ld/testsuite/ld-i386/hidden2.d	2008-03-16 09:24:45.000000000 -0700
+@@ -0,0 +1,13 @@
++#as: --32
++#ld: -shared -melf_i386
++#objdump: -drw
++
++.*: +file format .*
++
++
++Disassembly of section .text:
++
++[a-f0-9]+ <bar>:
++[ 	]*[a-f0-9]+:	e8 cf fe ff ff       	call   0 <bar-0x[a-f0-9]+>
++[ 	]*[a-f0-9]+:	c3                   	ret    
++#pass
+--- binutils/ld/testsuite/ld-i386/hidden2.s.bad	2008-03-16 09:29:54.000000000 -0700
++++ binutils/ld/testsuite/ld-i386/hidden2.s	2008-03-16 09:15:28.000000000 -0700
+@@ -0,0 +1,9 @@
++	.text
++.globl bar
++	.type	bar, @function
++bar:
++	call	foo
++	ret
++	.size	bar, .-bar
++	.weak	foo
++	.hidden	foo
+--- binutils/ld/testsuite/ld-i386/hidden3.d.bad	2008-03-16 09:29:54.000000000 -0700
++++ binutils/ld/testsuite/ld-i386/hidden3.d	2008-03-16 09:22:31.000000000 -0700
+@@ -0,0 +1,3 @@
++#as: --32
++#ld: -shared -melf_i386
++#error: .*relocation R_386_GOTOFF against undefined hidden symbol `foo' can not be used when making a shared object
+--- binutils/ld/testsuite/ld-i386/hidden3.s.bad	2008-03-16 09:29:54.000000000 -0700
++++ binutils/ld/testsuite/ld-i386/hidden3.s	2008-03-16 09:15:44.000000000 -0700
+@@ -0,0 +1,8 @@
++	.text
++.globl bar
++	.type	bar, @function
++bar:
++	leal	foo@GOTOFF(%ecx), %eax
++	ret
++	.size	bar, .-bar
++	.hidden	foo
+--- binutils/ld/testsuite/ld-i386/i386.exp.bad	2007-08-25 07:35:38.000000000 -0700
++++ binutils/ld/testsuite/ld-i386/i386.exp	2008-03-16 09:29:49.000000000 -0700
+@@ -132,3 +132,9 @@ run_dump_test "tlsie2"
+ run_dump_test "tlsie3"
+ run_dump_test "tlsie4"
+ run_dump_test "tlsie5"
++run_dump_test "hidden1"
++run_dump_test "hidden2"
++run_dump_test "hidden3"
++run_dump_test "protected1"
++run_dump_test "protected2"
++run_dump_test "protected3"
+--- binutils/ld/testsuite/ld-i386/protected1.d.bad	2008-03-16 09:29:54.000000000 -0700
++++ binutils/ld/testsuite/ld-i386/protected1.d	2008-03-16 09:25:29.000000000 -0700
+@@ -0,0 +1,3 @@
++#as: --32
++#ld: -shared -melf_i386
++#error: .*relocation R_386_GOTOFF against protected function `foo' can not be used when making a shared object
+--- binutils/ld/testsuite/ld-i386/protected1.s.bad	2008-03-16 09:29:54.000000000 -0700
++++ binutils/ld/testsuite/ld-i386/protected1.s	2008-03-16 09:16:13.000000000 -0700
+@@ -0,0 +1,13 @@
++	.text
++.globl foo
++	.protected	foo
++	.type	foo, @function
++foo:
++	ret
++	.size	foo, .-foo
++.globl bar
++	.type	bar, @function
++bar:
++	leal	foo@GOTOFF(%ecx), %eax
++	ret
++	.size	bar, .-bar
+--- binutils/ld/testsuite/ld-i386/protected2.d.bad	2008-03-16 09:29:54.000000000 -0700
++++ binutils/ld/testsuite/ld-i386/protected2.d	2008-03-16 09:25:50.000000000 -0700
+@@ -0,0 +1,16 @@
++#as: --32
++#ld: -shared -melf_i386
++#objdump: -drw
++
++.*: +file format .*
++
++
++Disassembly of section .text:
++
++0+[a-f0-9]+ <foo>:
++[ 	]*[a-f0-9]+:	c3                   	ret    
++
++0+[a-f0-9]+ <bar>:
++[ 	]*[a-f0-9]+:	e8 fa ff ff ff       	call   [a-f0-9]+ <foo>
++[ 	]*[a-f0-9]+:	c3                   	ret    
++#pass
+--- binutils/ld/testsuite/ld-i386/protected2.s.bad	2008-03-16 09:29:54.000000000 -0700
++++ binutils/ld/testsuite/ld-i386/protected2.s	2008-03-16 09:16:23.000000000 -0700
+@@ -0,0 +1,13 @@
++	.text
++.globl foo
++	.protected	foo
++	.type	foo, @function
++foo:
++	ret
++	.size	foo, .-foo
++.globl bar
++	.type	bar, @function
++bar:
++	call	foo
++	ret
++	.size	bar, .-bar
+--- binutils/ld/testsuite/ld-i386/protected3.d.bad	2008-03-16 09:29:54.000000000 -0700
++++ binutils/ld/testsuite/ld-i386/protected3.d	2008-03-16 09:27:44.000000000 -0700
+@@ -0,0 +1,13 @@
++#as: --32
++#ld: -shared -melf_i386
++#objdump: -drw
++
++.*: +file format .*
++
++
++Disassembly of section .text:
++
++0+[a-f0-9]+ <bar>:
++[ 	]*[a-f0-9]+:	8b 81 0c 00 00 00    	mov    0x[a-f0-9]+\(%ecx\),%eax
++[ 	]*[a-f0-9]+:	c3                   	ret    
++#pass
+--- binutils/ld/testsuite/ld-i386/protected3.s.bad	2008-03-16 09:29:54.000000000 -0700
++++ binutils/ld/testsuite/ld-i386/protected3.s	2008-03-16 09:23:40.000000000 -0700
+@@ -0,0 +1,15 @@
++	.protected	foo
++.globl foo
++	.data
++	.align 4
++	.type	foo, @object
++	.size	foo, 4
++foo:
++	.long	1
++	.text
++.globl bar
++	.type	bar, @function
++bar:
++	movl	foo@GOTOFF(%ecx), %eax
++	ret
++	.size	bar, .-bar
+--- binutils/ld/testsuite/ld-x86-64/hidden1.d.bad	2008-03-16 08:42:41.000000000 -0700
++++ binutils/ld/testsuite/ld-x86-64/hidden1.d	2008-03-16 08:30:02.000000000 -0700
+@@ -0,0 +1,3 @@
++#as: --64
++#ld: -shared -melf_x86_64
++#error: .*relocation R_X86_64_PC32 against undefined hidden symbol `foo' can not be used when making a shared object
+--- binutils/ld/testsuite/ld-x86-64/hidden1.s.bad	2008-03-16 08:42:41.000000000 -0700
++++ binutils/ld/testsuite/ld-x86-64/hidden1.s	2008-03-16 08:26:19.000000000 -0700
+@@ -0,0 +1,9 @@
++	.text
++.globl bar
++	.type	bar, @function
++bar:
++	leaq	foo(%rip), %rax
++	ret
++	.size	bar, .-bar
++	.weak	foo
++	.hidden	foo
+--- binutils/ld/testsuite/ld-x86-64/hidden2.d.bad	2008-03-16 08:42:41.000000000 -0700
++++ binutils/ld/testsuite/ld-x86-64/hidden2.d	2008-03-16 08:37:01.000000000 -0700
+@@ -0,0 +1,13 @@
++#as: --64
++#ld: -shared -melf_x86_64
++#objdump: -drw
++
++.*: +file format .*
++
++
++Disassembly of section .text:
++
++[a-f0-9]+ <bar>:
++[ 	]*[a-f0-9]+:	e8 33 fe ff ff       	callq  0 <bar-0x[a-f0-9]+>
++[ 	]*[a-f0-9]+:	c3                   	retq   
++#pass
+--- binutils/ld/testsuite/ld-x86-64/hidden2.s.bad	2008-03-16 08:42:41.000000000 -0700
++++ binutils/ld/testsuite/ld-x86-64/hidden2.s	2008-03-16 08:26:28.000000000 -0700
+@@ -0,0 +1,9 @@
++	.text
++.globl bar
++	.type	bar, @function
++bar:
++	call	foo
++	ret
++	.size	bar, .-bar
++	.weak	foo
++	.hidden	foo
+--- binutils/ld/testsuite/ld-x86-64/hidden3.d.bad	2008-03-16 08:42:41.000000000 -0700
++++ binutils/ld/testsuite/ld-x86-64/hidden3.d	2008-03-16 08:30:14.000000000 -0700
+@@ -0,0 +1,3 @@
++#as: --64
++#ld: -shared -melf_x86_64
++#error: .*relocation R_X86_64_PC32 against undefined hidden symbol `foo' can not be used when making a shared object
+--- binutils/ld/testsuite/ld-x86-64/hidden3.s.bad	2008-03-16 08:42:41.000000000 -0700
++++ binutils/ld/testsuite/ld-x86-64/hidden3.s	2008-03-16 08:26:37.000000000 -0700
+@@ -0,0 +1,8 @@
++	.text
++.globl bar
++	.type	bar, @function
++bar:
++	leaq	foo(%rip), %rax
++	ret
++	.size	bar, .-bar
++	.hidden	foo
+--- binutils/ld/testsuite/ld-x86-64/protected1.d.bad	2008-03-16 08:42:41.000000000 -0700
++++ binutils/ld/testsuite/ld-x86-64/protected1.d	2008-03-16 08:38:21.000000000 -0700
+@@ -0,0 +1,3 @@
++#as: --64
++#ld: -shared -melf_x86_64
++#error: .*relocation R_X86_64_PC32 against protected symbol `foo' can not be used when making a shared object
+--- binutils/ld/testsuite/ld-x86-64/protected1.s.bad	2008-03-16 08:42:41.000000000 -0700
++++ binutils/ld/testsuite/ld-x86-64/protected1.s	2008-03-16 08:27:04.000000000 -0700
+@@ -0,0 +1,13 @@
++	.text
++.globl foo
++	.protected	foo
++	.type	foo, @function
++foo:
++	ret
++	.size	foo, .-foo
++.globl bar
++	.type	bar, @function
++bar:
++	leaq	foo(%rip), %rax
++	ret
++	.size	bar, .-bar
+--- binutils/ld/testsuite/ld-x86-64/protected2.d.bad	2008-03-16 08:42:41.000000000 -0700
++++ binutils/ld/testsuite/ld-x86-64/protected2.d	2008-03-16 08:40:09.000000000 -0700
+@@ -0,0 +1,16 @@
++#as: --64
++#ld: -shared -melf_x86_64
++#objdump: -drw
++
++.*: +file format .*
++
++
++Disassembly of section .text:
++
++0+[a-f0-9]+ <foo>:
++[ 	]*[a-f0-9]+:	c3                   	retq   
++
++0+[a-f0-9]+ <bar>:
++[ 	]*[a-f0-9]+:	e8 fa ff ff ff       	callq  [a-f0-9]+ <foo>
++[ 	]*[a-f0-9]+:	c3                   	retq   
++#pass
+--- binutils/ld/testsuite/ld-x86-64/protected2.s.bad	2008-03-16 08:42:41.000000000 -0700
++++ binutils/ld/testsuite/ld-x86-64/protected2.s	2008-03-16 08:27:15.000000000 -0700
+@@ -0,0 +1,13 @@
++	.text
++.globl foo
++	.protected	foo
++	.type	foo, @function
++foo:
++	ret
++	.size	foo, .-foo
++.globl bar
++	.type	bar, @function
++bar:
++	call	foo
++	ret
++	.size	bar, .-bar
+--- binutils/ld/testsuite/ld-x86-64/protected3.d.bad	2008-03-16 08:42:41.000000000 -0700
++++ binutils/ld/testsuite/ld-x86-64/protected3.d	2008-03-16 08:42:03.000000000 -0700
+@@ -0,0 +1,13 @@
++#as: --64
++#ld: -shared -melf_x86_64
++#objdump: -drw
++
++.*: +file format .*
++
++
++Disassembly of section .text:
++
++0+[a-f0-9]+ <bar>:
++[ 	]*[a-f0-9]+:	8b 05 ce 00 20 00    	mov    0x[a-f0-9]+\(%rip\),%eax        # [a-f0-9]+ <foo>
++[ 	]*[a-f0-9]+:	c3                   	retq   
++#pass
+--- binutils/ld/testsuite/ld-x86-64/protected3.s.bad	2008-03-16 08:42:41.000000000 -0700
++++ binutils/ld/testsuite/ld-x86-64/protected3.s	2008-03-16 08:27:29.000000000 -0700
+@@ -0,0 +1,15 @@
++	.protected	foo
++.globl foo
++	.data
++	.align 4
++	.type	foo, @object
++	.size	foo, 4
++foo:
++	.long	1
++	.text
++.globl bar
++	.type	bar, @function
++bar:
++	movl	foo(%rip), %eax
++	ret
++	.size	bar, .-bar
+--- binutils/ld/testsuite/ld-x86-64/x86-64.exp.bad	2007-08-25 07:35:38.000000000 -0700
++++ binutils/ld/testsuite/ld-x86-64/x86-64.exp	2008-03-16 09:30:07.000000000 -0700
+@@ -86,3 +86,9 @@ run_dump_test "tlsgd2"
+ run_dump_test "tlsgd3"
+ run_dump_test "tlsie2"
+ run_dump_test "tlsie3"
++run_dump_test "hidden1"
++run_dump_test "hidden2"
++run_dump_test "hidden3"
++run_dump_test "protected1"
++run_dump_test "protected2"
++run_dump_test "protected3"
+
