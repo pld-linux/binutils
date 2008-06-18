@@ -2,7 +2,12 @@
 # Conditional build:
 %bcond_with	allarchs	# enable all targets
 # define addtargets x,y,z	# build with additional targets x,y,z (e.g. x86_64-linux)
+%bcond_with	gold		# disable gold (gnu ld successor) on supported archs (x86/sparc)
 %bcond_without	pax		# without PaX flags (for upstream bugreports)
+#
+%ifnarch %ix86 %x8664 sparc
+%define		with_gold	0
+%endif
 #
 Summary:	GNU Binary Utility Development Utilities
 Summary(de.UTF-8):	GNU Binary Utility Development Utilities
@@ -199,7 +204,8 @@ sparc32 \
 %else
 	%{?with_allarchs:--enable-64-bit-bfd} \
 %endif
-	%{?with_allarchs:--enable-targets=alpha-linux,arm-linux,cris-linux,hppa-linux,i386-linux,ia64-linux,x86_64-linux,m68k-linux,mips-linux,mips64-linux,mips64el-linux,mipsel-linux,ppc-linux,s390-linux,s390x-linux,sh-linux,sparc-linux,sparc64-linux,i386-linuxaout}
+	%{?with_allarchs:--enable-targets=alpha-linux,arm-linux,cris-linux,hppa-linux,i386-linux,ia64-linux,x86_64-linux,m68k-linux,mips-linux,mips64-linux,mips64el-linux,mipsel-linux,ppc-linux,s390-linux,s390x-linux,sh-linux,sparc-linux,sparc64-linux,i386-linuxaout} \
+	%{?with_gold:--enable-gold}
 
 %{__make} -j1 configure-bfd
 %{__make} -j1 headers -C bfd
@@ -237,7 +243,10 @@ rm -f $RPM_BUILD_ROOT%{_infodir}/dir
 %find_lang binutils
 %find_lang gas
 %find_lang gprof
+touch ld.lang
+%if %{without gold}
 %find_lang ld
+%endif
 %find_lang opcodes
 cat bfd.lang opcodes.lang > %{name}-libs.lang
 cat gas.lang gprof.lang ld.lang >> %{name}.lang
@@ -265,12 +274,14 @@ rm -rf $RPM_BUILD_ROOT
 %doc README
 %attr(755,root,root) %{_bindir}/[!g]*
 %attr(755,root,root) %{_bindir}/g[!a]*
-%{_prefix}/lib/ldscripts
 %{_infodir}/as.info*
 %{_infodir}/binutils.info*
 %{_infodir}/configure.info*
 %{_infodir}/gprof.info*
+%if %{without gold}
 %{_infodir}/ld.info*
+%{_prefix}/lib/ldscripts
+%endif
 %{_mandir}/man1/*
 %lang(cs) %{_mandir}/cs/man1/*
 %lang(de) %{_mandir}/de/man1/*
