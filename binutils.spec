@@ -2,11 +2,11 @@
 # Conditional build:
 %bcond_with	allarchs	# enable all targets
 # define addtargets x,y,z	# build with additional targets x,y,z (e.g. x86_64-linux)
-%bcond_with	gold		# disable gold (gnu ld successor) on supported archs (x86/sparc)
+%bcond_with	gold		# enable gold (gnu ld successor) on supported archs (x86/sparc)
 %bcond_without	pax		# without PaX flags (for upstream bugreports)
 #
-%ifnarch %ix86 %x8664 sparc
-%define		with_gold	0
+%ifnarch %{ix86} %{x8664} sparc
+%undefine	with_gold
 %endif
 #
 Summary:	GNU Binary Utility Development Utilities
@@ -19,13 +19,13 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.18.50.0.7
-Release:	2
+Version:	2.18.50.0.8
+Release:	1
 Epoch:		3
 License:	GPL v3+
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	d5bce238060d631be60a3f1f1009a7ba
+# Source0-md5:	a49df3481468f281f42afbf915e10db2
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -38,7 +38,7 @@ Patch6:		%{name}-discarded.patch
 Patch7:		%{name}-absolute-gnu_debuglink-path.patch
 Patch8:		%{name}-libtool-m.patch
 URL:		http://sources.redhat.com/binutils/
-BuildRequires:	autoconf >= 2.59
+BuildRequires:	autoconf >= 2.60
 BuildRequires:	automake >= 1:1.8.2
 BuildRequires:	bison
 BuildRequires:	flex
@@ -157,12 +157,15 @@ niektórych pakietów.
 %patch7 -p1
 %patch8 -p1
 
+# hacks for ac 2.59 only
+rm config/override.m4
+
 %build
 # non-standard regeneration (needed because of gasp patch)
 # AM_BINUTILS_WARNINGS in bfd/warning.m4, ZW_GNU_GETTEXT_SISTER_DIR in config/gettext-sister.m4
 for dir in gas bfd; do
 	cd $dir || exit 1
-	aclocal -I ../bfd -I ../config -I ..
+	aclocal -I .. -I ../config -I ../bfd
 	automake --cygnus Makefile
 	automake --cygnus doc/Makefile
 	autoconf
@@ -254,19 +257,19 @@ cat gas.lang gprof.lang ld.lang >> %{name}.lang
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%post	-p	/sbin/postshell
+%post	-p /sbin/postshell
 -/usr/sbin/fix-info-dir -c %{_infodir}
 
-%postun	-p	/sbin/postshell
+%postun	-p /sbin/postshell
 -/usr/sbin/fix-info-dir -c %{_infodir}
 
 %post	libs -p /sbin/ldconfig
 %postun	libs -p /sbin/ldconfig
 
-%post devel	-p	/sbin/postshell
+%post	devel -p /sbin/postshell
 -/usr/sbin/fix-info-dir -c %{_infodir}
 
-%postun devel	-p	/sbin/postshell
+%postun	devel -p /sbin/postshell
 -/usr/sbin/fix-info-dir -c %{_infodir}
 
 %files -f %{name}.lang
