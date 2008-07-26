@@ -3,6 +3,7 @@
 %bcond_with	allarchs	# enable all targets
 # define addtargets x,y,z	# build with additional targets x,y,z (e.g. x86_64-linux)
 %bcond_with	gold		# enable gold (gnu ld successor) on supported archs (x86/sparc)
+				# http://sourceware.org/ml/binutils/2008-03/msg00162.html
 %bcond_without	pax		# without PaX flags (for upstream bugreports)
 #
 %ifnarch %{ix86} %{x8664} sparc
