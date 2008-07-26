@@ -43,6 +43,9 @@ BuildRequires:	automake >= 1:1.8.2
 BuildRequires:	bison
 BuildRequires:	flex
 BuildRequires:	gettext-devel
+%if %{with gold}
+BuildRequires:	libstdc++-devel >= 6:4.0-1
+%endif
 BuildRequires:	perl-tools-pod
 %ifarch sparc sparc32
 BuildRequires:	sparc32
