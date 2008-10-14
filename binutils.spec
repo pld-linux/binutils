@@ -39,7 +39,7 @@ Patch11:	%{name}-robustify3.patch
 Patch12:	%{name}-robustify4.patch
 Patch13:	%{name}-robustify5.patch
 Patch14:	%{name}-robustify6.patch
-Patch15:	%{name}-absolute-gnu_debuglink-path.patch
+#Patch15:	%{name}-absolute-gnu_debuglink-path.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1:1.8.2
@@ -172,7 +172,7 @@ niektórych pakietów.
 %patch12 -p0
 %patch13 -p0
 %patch14 -p0
-%patch15 -p1
+#%patch15 -p1
 
 %build
 # non-standard regeneration (needed because of gasp patch)
