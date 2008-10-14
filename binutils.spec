@@ -16,7 +16,7 @@ Summary(tr):	GNU geliþtirme araçlarý
 Summary(uk):	îÁÂ¦Ò ¦ÎÓÔÒÕÍÅÎÔ¦× GNU ÄÌÑ ÐÏÂÕÄÏ×É ×ÉËÏÎÕ×ÁÎÉÈ ÐÒÏÇÒÁÍ
 Name:		binutils
 Version:	2.15.94.0.2.2
-Release:	3
+Release:	4
 Epoch:		3
 License:	GPL
 Group:		Development/Tools
@@ -39,6 +39,7 @@ Patch11:	%{name}-robustify3.patch
 Patch12:	%{name}-robustify4.patch
 Patch13:	%{name}-robustify5.patch
 Patch14:	%{name}-robustify6.patch
+Patch15:	%{name}-absolute-gnu_debuglink-path.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1:1.8.2
@@ -171,6 +172,7 @@ niektórych pakietów.
 %patch12 -p0
 %patch13 -p0
 %patch14 -p0
+%patch15 -p1
 
 %build
 # non-standard regeneration (needed because of gasp patch)
