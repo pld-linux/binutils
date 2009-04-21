@@ -6,7 +6,7 @@
 				# http://sourceware.org/ml/binutils/2008-03/msg00162.html
 %bcond_without	pax		# without PaX flags (for upstream bugreports)
 #
-%ifnarch %{ix86} %{x8664} sparc
+%ifnarch %{ix86} %{x8664} sparc sparc64 ppc ppc64
 %undefine	with_gold
 %endif
 #
@@ -39,6 +39,7 @@ Patch6:		%{name}-discarded.patch
 Patch7:		%{name}-absolute-gnu_debuglink-path.patch
 Patch8:		%{name}-libtool-m.patch
 Patch9:		%{name}-build-id.patch
+Patch10:	%{name}-tooldir.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.60
 BuildRequires:	automake >= 1:1.8.2
@@ -53,7 +54,6 @@ BuildRequires:	perl-tools-pod
 BuildRequires:	sparc32
 %endif
 BuildRequires:	texinfo >= 4.2
-Requires:	%{name} = %{epoch}:%{version}-%{release}
 Conflicts:	gcc-c++ < 5:3.3
 Conflicts:	modutils < 2.4.17
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -162,11 +162,15 @@ niektórych pakietów.
 %patch7 -p1
 %patch8 -p1
 %patch9 -p1
+%patch10 -p1
 
-# hacks for ac 2.59 only
+# file contains hacks for ac 2.59 only
 rm config/override.m4
 
 %build
+%{__aclocal}
+%{__autoconf}
+
 # non-standard regeneration (needed because of gasp patch)
 # AM_BINUTILS_WARNINGS in bfd/warning.m4, ZW_GNU_GETTEXT_SISTER_DIR in config/gettext-sister.m4
 for dir in gas bfd; do
@@ -207,6 +211,7 @@ sparc32 \
 	--libdir=%{_libdir} \
 	--infodir=%{_infodir} \
 	--mandir=%{_mandir} \
+	--with-tooldir=%{_prefix} \
 	%{!?with_allarchs:`[ -n "${TARGETS}" ] && echo "--enable-targets=${TARGETS}"`} \
 %ifarch sparc
 	--enable-64-bit-bfd \
@@ -216,27 +221,19 @@ sparc32 \
 	%{?with_allarchs:--enable-targets=alpha-linux,arm-linux,cris-linux,hppa-linux,i386-linux,ia64-linux,x86_64-linux,m68k-linux,mips-linux,mips64-linux,mips64el-linux,mipsel-linux,ppc-linux,s390-linux,s390x-linux,sh-linux,sparc-linux,sparc64-linux,i386-linuxaout} \
 	%{?with_gold:--enable-gold}
 
-%{__make} -j1 configure-bfd
-%{__make} -j1 headers -C bfd
-%{__make} -j1 all info \
-	tooldir=%{_prefix}
+%{__make}
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
-%{__make} -j1 install \
-	prefix=$RPM_BUILD_ROOT%{_prefix} \
-	tooldir=$RPM_BUILD_ROOT%{_prefix} \
-	mandir=$RPM_BUILD_ROOT%{_mandir} \
-	infodir=$RPM_BUILD_ROOT%{_infodir} \
-	includedir=$RPM_BUILD_ROOT%{_includedir} \
-	libdir=$RPM_BUILD_ROOT%{_libdir}
+%{__make} install \
+	DESTDIR=$RPM_BUILD_ROOT
 
-rm -f $RPM_BUILD_ROOT%{_infodir}/standards.info*
+rm $RPM_BUILD_ROOT%{_infodir}/standards.info*
 
 # remove these man pages unless we cross-build for win*/netware platforms.
 # however, this should be done in Makefiles.
-rm -f $RPM_BUILD_ROOT%{_mandir}/man1/{dlltool,nlmconv,windres}.1
+rm $RPM_BUILD_ROOT%{_mandir}/man1/{dlltool,nlmconv,windres}.1
 
 bzip2 -dc %{SOURCE1} | tar xf - -C $RPM_BUILD_ROOT%{_mandir}
 
