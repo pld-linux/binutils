@@ -197,7 +197,7 @@ TARGETS=sparc64-linux
 %{?addtargets:TARGETS="%{addtargets}"}
 
 cp -f /usr/share/automake/config.* .
-CFLAGS="%{rpmcflags} -fno-strict-aliasing"; export CFLAGS
+CFLAGS="%{rpmcflags}"; export CFLAGS
 CC="%{__cc}"; export CC
 %ifarch sparc
 sparc32 \
