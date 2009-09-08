@@ -21,7 +21,7 @@ Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.20.51.0.1
-Release:	1
+Release:	2
 Epoch:		3
 License:	GPL v3+
 Group:		Development/Tools
@@ -40,8 +40,8 @@ Patch8:		%{name}-libtool-m.patch
 Patch9:		%{name}-build-id.patch
 Patch10:	%{name}-tooldir.patch
 URL:		http://sources.redhat.com/binutils/
-BuildRequires:	autoconf >= 2.60
-BuildRequires:	automake >= 1:1.8.2
+BuildRequires:	autoconf >= 2.64
+BuildRequires:	automake >= 1:1.11
 BuildRequires:	bison
 BuildRequires:	flex
 BuildRequires:	gettext-devel
