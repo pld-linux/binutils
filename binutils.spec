@@ -20,13 +20,13 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.19.51.0.14
+Version:	2.20.51.0.1
 Release:	1
 Epoch:		3
 License:	GPL v3+
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	e0b485a3ff9392da1351dc3fb61a3d10
+# Source0-md5:	694d2a6e2fb9ee084350dbf5ef19e8e5
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -173,10 +173,10 @@ rm config/override.m4
 # AM_BINUTILS_WARNINGS in bfd/warning.m4, ZW_GNU_GETTEXT_SISTER_DIR in config/gettext-sister.m4
 for dir in gas bfd; do
 	cd $dir || exit 1
-	aclocal -I .. -I ../config -I ../bfd
-	automake --cygnus Makefile
-	automake --cygnus doc/Makefile
-	autoconf
+	%{__aclocal} -I .. -I ../config -I ../bfd
+	%{__automake} Makefile
+	%{__automake} doc/Makefile
+	%{__autoconf}
 	cd ..
 done
 
