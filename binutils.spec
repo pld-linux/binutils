@@ -1,61 +1,63 @@
 #
+# TODO: bug gas/584
+#
 # Conditional build:
 %bcond_with	allarchs	# enable all targets
 # define addtargets x,y,z	# build with additional targets x,y,z (e.g. x86_64-linux)
-%bcond_with	gold		# enable gold (gnu ld successor) on supported archs (x86/sparc)
-				# http://sourceware.org/ml/binutils/2008-03/msg00162.html
-%bcond_without	pax		# without PaX flags (for upstream bugreports)
-#
-%ifnarch %{ix86} %{x8664} sparc sparc64 ppc ppc64
-%undefine	with_gold
-%endif
 #
 Summary:	GNU Binary Utility Development Utilities
-Summary(de.UTF-8):	GNU Binary Utility Development Utilities
-Summary(es.UTF-8):	Utilitarios para desarrollo de binarios de la GNU
-Summary(fr.UTF-8):	Utilitaires de dÃ©veloppement binaire de GNU
-Summary(pl.UTF-8):	NarzÄ™dzia GNU dla programistÃ³w
-Summary(pt_BR.UTF-8):	UtilitÃ¡rios para desenvolvimento de binÃ¡rios da GNU
-Summary(ru.UTF-8):	ÐÐ°Ð±Ð¾Ñ€ Ð¸Ð½ÑÑ‚Ñ€ÑƒÐ¼ÐµÐ½Ñ‚Ð¾Ð² GNU Ð´Ð»Ñ Ð¿Ð¾ÑÑ‚Ñ€Ð¾ÐµÐ½Ð¸Ñ Ð¸ÑÐ¿Ð¾Ð»Ð½ÑÐµÐ¼Ñ‹Ñ… Ð¿Ñ€Ð¾Ð³Ñ€Ð°Ð¼Ð¼
-Summary(tr.UTF-8):	GNU geliÅŸtirme araÃ§larÄ±
-Summary(uk.UTF-8):	ÐÐ°Ð±Ñ–Ñ€ Ñ–Ð½ÑÑ‚Ñ€ÑƒÐ¼ÐµÐ½Ñ‚Ñ–Ð² GNU Ð´Ð»Ñ Ð¿Ð¾Ð±ÑƒÐ´Ð¾Ð²Ð¸ Ð²Ð¸ÐºÐ¾Ð½ÑƒÐ²Ð°Ð½Ð¸Ñ… Ð¿Ñ€Ð¾Ð³Ñ€Ð°Ð¼
+Summary(de):	GNU Binary Utility Development Utilities
+Summary(es):	Utilitarios para desarrollo de binarios de la GNU
+Summary(fr):	Utilitaires de développement binaire de GNU
+Summary(pl):	Narzêdzia GNU dla programistów
+Summary(pt_BR):	Utilitários para desenvolvimento de binários da GNU
+Summary(ru):	îÁÂÏÒ ÉÎÓÔÒÕÍÅÎÔÏ× GNU ÄÌÑ ÐÏÓÔÒÏÅÎÉÑ ÉÓÐÏÌÎÑÅÍÙÈ ÐÒÏÇÒÁÍÍ
+Summary(tr):	GNU geliþtirme araçlarý
+Summary(uk):	îÁÂ¦Ò ¦ÎÓÔÒÕÍÅÎÔ¦× GNU ÄÌÑ ÐÏÂÕÄÏ×É ×ÉËÏÎÕ×ÁÎÉÈ ÐÒÏÇÒÁÍ
 Name:		binutils
-Version:	2.20.51.0.2
-Release:	1
+Version:	2.15.94.0.2.2
+Release:	2
 Epoch:		3
-License:	GPL v3+
+License:	GPL
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	b01b185a5eab43190fb83efaeb2ffef9
+# Source0-md5:	e9bcf84d9e6b5a2d840e76f22a3fce5f
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
 Patch1:		%{name}-info.patch
-Patch2:		%{name}-libtool-relink.patch
-Patch3:		%{name}-pt_pax_flags.patch
-Patch5:		%{name}-flex.patch
-Patch6:		%{name}-discarded.patch
-Patch7:		%{name}-absolute-gnu_debuglink-path.patch
-Patch8:		%{name}-libtool-m.patch
-Patch9:		%{name}-build-id.patch
-Patch10:	%{name}-tooldir.patch
+Patch2:		%{name}-array-sects-compat.patch
+Patch3:		%{name}-libtool-relink.patch
+Patch4:		%{name}-pt_pax_flags.patch
+Patch5:		%{name}-mips-relocs.patch
+Patch6:		%{name}-arhdr.patch
+Patch7:		%{name}-ld-speedup.patch
+Patch8:		%{name}-readelf-overflows.patch
+Patch9:		%{name}-robustify.patch
+Patch10:	%{name}-robustify2.patch
+Patch11:	%{name}-robustify3.patch
+Patch12:	%{name}-robustify4.patch
+Patch13:	%{name}-robustify5.patch
+Patch14:	%{name}-robustify6.patch
 URL:		http://sources.redhat.com/binutils/
-BuildRequires:	autoconf >= 2.64
-BuildRequires:	automake >= 1:1.11
+BuildRequires:	autoconf >= 2.59
+BuildRequires:	automake >= 1:1.8.2
 BuildRequires:	bison
 BuildRequires:	flex
 BuildRequires:	gettext-devel
-%if %{with gold}
-BuildRequires:	libstdc++-devel >= 6:4.0-1
-%endif
 BuildRequires:	perl-tools-pod
 %ifarch sparc sparc32
 BuildRequires:	sparc32
 %endif
 BuildRequires:	texinfo >= 4.2
+Requires(post,postun):	/sbin/ldconfig
 Conflicts:	gcc-c++ < 5:3.3
 Conflicts:	modutils < 2.4.17
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+
+%ifarch sparc64
+%define		_libdir		/usr/lib
+%endif
 
 %description
 Binutils is a collection of binary utilities, including:
@@ -70,73 +72,47 @@ Binutils is a collection of binary utilities, including:
 - addr2line - convert addresses to file and line,
 - nlmconv - convert object code into an NLM.
 
-%description -l es.UTF-8
-Binutils es una colecciÃ³n de utilitarios necesarios para compilar
-programas. Incluye assembler y linker, asÃ­ como varios otros programas
+%description -l es
+Binutils es una colección de utilitarios necesarios para compilar
+programas. Incluye assembler y linker, así como varios otros programas
 para trabajar con formatos que se puedan ejecutar.
 
-%description -l pl.UTF-8
-Pakiet binutils zawiera zestaw narzÄ™dzi umoÅ¼liwiajÄ…cych kompilacjÄ™
-programÃ³w. ZnajdujÄ… siÄ™ tutaj miÄ™dzy innymi assembler, konsolidator
-(linker), a takÅ¼e inne narzÄ™dzia do manipulowania binarnymi plikami
-programÃ³w i bibliotek.
+%description -l pl
+Pakiet binutils zawiera zestaw narzêdzi umo¿liwiaj±cych kompilacjê
+programów. Znajduj± siê tutaj miêdzy innymi assembler, konsolidator
+(linker), a tak¿e inne narzêdzia do manipulowania binarnymi plikami
+programów i bibliotek.
 
-%description -l pt_BR.UTF-8
-binutils Ã© uma coletÃ¢nea de utilitÃ¡rios necessÃ¡rios para compilar
-programas. Inclui assembler e linker, assim como vÃ¡rios outros
-programas para trabalhar com formatos executÃ¡veis.
+%description -l pt_BR
+binutils é uma coletânea de utilitários necessários para compilar
+programas. Inclui assembler e linker, assim como vários outros
+programas para trabalhar com formatos executáveis.
 
-%description -l ru.UTF-8
-binutils - ÑÑ‚Ð¾ Ð½Ð°Ð±Ð¾Ñ€ Ð¸Ð½ÑÑ‚Ñ€ÑƒÐ¼ÐµÐ½Ñ‚Ð¾Ð², Ð½ÐµÐ¾Ð±Ñ…Ð¾Ð´Ð¸Ð¼Ñ‹Ñ… Ð´Ð»Ñ ÐºÐ¾Ð¼Ð¿Ð¸Ð»Ð»ÑÑ†Ð¸Ð¸
-Ð¿Ñ€Ð¾Ð³Ñ€Ð°Ð¼Ð¼. Ð’ÐºÐ»ÑŽÑ‡Ð°ÐµÑ‚ Ð°ÑÑÐµÐ¼Ð±Ð»ÐµÑ€, ÐºÐ¾Ð¼Ð¿Ð¾Ð½Ð¾Ð²Ñ‰Ð¸Ðº Ð¸ Ð½Ð°Ð±Ð¾Ñ€ Ð´Ñ€ÑƒÐ³Ð¸Ñ… Ð¿Ñ€Ð¾Ð³Ñ€Ð°Ð¼Ð¼ Ð´Ð»Ñ
-Ñ€Ð°Ð±Ð¾Ñ‚Ñ‹ Ñ Ð¸ÑÐ¿Ð¾Ð»Ð½ÑÐµÐ¼Ñ‹Ð¼Ð¸ Ñ„Ð°Ð¹Ð»Ð°Ð¼Ð¸ Ñ€Ð°Ð·Ð½Ð¾Ð¾Ð±Ñ€Ð°Ð·Ð½Ñ‹Ñ… Ñ„Ð¾Ñ€Ð¼Ð°Ñ‚Ð¾Ð².
+%description -l ru
+binutils - ÜÔÏ ÎÁÂÏÒ ÉÎÓÔÒÕÍÅÎÔÏ×, ÎÅÏÂÈÏÄÉÍÙÈ ÄÌÑ ËÏÍÐÉÌÌÑÃÉÉ
+ÐÒÏÇÒÁÍÍ. ÷ËÌÀÞÁÅÔ ÁÓÓÅÍÂÌÅÒ, ËÏÍÐÏÎÏ×ÝÉË É ÎÁÂÏÒ ÄÒÕÇÉÈ ÐÒÏÇÒÁÍÍ ÄÌÑ
+ÒÁÂÏÔÙ Ó ÉÓÐÏÌÎÑÅÍÙÍÉ ÆÁÊÌÁÍÉ ÒÁÚÎÏÏÂÒÁÚÎÙÈ ÆÏÒÍÁÔÏ×.
 
-%description -l uk.UTF-8
-binutils - Ñ†Ðµ Ð½Ð°Ð±Ñ–Ñ€ Ñ–Ð½ÑÑ‚Ñ€ÑƒÐ¼ÐµÐ½Ñ‚Ñ–Ð², Ð½ÐµÐ¾Ð±Ñ…Ñ–Ð´Ð½Ð¸Ñ… Ð´Ð»Ñ ÐºÐ¾Ð¼Ð¿Ñ–Ð»ÑÑ†Ñ–Ñ— Ð¿Ñ€Ð¾Ð³Ñ€Ð°Ð¼.
-ÐœÑ–ÑÑ‚Ð¸Ñ‚ÑŒ Ð°ÑÐµÐ¼Ð±Ð»ÐµÑ€, ÐºÐ¾Ð¼Ð¿Ð¾Ð½Ð¾Ð²Ñ‰Ð¸Ðº Ñ‚Ð° Ñ–Ð½ÑˆÑ– Ð¿Ñ€Ð¾Ð³Ñ€Ð°Ð¼Ð¸, Ð½ÐµÐ¾Ð±Ñ…Ñ–Ð´Ð½Ñ– Ð´Ð»Ñ Ñ€Ð¾Ð±Ð¾Ñ‚Ð¸ Ð·
-Ð²Ð¸ÐºÐ¾Ð½ÑƒÐ²Ð°Ð½Ð¸Ð¼Ð¸ Ñ„Ð°Ð¹Ð»Ð°Ð¼Ð¸ Ñ€Ñ–Ð·Ð½Ð¸Ñ… Ñ„Ð¾Ñ€Ð¼Ð°Ñ‚Ñ–Ð².
-
-%package libs
-Summary:	GNU binutils shared libraries
-Summary(pl.UTF-8):	Biblioteki wspÃ³Å‚dzielone GNU binutils
-Group:		Libraries
-Conflicts:	binutils < 3:2.17.50.0.8-3
-
-%description libs
-GNU binutils shared libraries (libbfd, libopcodes).
-
-%description libs -l pl.UTF-8
-Biblioteki wspÃ³Å‚dzielone GNU binutils (libbfd, libopcodes).
-
-%package devel
-Summary:	Development files for GNU binutils libraries
-Summary(pl.UTF-8):	Pliki programistyczne bibliotek GNU binutils
-Group:		Development/Libraries
-Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
-
-%description devel
-Development files for GNU binutils libraries (libbfd, libopcodes) and
-static libiberty library.
-
-%description devel -l pl.UTF-8
-Pliki programistyczne bibliotek GNU binutils (libbfd, libopcodes) oraz
-statyczna biblioteka libiberty.
+%description -l uk
+binutils - ÃÅ ÎÁÂ¦Ò ¦ÎÓÔÒÕÍÅÎÔ¦×, ÎÅÏÂÈ¦ÄÎÉÈ ÄÌÑ ËÏÍÐ¦ÌÑÃ¦§ ÐÒÏÇÒÁÍ.
+í¦ÓÔÉÔØ ÁÓÅÍÂÌÅÒ, ËÏÍÐÏÎÏ×ÝÉË ÔÁ ¦ÎÛ¦ ÐÒÏÇÒÁÍÉ, ÎÅÏÂÈ¦ÄÎ¦ ÄÌÑ ÒÏÂÏÔÉ Ú
+×ÉËÏÎÕ×ÁÎÉÍÉ ÆÁÊÌÁÍÉ Ò¦ÚÎÉÈ ÆÏÒÍÁÔ¦×.
 
 %package static
-Summary:	GNU binutils static libraries
-Summary(pl.UTF-8):	Biblioteki statyczne do GNU binutils
+Summary:	GNU Binutils static libraries
+Summary(pl):	Biblioteki statyczne do GNU Binutils
 Group:		Development/Libraries
-Requires:	%{name}-devel = %{epoch}:%{version}-%{release}
+Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description static
-Static GNU binutils libraries (libbfd, libopcodes).
+Static libraries for GNU Binutils.
 
-%description static -l pl.UTF-8
-Biblioteki statyczne GNU binutils (libbfd, libopcodes).
+%description static -l pl
+Biblioteki statyczne GNU Binutils.
 
 %package gasp
 Summary:	GASP - old preprocessor for assembly programs
-Summary(pl.UTF-8):	GASP - stary preprocesor dla programÃ³w w asemblerze
+Summary(pl):	GASP - stary preprocesor dla programów w asemblerze
 Group:		Development/Tools
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
@@ -144,41 +120,39 @@ Requires:	%{name} = %{epoch}:%{version}-%{release}
 GASP - old preprocessor for assembly programs. It's officially
 obsoleted, but it's still needed to build some packages.
 
-%description gasp -l pl.UTF-8
-GASP - stary preprocesor dla programÃ³w w asemblerze. Jest oficjalnie
-uznany za przestarzaÅ‚y, ale jest nadal potrzebny do zbudowania
-niektÃ³rych pakietÃ³w.
+%description gasp -l pl
+GASP - stary preprocesor dla programów w asemblerze. Jest oficjalnie
+uznany za przestarza³y, ale jest nadal potrzebny do zbudowania
+niektórych pakietów.
 
 %prep
 %setup -q
 %patch0 -p1
 %patch1 -p1
+%ifarch %{ix86}
 %patch2 -p1
-%{?with_pax:%patch3 -p1}
-%patch5 -p1
-%patch6 -p1
-%patch7 -p1
-%patch8 -p1
-%patch9 -p1
-%patch10 -p1
-
-# file contains hacks for ac 2.59 only
-rm config/override.m4
+%endif
+%patch3 -p1
+%patch4 -p1
+%patch5 -p0
+%patch6 -p0
+%patch7 -p0
+%patch8 -p0
+%patch9 -p0
+%patch10 -p0
+%patch11 -p0
+%patch12 -p0
+%patch13 -p0
+%patch14 -p0
 
 %build
-%{__aclocal}
-%{__autoconf}
-
 # non-standard regeneration (needed because of gasp patch)
-# AM_BINUTILS_WARNINGS in bfd/warning.m4, ZW_GNU_GETTEXT_SISTER_DIR in config/gettext-sister.m4
-for dir in gas bfd; do
-	cd $dir || exit 1
-	%{__aclocal} -I .. -I ../config -I ../bfd
-	%{__automake} Makefile
-	%{__automake} doc/Makefile
-	%{__autoconf}
-	cd ..
-done
+cd gas
+aclocal
+automake --cygnus Makefile
+automake --cygnus doc/Makefile
+autoconf
+cd ..
 
 # More targets
 TARGETS=
@@ -201,37 +175,41 @@ CC="%{__cc}"; export CC
 sparc32 \
 %endif
 ./configure %{_target_platform} \
-	--disable-debug \
-	--disable-werror \
-	--enable-build-warnings=,-Wno-missing-prototypes \
 	--enable-shared \
+	--disable-debug \
 	--prefix=%{_prefix} \
 	--libdir=%{_libdir} \
 	--infodir=%{_infodir} \
 	--mandir=%{_mandir} \
-	--with-tooldir=%{_prefix} \
 	%{!?with_allarchs:`[ -n "${TARGETS}" ] && echo "--enable-targets=${TARGETS}"`} \
 %ifarch sparc
 	--enable-64-bit-bfd \
 %else
 	%{?with_allarchs:--enable-64-bit-bfd} \
 %endif
-	%{?with_allarchs:--enable-targets=alpha-linux,arm-linux,cris-linux,hppa-linux,i386-linux,ia64-linux,x86_64-linux,m68k-linux,mips-linux,mips64-linux,mips64el-linux,mipsel-linux,ppc-linux,s390-linux,s390x-linux,sh-linux,sparc-linux,sparc64-linux,i386-linuxaout} \
-	%{?with_gold:--enable-gold}
+	%{?with_allarchs:--enable-targets=alpha-linux,arm-linux,cris-linux,hppa-linux,i386-linux,ia64-linux,x86_64-linux,m68k-linux,mips-linux,mips64-linux,mips64el-linux,mipsel-linux,ppc-linux,s390-linux,s390x-linux,sh-linux,sparc-linux,sparc64-linux,i386-linuxaout}
 
-%{__make}
+%{__make} configure-bfd
+%{__make} headers -C bfd
+%{__make} all info \
+	tooldir=%{_prefix}
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
-%{__make} install \
-	DESTDIR=$RPM_BUILD_ROOT
+%{__make} install install-info \
+	prefix=$RPM_BUILD_ROOT%{_prefix} \
+	tooldir=$RPM_BUILD_ROOT%{_prefix} \
+	mandir=$RPM_BUILD_ROOT%{_mandir} \
+	infodir=$RPM_BUILD_ROOT%{_infodir} \
+	includedir=$RPM_BUILD_ROOT%{_includedir} \
+	libdir=$RPM_BUILD_ROOT%{_libdir}
 
-rm $RPM_BUILD_ROOT%{_infodir}/standards.info*
+rm -f $RPM_BUILD_ROOT%{_infodir}/standards.info*
 
 # remove these man pages unless we cross-build for win*/netware platforms.
 # however, this should be done in Makefiles.
-rm $RPM_BUILD_ROOT%{_mandir}/man1/{dlltool,nlmconv,windres}.1
+rm -f $RPM_BUILD_ROOT%{_mandir}/man1/{dlltool,nlmconv,windres}.1
 
 bzip2 -dc %{SOURCE1} | tar xf - -C $RPM_BUILD_ROOT%{_mandir}
 
@@ -241,51 +219,33 @@ install libiberty/pic/libiberty.a $RPM_BUILD_ROOT%{_libdir}
 # remove evil -L pointing inside builder's home
 perl -pi -e 's@-L[^ ]*/pic @@g' $RPM_BUILD_ROOT%{_libdir}/libbfd.la
 
-rm -f $RPM_BUILD_ROOT%{_infodir}/dir
-
-%find_lang bfd
-%find_lang binutils
-%find_lang gas
-%find_lang gprof
-touch ld.lang
-%if %{without gold}
-%find_lang ld
-%endif
-%find_lang opcodes
-cat bfd.lang opcodes.lang > %{name}-libs.lang
-cat gas.lang gprof.lang ld.lang >> %{name}.lang
+%find_lang %{name} --all-name
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%post	-p /sbin/postshell
--/usr/sbin/fix-info-dir -c %{_infodir}
+%post
+/sbin/ldconfig
+[ ! -x /usr/sbin/fix-info-dir ] || /usr/sbin/fix-info-dir -c %{_infodir} >/dev/null 2>&1
 
-%postun	-p /sbin/postshell
--/usr/sbin/fix-info-dir -c %{_infodir}
-
-%post	libs -p /sbin/ldconfig
-%postun	libs -p /sbin/ldconfig
-
-%post	devel -p /sbin/postshell
--/usr/sbin/fix-info-dir -c %{_infodir}
-
-%postun	devel -p /sbin/postshell
--/usr/sbin/fix-info-dir -c %{_infodir}
+%postun
+/sbin/ldconfig
+[ ! -x /usr/sbin/fix-info-dir ] || /usr/sbin/fix-info-dir -c %{_infodir} >/dev/null 2>&1
 
 %files -f %{name}.lang
 %defattr(644,root,root,755)
 %doc README
 %attr(755,root,root) %{_bindir}/[!g]*
 %attr(755,root,root) %{_bindir}/g[!a]*
-%{_infodir}/as.info*
-%{_infodir}/binutils.info*
-%{_infodir}/configure.info*
-%{_infodir}/gprof.info*
-%if %{without gold}
-%{_infodir}/ld.info*
+%attr(755,root,root) %{_libdir}*/*.so
+%{_libdir}*/libiberty.a
+%{_libdir}*/lib*.la
+
 %{_prefix}/lib/ldscripts
-%endif
+%{_includedir}/*.h
+
+%{_infodir}/[!g]*.info*
+%{_infodir}/g[!a]*.info*
 %{_mandir}/man1/*
 %lang(cs) %{_mandir}/cs/man1/*
 %lang(de) %{_mandir}/de/man1/*
@@ -296,25 +256,9 @@ rm -rf $RPM_BUILD_ROOT
 %lang(ja) %{_mandir}/ja/man1/*
 %lang(pl) %{_mandir}/pl/man1/*
 
-%files libs -f %{name}-libs.lang
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libbfd-*.so
-%attr(755,root,root) %{_libdir}/libopcodes-*.so
-
-%files devel
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libbfd.so
-%attr(755,root,root) %{_libdir}/libopcodes.so
-%{_libdir}/libbfd.la
-%{_libdir}/libopcodes.la
-%{_libdir}/libiberty.a
-%{_includedir}/*.h
-%{_infodir}/bfd.info*
-
 %files static
 %defattr(644,root,root,755)
-%{_libdir}/libbfd.a
-%{_libdir}/libopcodes.a
+%{_libdir}*/lib[!i]*.a
 
 %files gasp
 %defattr(644,root,root,755)

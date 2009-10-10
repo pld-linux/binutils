@@ -1,15 +1,16 @@
---- binutils-2.17.50.0.13/gas/Makefile.am.orig	2007-03-16 16:48:29.000000000 +0100
-+++ binutils-2.17.50.0.13/gas/Makefile.am	2007-03-16 20:26:20.200480821 +0100
-@@ -199,7 +199,7 @@
+diff -Nur binutils-2.13.90.0.18.orig/gas/Makefile.am binutils-2.13.90.0.18/gas/Makefile.am
+--- binutils-2.13.90.0.18.orig/gas/Makefile.am	Sun Feb  2 03:21:17 2003
++++ binutils-2.13.90.0.18/gas/Makefile.am	Sun Feb  2 12:25:10 2003
+@@ -197,7 +197,7 @@
  	symbols.c \
  	write.c
  
--CFILES = $(GAS_CFILES) itbl-ops.c cgen.c
-+CFILES = $(GAS_CFILES) gasp.c itbl-ops.c cgen.c
+-CFILES = $(GAS_CFILES) itbl-ops.c
++CFILES = $(GAS_CFILES) gasp.c itbl-ops.c
  
  HFILES = \
  	as.h \
-@@ -455,7 +455,8 @@
+@@ -452,7 +452,8 @@
  
  # Note: GASP is now deprecated and has been removed.  It is still
  # available in the CVS archive or older binutils releases if it is needed.
@@ -19,7 +20,7 @@
  noinst_SCRIPTS = $(GDBINIT)
  EXTRA_SCRIPTS = .gdbinit
  
-@@ -517,6 +518,10 @@
+@@ -515,6 +516,10 @@
  	as.h asintl.h bignum.h bit_fix.h config.h emul.h expr.h flonum.h \
  	frags.h hash.h listing.h obj.h read.h symbols.h tc.h write.h
  
@@ -27,32 +28,33 @@
 +gasp_new_LDADD = ../libiberty/libiberty.a $(INTLLIBS)
 +gasp_new_DEPENDENCIES = ../libiberty/libiberty.a $(INTLDEPS)
 +
- EXPECT = expect
- RUNTEST = runtest
- RUNTESTFLAGS=
-@@ -682,6 +682,9 @@
- itbl-lex.o: itbl-lex.c itbl-parse.h $(srcdir)/itbl-lex.h
- 	$(COMPILE) -c $< $(NO_WERROR)
- 
-+gasp.o:gasp.c $(INCDIR)/getopt.h $(INCDIR)/safe-ctype.h \
-+	sb.h macro.h $(INCDIR)/xregex.h $(INCDIR)/xregex2.h
-+
- # Disable -Werror, if it has been enabled, since old versions of bison/
- # yacc will produce working code which contain compile time warnings.
- itbl-parse.o: itbl-parse.c itbl-parse.h $(srcdir)/itbl-ops.h $(srcdir)/itbl-lex.h
---- binutils-2.17.50.0.13/gas/doc/Makefile.am.orig	2007-03-16 16:48:29.000000000 +0100
-+++ binutils-2.17.50.0.13/gas/doc/Makefile.am	2007-03-16 20:27:05.810679469 +0100
+ EXPECT = `if [ -f $${rootme}/../expect/expect ] ; then \
+           echo $${rootme}/../expect/expect ; \
+           else echo expect ; fi`
+@@ -2416,6 +2421,8 @@
+   $(INCDIR)/obstack.h subsegs.h struc-symbol.h
+ write.o: write.c $(INCDIR)/symcat.h subsegs.h $(INCDIR)/obstack.h \
+   output-file.h dwarf2dbg.h
++gasp.o: gasp.c $(INCDIR)/getopt.h $(INCDIR)/safe-ctype.h \
++  sb.h macro.h $(INCDIR)/xregex.h $(INCDIR)/xregex2.h
+ itbl-ops.o: itbl-ops.c itbl-ops.h $(INCDIR)/symcat.h
+ e-crisaout.o: $(srcdir)/config/e-crisaout.c $(INCDIR)/symcat.h \
+   emul-target.h
+diff -Nur binutils-2.13.90.0.18.orig/gas/doc/Makefile.am binutils-2.13.90.0.18/gas/doc/Makefile.am
+--- binutils-2.13.90.0.18.orig/gas/doc/Makefile.am	Sun Feb  2 03:21:17 2003
++++ binutils-2.13.90.0.18/gas/doc/Makefile.am	Sun Feb  2 12:35:43 2003
 @@ -15,7 +15,7 @@
  
  man_MANS = as.1
  
 -info_TEXINFOS = as.texinfo 
 +info_TEXINFOS = as.texinfo gasp.texinfo
- as_TEXINFOS = asconfig.texi $(CPU_DOCS)
  
- AM_MAKEINFOFLAGS = -I "$(srcdir)" -I "$(top_srcdir)/../libiberty" \
---- binutils-2.16.91.0.2.org/gas/doc/gasp.texinfo	1970-01-01 00:00:00.000000000 +0000
-+++ binutils-2.16.91.0.2/gas/doc/gasp.texinfo	2005-07-21 18:31:04.000000000 +0000
+ asconfig.texi: $(CONFIG).texi
+ 	rm -f asconfig.texi
+diff -Nur binutils-2.14.90.0.7.orig/gas/doc/gasp.texinfo binutils-2.14.90.0.7/gas/doc/gasp.texinfo
+--- binutils-2.14.90.0.7.orig/gas/doc/gasp.texinfo	Thu Jan  1 01:00:00 1970
++++ binutils-2.14.90.0.7/gas/doc/gasp.texinfo	Wed Oct 30 05:09:13 2002
 @@ -0,0 +1,1456 @@
 +\input texinfo               @c             -*- Texinfo -*-
 +@setfilename gasp.info
@@ -1510,9 +1512,10 @@
 +
 +@contents
 +@bye
---- binutils-2.17.50.0.2/gas/gasp.c.orig	1970-01-01 01:00:00.000000000 +0100
-+++ binutils-2.17.50.0.2/gas/gasp.c	2006-06-07 11:22:13.774440000 +0200
-@@ -0,0 +1,3999 @@
+diff -Nur binutils-2.13.90.0.18.orig/gas/gasp.c binutils-2.13.90.0.18/gas/gasp.c
+--- binutils-2.13.90.0.18.orig/gas/gasp.c	Thu Jan  1 01:00:00 1970
++++ binutils-2.13.90.0.18/gas/gasp.c	Sun May 26 18:57:12 2002
+@@ -0,0 +1,3761 @@
 +/* gasp.c - Gnu assembler preprocessor main program.
 +   Copyright 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002
 +   Free Software Foundation, Inc.
@@ -1561,7 +1564,7 @@
 +*/
 +
 +#include "config.h"
-+#include "bfdver.h"
++#include "bin-bugs.h"
 +
 +#include <assert.h>
 +#include <stdio.h>
@@ -1830,48 +1833,6 @@
 +static void show_usage PARAMS ((FILE *, int));
 +static void show_help PARAMS ((void));
 +
-+/* --- functions recently removed from sb.c --- */
-+
-+/* put a null at the end of the sb at in and return the start of the
-+ *    string, so that it can be used as an arg to printf %s.  */
-+
-+static char *
-+sb_name (sb *in)
-+{
-+  /* stick a null on the end of the string */
-+  sb_add_char (in, 0);
-+  return in->ptr;
-+}
-+
-+/* print the sb at ptr to the output file */
-+
-+static void
-+sb_print (FILE *outfile, sb *ptr)
-+{
-+  int i;
-+  int nc = 0;
-+
-+  for (i = 0; i < ptr->len; i++)
-+    {
-+      if (nc)
-+	{
-+	  fprintf (outfile, ",");
-+	}
-+      fprintf (outfile, "%d", ptr->ptr[i]);
-+      nc = 1;
-+    }
-+}
-+
-+/* print the sb at ptr to the output file */
-+
-+static void
-+sb_print_at (FILE *outfile, int idx, sb *ptr)
-+{
-+  int i;
-+  for (i = idx; i < ptr->len; i++)
-+    putc (ptr->ptr[i], outfile);
-+}
-+
 +#define FATAL(x)				\
 +  do						\
 +    {						\
@@ -1911,6 +1872,15 @@
 +  else
 +    exitcode = 0;
 +
++  if (stats)
++    {
++      int i;
++      for (i = 0; i < sb_max_power_two; i++)
++	{
++	  fprintf (stderr, "strings size %8d : %d\n",
++		   1 << i, string_count[i]);
++	}
++    }
 +  exit (exitcode);
 +}
 +
@@ -4228,7 +4198,7 @@
 +  const char *err;
 +  int line = linecount ();
 +
-+  err = define_macro (idx, in, &label, get_line, "[gasp]", line, (const char **) NULL);
++  err = define_macro (idx, in, &label, get_line, (const char **) NULL);
 +  if (err != NULL)
 +    ERROR ((stderr, _("macro at line %d: %s\n"), line - 1, err));
 +}
@@ -5307,238 +5277,33 @@
 +  fprintf (stderr, _("\nPlease report this bug.\n"));
 +  exit (1);
 +}
-+
-+/* duplicated from as internals */
-+
-+static void
-+identify (char *file)
-+{
-+  static int identified;
-+
-+  if (identified)
-+    return;
-+  identified++;
-+
-+  if (file)
-+    fprintf (stderr, "%s: ", file);
-+  fprintf (stderr, _("Assembler messages:\n"));
-+}
-+
-+/* The number of warnings issued.  */
-+static int warning_count;
-+
-+/* The common portion of as_warn and as_warn_where.  */
-+
-+static void
-+as_warn_internal (char *file, unsigned int line, char *buffer)
-+{
-+  ++warning_count;
-+
-+  identify (file);
-+  if (file)
-+    fprintf (stderr, "%s:%u: ", file, line);
-+  fprintf (stderr, _("Warning: "));
-+  fputs (buffer, stderr);
-+  (void) putc ('\n', stderr);
-+}
-+
-+/* Send to stderr a string as a warning, and locate warning
-+   in input file(s).
-+   Please only use this for when we have some recovery action.
-+   Please explain in string (which may have '\n's) what recovery was
-+   done.  */
-+
-+void
-+as_warn (const char *format, ...)
-+{
-+  va_list args;
-+  char buffer[2000];
-+
-+  if (1 /*!flag_no_warnings*/)
-+    {
-+      va_start (args, format);
-+      vsprintf (buffer, format, args);
-+      va_end (args);
-+      as_warn_internal ((char *) NULL, 0, buffer);
-+    }
-+}
-+
-+/* Like as_bad but the file name and line number are passed in.
-+   Unfortunately, we have to repeat the function in order to handle
-+   the varargs correctly and portably.  */
-+
-+void
-+as_warn_where (char *file, unsigned int line, const char *format, ...)
-+{
-+  va_list args;
-+  char buffer[2000];
-+
-+  if (1 /*!flag_no_warnings*/)
-+    {
-+      va_start (args, format);
-+      vsprintf (buffer, format, args);
-+      va_end (args);
-+      as_warn_internal (file, line, buffer);
-+    }
-+}
-+
-+/* Nonzero if we've hit a 'bad error', and should not write an obj file,
-+   and exit with a nonzero error code.  */
-+
-+static int error_count;
-+
-+/* The common portion of as_bad and as_bad_where.  */
-+
-+static void
-+as_bad_internal (char *file, unsigned int line, char *buffer)
-+{
-+  ++error_count;
-+
-+  identify (file);
-+  if (file)
-+    fprintf (stderr, "%s:%u: ", file, line);
-+  fprintf (stderr, _("Error: "));
-+  fputs (buffer, stderr);
-+  (void) putc ('\n', stderr);
-+}
-+
-+/* Send to stderr a string as a warning, and locate warning in input
-+   file(s).  Please us when there is no recovery, but we want to
-+   continue processing but not produce an object file.
-+   Please explain in string (which may have '\n's) what recovery was
-+   done.  */
-+
-+void
-+as_bad (const char *format, ...)
-+{
-+  va_list args;
-+  char buffer[2000];
-+
-+  va_start (args, format);
-+  vsprintf (buffer, format, args);
-+  va_end (args);
-+
-+  as_bad_internal ((char *) NULL, 0, buffer);
-+}
-+
-+/* Like as_bad but the file name and line number are passed in.
-+   Unfortunately, we have to repeat the function in order to handle
-+   the varargs correctly and portably.  */
-+
-+void
-+as_bad_where (char *file, unsigned int line, const char *format, ...)
-+{
-+  va_list args;
-+  char buffer[2000];
-+
-+  va_start (args, format);
-+  vsprintf (buffer, format, args);
-+  va_end (args);
-+
-+  as_bad_internal (file, line, buffer);
-+}
-+
-+/* Indicate assertion failure.
-+   Arguments: Filename, line number, optional function name.  */
-+
-+void
-+as_assert (const char *file, int line, const char *fn)
-+{
-+  fprintf (stderr, _("Internal error!\n"));
-+  if (fn)
-+    fprintf (stderr, _("Assertion failure in %s at %s line %d.\n"),
-+	     fn, file, line);
-+  else
-+    fprintf (stderr, _("Assertion failure at %s line %d.\n"), file, line);
-+  fprintf (stderr, _("Please report this bug.\n"));
-+  xexit (EXIT_FAILURE);
-+}
-+
-+#ifndef LEX_AT
-+/* The m88k unfortunately uses @ as a label beginner.  */
-+#define LEX_AT 0
-+#endif
-+
-+#ifndef LEX_BR
-+/* The RS/6000 assembler uses {,},[,] as parts of symbol names.  */
-+#define LEX_BR 0
-+#endif
-+
-+#ifndef LEX_PCT
-+/* The Delta 68k assembler permits % inside label names.  */
-+#define LEX_PCT 0
-+#endif
-+
-+#ifndef LEX_QM
-+/* The PowerPC Windows NT assemblers permits ? inside label names.  */
-+#define LEX_QM 0
-+#endif
-+
-+#ifndef LEX_HASH
-+/* The IA-64 assembler uses # as a suffix designating a symbol.  We include
-+   it in the symbol and strip it out in tc_canonicalize_symbol_name.  */
-+#define LEX_HASH 0
-+#endif
-+
-+#ifndef LEX_DOLLAR
-+/* The a29k assembler does not permits labels to start with $.  */
-+#define LEX_DOLLAR 3
-+#endif
-+
-+#ifndef LEX_TILDE
-+/* The Delta 68k assembler permits ~ at start of label names.  */
-+#define LEX_TILDE 0
-+#endif
-+
-+/* Used by is_... macros. our ctype[].  */
-+char lex_type[256] = {
-+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* @ABCDEFGHIJKLMNO */
-+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* PQRSTUVWXYZ[\]^_ */
-+  0, 0, 0, LEX_HASH, LEX_DOLLAR, LEX_PCT, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, /* _!"#$%&'()*+,-./ */
-+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, LEX_QM,	/* 0123456789:;<=>? */
-+  LEX_AT, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,	/* @ABCDEFGHIJKLMNO */
-+  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, LEX_BR, 0, LEX_BR, 0, 3, /* PQRSTUVWXYZ[\]^_ */
-+  0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,	/* `abcdefghijklmno */
-+  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, LEX_BR, 0, LEX_BR, LEX_TILDE, 0, /* pqrstuvwxyz{|}~.  */
-+  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-+  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-+  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-+  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-+  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-+  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-+  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-+  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
-+};
-+
-+/* just a stub to satisfy unused function in sb.o */
-+int do_scrub_chars (int (*get) (char*, int), char *tostart, int tolen) {}
---- binutils-2.16.91.0.2.org/gas/macro.c	2005-05-10 22:46:44.000000000 +0000
-+++ binutils-2.16.91.0.2/gas/macro.c	2005-07-21 18:31:04.000000000 +0000
-@@ -41,8 +41,8 @@
+--- binutils-2.14.90.0.8/gas/macro.c.orig	Wed Jan 14 22:07:45 2004
++++ binutils-2.14.90.0.8/gas/macro.c	Thu Jan 15 10:46:06 2004
+@@ -74,8 +74,8 @@
  static int get_apost_token (int, sb *, sb *, int);
  static int sub_actual (int, sb *, sb *, struct hash_control *, int, sb *, int);
  static const char *macro_expand_body
--  (sb *, sb *, formal_entry *, struct hash_control *, const macro_entry *);
+-  (sb *, sb *, formal_entry *, struct hash_control *, int);
 -static const char *macro_expand (int, sb *, macro_entry *, sb *);
-+  (sb *, sb *, formal_entry *, struct hash_control *, const macro_entry *, int);
++  (sb *, sb *, formal_entry *, struct hash_control *, int, int);
 +static const char *macro_expand (int, sb *, macro_entry *, sb *, int);
- static void free_macro(macro_entry *);
  
  #define ISWHITE(x) ((x) == ' ' || (x) == '\t')
-@@ -754,7 +754,7 @@
+ 
+@@ -619,7 +619,7 @@
  
  static const char *
  macro_expand_body (sb *in, sb *out, formal_entry *formals,
--		   struct hash_control *formal_hash, const macro_entry *macro)
-+		   struct hash_control *formal_hash, const macro_entry *macro, int comment_char)
+-		   struct hash_control *formal_hash, int locals)
++		   struct hash_control *formal_hash, int comment_char, int locals)
  {
    sb t;
-   int src = 0, inquote = 0, macro_line = 0;
-@@ -786,7 +786,14 @@
+   int src = 0;
+@@ -649,7 +649,14 @@
        else if (in->ptr[src] == '\\')
  	{
  	  src++;
--	  if (src < in->len && in->ptr[src] == '(')
+-	  if (in->ptr[src] == '(')
 +	  if (in->ptr[src] == comment_char && comment_char != '\0')
 +	    {
 +	      /* This is a comment, just drop the rest of the line.  */
@@ -5546,20 +5311,20 @@
 +	             && in->ptr[src] != '\n')
 +	        src++;
 +	    }
-+	  else if (src < in->len && in->ptr[src] == '(')
++	  else if (in->ptr[src] == '(')
  	    {
  	      /* Sub in till the next ')' literally.  */
  	      src++;
-@@ -867,7 +874,7 @@
- 	  else
- 	    {
+@@ -732,7 +739,7 @@
+ 	      formal_entry *f;
+ 
  	      src = sb_skip_white (src + 5, in);
 -	      while (in->ptr[src] != '\n')
 +	      while (in->ptr[src] != '\n' && in->ptr[src] != comment_char)
  		{
- 		  const char *name;
- 		  formal_entry *f = new_formal ();
-@@ -903,6 +910,17 @@
+ 		  static int loccnt;
+ 		  char buf[20];
+@@ -759,6 +766,17 @@
  		}
  	    }
  	}
@@ -5577,7 +5342,7 @@
        else if (in->ptr[src] == '"'
  	       || (macro_mri && in->ptr[src] == '\''))
  	{
-@@ -984,7 +1002,7 @@
+@@ -841,7 +859,7 @@
     body.  */
  
  static const char *
@@ -5586,7 +5351,7 @@
  {
    sb t;
    formal_entry *ptr;
-@@ -1029,7 +1047,7 @@
+@@ -891,7 +909,7 @@
  
    /* Peel off the actuals and store them away in the hash tables' actuals.  */
    idx = sb_skip_white (idx, in);
@@ -5595,16 +5360,16 @@
      {
        int scan;
  
-@@ -1156,7 +1174,7 @@
- 	  sb_add_string (&ptr->actual, buffer);
- 	}
- 
--      err = macro_expand_body (&m->sub, out, m->formals, m->formal_hash, m);
-+      err = macro_expand_body (&m->sub, out, m->formals, m->formal_hash, m, comment_char);
+@@ -993,7 +1011,7 @@
+       sb_add_string (&ptr->actual, buffer);
      }
  
-   /* Discard any unnamed formal arguments.  */
-@@ -1189,7 +1207,7 @@
+-  err = macro_expand_body (&m->sub, out, m->formals, m->formal_hash, 1);
++  err = macro_expand_body (&m->sub, out, m->formals, m->formal_hash, comment_char, 1);
+   if (err != NULL)
+     return err;
+ 
+@@ -1029,7 +1047,7 @@
     *EXPAND.  Return 1 if a macro is found, 0 otherwise.  */
  
  int
@@ -5613,7 +5378,7 @@
  	     const char **error, macro_entry **info)
  {
    const char *s;
-@@ -1224,7 +1242,7 @@
+@@ -1066,7 +1084,7 @@
      sb_add_char (&line_sb, *s++);
  
    sb_new (expand);
@@ -5622,16 +5387,16 @@
  
    sb_kill (&line_sb);
  
-@@ -1285,7 +1303,7 @@
+@@ -1090,7 +1108,7 @@
     success, or an error message otherwise.  */
  
  const char *
 -expand_irp (int irpc, int idx, sb *in, sb *out, int (*get_line) (sb *))
 +expand_irp (int irpc, int idx, sb *in, sb *out, int (*get_line) (sb *), int comment_char)
  {
+   const char *mn;
    sb sub;
-   formal_entry f;
-@@ -1318,10 +1336,10 @@
+@@ -1128,10 +1146,10 @@
    sb_reset (out);
  
    idx = sb_skip_comma (idx, in);
@@ -5640,43 +5405,43 @@
      {
        /* Expand once with a null string.  */
 -      err = macro_expand_body (&sub, out, &f, h, 0);
-+      err = macro_expand_body (&sub, out, &f, h, 0, comment_char);
++      err = macro_expand_body (&sub, out, &f, h, comment_char, 0);
+       if (err != NULL)
+ 	return err;
      }
-   else
+@@ -1139,7 +1157,7 @@
      {
-@@ -1333,7 +1351,7 @@
- 	  ++idx;
- 	}
- 
+       if (irpc && in->ptr[idx] == '"')
+ 	++idx;
 -      while (idx < in->len)
 +      while (idx < in->len && in->ptr[idx] != comment_char)
  	{
  	  if (!irpc)
- 	    idx = get_any_string (idx, in, &f.actual);
-@@ -1347,7 +1365,7 @@
- 		    in_quotes = ! in_quotes;
- 	  
+ 	    idx = get_any_string (idx, in, &f.actual, 1, 0);
+@@ -1150,7 +1168,7 @@
+ 		  int nxt;
+ 
  		  nxt = sb_skip_white (idx + 1, in);
 -		  if (nxt >= in->len)
 +		  if (nxt >= in->len || in->ptr[nxt] == comment_char)
  		    {
  		      idx = nxt;
  		      break;
-@@ -1358,7 +1376,7 @@
+@@ -1160,7 +1178,7 @@
+ 	      sb_add_char (&f.actual, in->ptr[idx]);
  	      ++idx;
  	    }
- 
 -	  err = macro_expand_body (&sub, out, &f, h, 0);
-+	  err = macro_expand_body (&sub, out, &f, h, 0, comment_char);
++	  err = macro_expand_body (&sub, out, &f, h, comment_char, 0);
  	  if (err != NULL)
- 	    break;
+ 	    return err;
  	  if (!irpc)
---- binutils-2.16.91.0.2.org/gas/macro.h	2005-05-10 22:46:44.000000000 +0000
-+++ binutils-2.16.91.0.2/gas/macro.h	2005-07-21 18:31:04.000000000 +0000
-@@ -90,8 +90,8 @@
+--- binutils-2.14.90.0.8/gas/macro.h.orig	Wed Jan 14 22:07:45 2004
++++ binutils-2.14.90.0.8/gas/macro.h	Thu Jan 15 10:43:32 2004
+@@ -76,8 +76,8 @@
  extern void macro_mri_mode (int);
  extern const char *define_macro
-   (int, sb *, sb *, int (*) (sb *), char *, unsigned int, const char **);
+   (int, sb *, sb *, int (*) (sb *), const char **);
 -extern int check_macro (const char *, sb *, const char **, macro_entry **);
 +extern int check_macro (const char *, sb *, int, const char **, macro_entry **);
  extern void delete_macro (const char *);
@@ -5684,23 +5449,24 @@
 +extern const char *expand_irp (int, int, sb *, sb *, int (*) (sb *), int);
  
  #endif
---- binutils-2.16.91.0.2.org/gas/read.c	2005-06-22 20:53:34.000000000 +0000
-+++ binutils-2.16.91.0.2/gas/read.c	2005-07-21 18:31:04.000000000 +0000
-@@ -555,7 +555,7 @@
-   const char *err;
-   macro_entry *macro;
+diff -Nur binutils-2.13.90.0.18.orig/gas/read.c binutils-2.13.90.0.18/gas/read.c
+--- binutils-2.13.90.0.18.orig/gas/read.c	Sun Feb  2 03:21:18 2003
++++ binutils-2.13.90.0.18/gas/read.c	Sun Feb  2 15:26:06 2003
+@@ -862,7 +862,7 @@
+ 			  const char *err;
+ 			  macro_entry *macro;
  
--  if (check_macro (line, &out, &err, &macro))
-+  if (check_macro (line, &out, '\0', &err, &macro))
-     {
-       if (err != NULL)
- 	as_bad ("%s", err);
-@@ -1958,7 +1958,7 @@
+-			  if (check_macro (s, &out, &err, &macro))
++			  if (check_macro (s, &out, '\0', &err, &macro))
+ 			    {
+ 			      if (err != NULL)
+ 				as_bad ("%s", err);
+@@ -1855,7 +1855,7 @@
  
    sb_new (&out);
  
--  err = expand_irp (irpc, 0, &s, &out, get_non_macro_line_sb);
-+  err = expand_irp (irpc, 0, &s, &out, get_non_macro_line_sb, '\0');
+-  err = expand_irp (irpc, 0, &s, &out, get_line_sb);
++  err = expand_irp (irpc, 0, &s, &out, get_line_sb, '\0');
    if (err != NULL)
      as_bad_where (file, line, "%s", err);
  
