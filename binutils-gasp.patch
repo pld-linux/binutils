@@ -5514,17 +5514,6 @@
 +int do_scrub_chars (int (*get) (char*, int), char *tostart, int tolen) {}
 --- binutils-2.16.91.0.2.org/gas/macro.c	2005-05-10 22:46:44.000000000 +0000
 +++ binutils-2.16.91.0.2/gas/macro.c	2005-07-21 18:31:04.000000000 +0000
-@@ -41,8 +41,8 @@
- static int get_apost_token (int, sb *, sb *, int);
- static int sub_actual (int, sb *, sb *, struct hash_control *, int, sb *, int);
- static const char *macro_expand_body
--  (sb *, sb *, formal_entry *, struct hash_control *, const macro_entry *);
--static const char *macro_expand (int, sb *, macro_entry *, sb *);
-+  (sb *, sb *, formal_entry *, struct hash_control *, const macro_entry *, int);
-+static const char *macro_expand (int, sb *, macro_entry *, sb *, int);
- static void free_macro(macro_entry *);
- 
- #define ISWHITE(x) ((x) == ' ' || (x) == '\t')
 @@ -754,7 +754,7 @@
  
  static const char *

@@ -2,13 +2,8 @@
 # Conditional build:
 %bcond_with	allarchs	# enable all targets
 # define addtargets x,y,z	# build with additional targets x,y,z (e.g. x86_64-linux)
-%bcond_with	gold		# enable gold (gnu ld successor) on supported archs (x86/sparc)
 				# http://sourceware.org/ml/binutils/2008-03/msg00162.html
 %bcond_without	pax		# without PaX flags (for upstream bugreports)
-#
-%ifnarch %{ix86} %{x8664} sparc sparc64 ppc ppc64
-%undefine	with_gold
-%endif
 #
 Summary:	GNU Binary Utility Development Utilities
 Summary(de.UTF-8):	GNU Binary Utility Development Utilities
@@ -20,13 +15,13 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.20.51.0.2
+Version:	2.20.51.0.3
 Release:	1
 Epoch:		3
 License:	GPL v3+
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	b01b185a5eab43190fb83efaeb2ffef9
+# Source0-md5:	4d5cdcfa054e697ba92a37f55b125080
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -45,9 +40,7 @@ BuildRequires:	automake >= 1:1.11
 BuildRequires:	bison
 BuildRequires:	flex
 BuildRequires:	gettext-devel
-%if %{with gold}
 BuildRequires:	libstdc++-devel >= 6:4.0-1
-%endif
 BuildRequires:	perl-tools-pod
 %ifarch sparc sparc32
 BuildRequires:	sparc32
@@ -217,7 +210,7 @@ sparc32 \
 	%{?with_allarchs:--enable-64-bit-bfd} \
 %endif
 	%{?with_allarchs:--enable-targets=alpha-linux,arm-linux,cris-linux,hppa-linux,i386-linux,ia64-linux,x86_64-linux,m68k-linux,mips-linux,mips64-linux,mips64el-linux,mipsel-linux,ppc-linux,s390-linux,s390x-linux,sh-linux,sparc-linux,sparc64-linux,i386-linuxaout} \
-	%{?with_gold:--enable-gold}
+	--enable-gold=both
 
 %{__make}
 
@@ -248,12 +241,11 @@ rm -f $RPM_BUILD_ROOT%{_infodir}/dir
 %find_lang gas
 %find_lang gprof
 touch ld.lang
-%if %{without gold}
 %find_lang ld
-%endif
+%find_lang gold
 %find_lang opcodes
 cat bfd.lang opcodes.lang > %{name}-libs.lang
-cat gas.lang gprof.lang ld.lang >> %{name}.lang
+cat gas.lang gprof.lang ld.lang gold.lang >> %{name}.lang
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -282,10 +274,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_infodir}/binutils.info*
 %{_infodir}/configure.info*
 %{_infodir}/gprof.info*
-%if %{without gold}
 %{_infodir}/ld.info*
 %{_prefix}/lib/ldscripts
-%endif
 %{_mandir}/man1/*
 %lang(cs) %{_mandir}/cs/man1/*
 %lang(de) %{_mandir}/de/man1/*
