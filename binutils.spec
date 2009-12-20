@@ -15,25 +15,24 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.20.51.0.3
+Version:	2.20.51.0.4
 Release:	1
 Epoch:		3
 License:	GPL v3+
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	4d5cdcfa054e697ba92a37f55b125080
+# Source0-md5:	efcc89be7573fd3d8ec55236eebdf528
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
 Patch1:		%{name}-info.patch
 Patch2:		%{name}-libtool-relink.patch
 Patch3:		%{name}-pt_pax_flags.patch
-Patch5:		%{name}-flex.patch
-Patch6:		%{name}-discarded.patch
-Patch7:		%{name}-absolute-gnu_debuglink-path.patch
-Patch8:		%{name}-libtool-m.patch
-Patch9:		%{name}-build-id.patch
-Patch10:	%{name}-tooldir.patch
+Patch5:		%{name}-discarded.patch
+Patch6:		%{name}-absolute-gnu_debuglink-path.patch
+Patch7:		%{name}-libtool-m.patch
+Patch8:		%{name}-build-id.patch
+Patch9:		%{name}-tooldir.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.64
 BuildRequires:	automake >= 1:1.11
@@ -153,7 +152,6 @@ niektórych pakietów.
 %patch7 -p1
 %patch8 -p1
 %patch9 -p1
-%patch10 -p1
 
 # file contains hacks for ac 2.59 only
 rm config/override.m4
