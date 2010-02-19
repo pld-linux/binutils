@@ -273,6 +273,8 @@ install libiberty/pic/libiberty.a $RPM_BUILD_ROOT%{_libdir}
 # remove evil -L pointing inside builder's home
 perl -pi -e 's@-L[^ ]*/pic @@g' $RPM_BUILD_ROOT%{_libdir}/libbfd.la
 
+[ -x $RPM_BUILD_ROOT%{_bindir}/ld.bfd ] || ln $RPM_BUILD_ROOT%{_bindir}/ld{,.bfd}
+
 rm -f $RPM_BUILD_ROOT%{_infodir}/dir
 
 %find_lang bfd
