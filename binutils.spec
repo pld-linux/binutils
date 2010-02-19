@@ -3,6 +3,7 @@
 %bcond_with	allarchs	# enable all targets
 # define addtargets x,y,z	# build with additional targets x,y,z (e.g. x86_64-linux)
 				# http://sourceware.org/ml/binutils/2008-03/msg00162.html
+%bcond_without	gold		# don't build gold (no C++ dependencies)
 %bcond_without	pax		# without PaX flags (for upstream bugreports)
 #
 Summary:	GNU Binary Utility Development Utilities
@@ -39,7 +40,7 @@ BuildRequires:	automake >= 1:1.11
 BuildRequires:	bison
 BuildRequires:	flex
 BuildRequires:	gettext-devel
-BuildRequires:	libstdc++-devel >= 6:4.0-1
+%{?with_gold:BuildRequires:	libstdc++-devel >= 6:4.0-1}
 BuildRequires:	perl-tools-pod
 %ifarch sparc sparc32
 BuildRequires:	sparc32
@@ -141,6 +142,42 @@ GASP - stary preprocesor dla programów w asemblerze. Jest oficjalnie
 uznany za przestarzały, ale jest nadal potrzebny do zbudowania
 niektórych pakietów.
 
+%package gold
+Summary:	GOLD - new version of ELF linker originally developed at Google
+Summary(pl.UTF-8):	GOLD - nowa wersja linkera ELF powstała w Google
+Group:		Development/Tools
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+
+%description gold
+gold is an ELF linker. It is intended to have complete support for ELF
+and to run as fast as possible on modern systems. For normal use it is
+a drop-in replacement for the older GNU linker. gold was originally
+developed at Google, and was contributed to the Free Software
+Foundation in March 2008.
+
+gold supports most of the features of the GNU linker for ELF targets.
+Notable omissions - features of the GNU linker not currently supported
+in gold - are:
+ - MEMORY regions in linker scripts
+ - MRI compatible linker scripts
+ - cross-reference reports (--cref)
+ - various other minor options.
+
+%description gold -l pl.UTF-8
+gold to linker dla plików ELF. Powstał z myślą o pełnej obsłudze
+formatu ELF i jak najszybszym działaniu na współczesnych systemach.
+Przy zwykłym użyciu jest zamiennikiem starszego linkera GNU. gold
+początkowo był rozwijany przez Google i został przekazany Free
+Software Foundation w marcu 2008.
+
+gold obsługuje większość funkcji linkera GNU dla plików ELF. Istotne
+braki - możliwości linkera GNU aktualnie nie obsługiwane przez gold -
+to:
+- regiony typu MEMORY w skryptach linkera
+- skrypty linkera kompatybilne z MRI
+- raporty odsyłaczy (--cref)
+- kilka innych, mniej istotnych opcji.
+
 %prep
 %setup -q
 %patch0 -p1
@@ -208,7 +245,11 @@ sparc32 \
 	%{?with_allarchs:--enable-64-bit-bfd} \
 %endif
 	%{?with_allarchs:--enable-targets=alpha-linux,arm-linux,cris-linux,hppa-linux,i386-linux,ia64-linux,x86_64-linux,m68k-linux,mips-linux,mips64-linux,mips64el-linux,mipsel-linux,ppc-linux,s390-linux,s390x-linux,sh-linux,sparc-linux,sparc64-linux,i386-linuxaout} \
-	--enable-gold=both
+%if %{with gold}
+	--enable-gold=both/bfd
+%else
+	--disable-gold
+%endif
 
 %{__make}
 
@@ -240,10 +281,12 @@ rm -f $RPM_BUILD_ROOT%{_infodir}/dir
 %find_lang gprof
 touch ld.lang
 %find_lang ld
+%if %{with gold}
 %find_lang gold
+%endif
 %find_lang opcodes
 cat bfd.lang opcodes.lang > %{name}-libs.lang
-cat gas.lang gprof.lang ld.lang gold.lang >> %{name}.lang
+cat gas.lang gprof.lang ld.lang >> %{name}.lang
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -266,8 +309,22 @@ rm -rf $RPM_BUILD_ROOT
 %files -f %{name}.lang
 %defattr(644,root,root,755)
 %doc README
-%attr(755,root,root) %{_bindir}/[!g]*
-%attr(755,root,root) %{_bindir}/g[!a]*
+%attr(755,root,root) %{_bindir}/addr2line
+%attr(755,root,root) %{_bindir}/ar
+%attr(755,root,root) %{_bindir}/as
+%attr(755,root,root) %{_bindir}/c++filt
+%attr(755,root,root) %{_bindir}/elfedit
+%attr(755,root,root) %{_bindir}/gprof
+%attr(755,root,root) %{_bindir}/ld
+%attr(755,root,root) %{_bindir}/ld.bfd
+%attr(755,root,root) %{_bindir}/nm
+%attr(755,root,root) %{_bindir}/objcopy
+%attr(755,root,root) %{_bindir}/objdump
+%attr(755,root,root) %{_bindir}/ranlib
+%attr(755,root,root) %{_bindir}/readelf
+%attr(755,root,root) %{_bindir}/size
+%attr(755,root,root) %{_bindir}/strings
+%attr(755,root,root) %{_bindir}/strip
 %{_infodir}/as.info*
 %{_infodir}/binutils.info*
 %{_infodir}/configure.info*
@@ -296,7 +353,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libbfd.la
 %{_libdir}/libopcodes.la
 %{_libdir}/libiberty.a
-%{_includedir}/*.h
+%{_includedir}/ansidecl.h
+%{_includedir}/bfd.h
+%{_includedir}/bfdlink.h
+%{_includedir}/dis-asm.h
+%{_includedir}/libiberty.h
+%{_includedir}/symcat.h
 %{_infodir}/bfd.info*
 
 %files static
@@ -308,3 +370,10 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/gasp
 %{_infodir}/gasp.info*
+
+%if %{with gold}
+%files gold -f gold.lang
+%defattr(644,root,root,755)
+%doc gold/{ChangeLog,README,TODO}
+%attr(755,root,root) %{_bindir}/ld.gold
+%endif
