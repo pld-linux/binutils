@@ -169,7 +169,7 @@ diff -urN binutils-2.12.90.0.1.org/ld/ld.texinfo binutils-2.12.90.0.1/ld/ld.texi
 +* size: (binutils)size.			List section sizes and total size
 +* strings: (binutils)strings.		List printable strings from files
 +* strip: (binutils)strip.		Discard symbols
-+* elfedit: (binutils)elfedit.		Update the ELF header of ELF files.
++* elfedit: (binutils)elfedit.		Update the ELF header of ELF files
 +* windmc: (binutils)windmc.		Generator for Windows message resources
 +* windres: (binutils)windres.		Manipulate Windows resources
  @end direntry
