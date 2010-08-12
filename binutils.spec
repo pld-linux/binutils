@@ -224,7 +224,9 @@ TARGETS=sparc64-linux
 
 cp -f /usr/share/automake/config.* .
 CFLAGS="%{rpmcflags}"; export CFLAGS
+CXXFLAGS="%{rpmcxxflags}"; export CXXFLAGS
 CC="%{__cc}"; export CC
+CXX="%{__cxx}"; export CXX
 %ifarch sparc
 sparc32 \
 %endif
