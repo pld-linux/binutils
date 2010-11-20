@@ -1,19 +1,16 @@
-diff -urN binutils-2.12.90.0.1.org/bfd/doc/bfd.texinfo binutils-2.12.90.0.1/bfd/doc/bfd.texinfo
---- binutils-2.12.90.0.1.org/bfd/doc/bfd.texinfo	Mon Mar 11 22:37:36 2002
-+++ binutils-2.12.90.0.1/bfd/doc/bfd.texinfo	Mon Mar 11 22:37:52 2002
-@@ -21,9 +21,10 @@
+--- binutils-2.21.51.0.1/bfd/doc/bfd.texinfo.orig	2010-11-12 18:32:59.000000000 +0100
++++ binutils-2.21.51.0.1/bfd/doc/bfd.texinfo	2010-11-20 11:27:17.171103290 +0100
+@@ -7,9 +7,9 @@
+ @synindex fn cp
  
- @ifinfo
- @format
--START-INFO-DIR-ENTRY
--* Bfd: (bfd).                   The Binary File Descriptor library.
--END-INFO-DIR-ENTRY
+ @ifnottex
+-@dircategory Software development
 +@dircategory Programming tools:
-+@direntry
+ @direntry
+-* Bfd: (bfd).                   The Binary File Descriptor library.
 +* Bfd: (bfd).				The Binary File Descriptor library
-+@end direntry
- @end format
- @end ifinfo
+ @end direntry
+ @end ifnottex
  
 diff -urN binutils-2.12.90.0.1.org/etc/configure.texi binutils-2.12.90.0.1/etc/configure.texi
 --- binutils-2.12.90.0.1.org/etc/configure.texi	Mon Mar 11 22:37:37 2002
@@ -44,24 +41,21 @@ diff -urN binutils-2.12.90.0.1.org/etc/configure.texi binutils-2.12.90.0.1/etc/c
  @end direntry
  
  @c @setchapternewpage odd
-diff -urN binutils-2.12.90.0.1.org/gas/doc/as.texinfo binutils-2.12.90.0.1/gas/doc/as.texinfo
---- binutils-2.12.90.0.1.org/gas/doc/as.texinfo	Mon Mar 11 22:37:38 2002
-+++ binutils-2.12.90.0.1/gas/doc/as.texinfo	Mon Mar 11 22:40:25 2002
-@@ -117,10 +117,11 @@
+--- binutils-2.21.51.0.1/gas/doc/as.texinfo.orig	2010-11-12 18:33:04.000000000 +0100
++++ binutils-2.21.51.0.1/gas/doc/as.texinfo	2010-11-20 11:27:52.647104966 +0100
+@@ -88,10 +88,10 @@
+ @end ifinfo
  
- @ifinfo
- @format
--START-INFO-DIR-ENTRY
+ @ifnottex
+-@dircategory Software development
++@dircategory Programming tools:
+ @direntry
 -* As: (as).                     The GNU assembler.
 -* Gas: (as).                    The GNU assembler.
--END-INFO-DIR-ENTRY
-+@dircategory Programming tools:
-+@direntry
 +* As: (as).				The GNU assembler
 +* Gas: (as).				The GNU assembler
-+@end direntry
- @end format
- @end ifinfo
+ @end direntry
+ @end ifnottex
  
 diff -urN binutils-2.14.90.0.7.org/gas/doc/gasp.texinfo binutils-2.14.90.0.7/gas/doc/gasp.texinfo
 --- binutils-2.14.90.0.7.org/gas/doc/gasp.texinfo	Mon Mar 11 22:37:38 2002
@@ -80,43 +74,37 @@ diff -urN binutils-2.14.90.0.7.org/gas/doc/gasp.texinfo binutils-2.14.90.0.7/gas
  @end format
  @end ifinfo
  
-diff -urN binutils-2.12.90.0.1.org/gprof/gprof.texi binutils-2.12.90.0.1/gprof/gprof.texi
---- binutils-2.12.90.0.1.org/gprof/gprof.texi	Mon Mar 11 22:37:40 2002
-+++ binutils-2.12.90.0.1/gprof/gprof.texi	Mon Mar 11 22:37:52 2002
-@@ -9,9 +9,10 @@
+--- binutils-2.21.51.0.1/gprof/gprof.texi.orig	2010-11-12 18:33:07.000000000 +0100
++++ binutils-2.21.51.0.1/gprof/gprof.texi	2010-11-20 11:28:30.103104128 +0100
+@@ -13,9 +13,9 @@
+ @ifnottex
  @c This is a dir.info fragment to support semi-automated addition of
  @c manuals to an info tree.  zoo@cygnus.com is developing this facility.
- @format
--START-INFO-DIR-ENTRY
+-@dircategory Software development
++@dircategory Programming tools:
+ @direntry
 -* gprof: (gprof).                Profiling your program's execution
--END-INFO-DIR-ENTRY
-+@dircategory Programming tools:
-+@direntry
 +* gprof: (gprof).			Profiling your program's execution
-+@end direntry
- @end format
- @end ifinfo
+ @end direntry
+ @end ifnottex
  
-diff -urN binutils-2.12.90.0.1.org/ld/ld.texinfo binutils-2.12.90.0.1/ld/ld.texinfo
---- binutils-2.12.90.0.1.org/ld/ld.texinfo	Mon Mar 11 22:37:41 2002
-+++ binutils-2.12.90.0.1/ld/ld.texinfo	Mon Mar 11 22:37:52 2002
-@@ -48,9 +48,10 @@
+--- binutils-2.21.51.0.1/ld/ld.texinfo.orig	2010-11-12 18:33:07.000000000 +0100
++++ binutils-2.21.51.0.1/ld/ld.texinfo	2010-11-20 11:28:52.127099099 +0100
+@@ -40,9 +40,9 @@
+ @c man end
  
- @ifinfo
- @format
--START-INFO-DIR-ENTRY
--* Ld: (ld).                       The GNU linker.
--END-INFO-DIR-ENTRY
+ @ifnottex
+-@dircategory Software development
 +@dircategory Programming tools:
-+@direntry
+ @direntry
+-* Ld: (ld).                       The GNU linker.
 +* Ld: (ld).				The GNU linker
-+@end direntry
- @end format
- @end ifinfo
+ @end direntry
+ @end ifnottex
  
-@@ -4590,7 +4591,7 @@
+@@ -7320,7 +7320,7 @@
  @node BFD outline
- @section How it works: an outline of BFD
+ @section How It Works: An Outline of BFD
  @cindex opening object files
 -@include bfdsumm.texi
 +@include ../bfd/doc/bfdsumm.texi
