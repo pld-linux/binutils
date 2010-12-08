@@ -16,13 +16,13 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.21.51.0.1
+Version:	2.21.51.0.2
 Release:	1
 Epoch:		3
 License:	GPL v3+
 Group:		Development/Tools
 Source0:	ftp://ftp.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	3e8b6349f38d6e0feba317055f0ced14
+# Source0-md5:	77159c22d0fcb07446382ab65e50d030
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -191,7 +191,7 @@ to:
 %patch9 -p1
 
 # file contains hacks for ac 2.59 only
-rm config/override.m4
+%{__rm} config/override.m4
 
 %build
 %{__aclocal}
@@ -248,7 +248,7 @@ sparc32 \
 %endif
 	%{?with_allarchs:--enable-targets=alpha-linux,arm-linux,cris-linux,hppa-linux,i386-linux,ia64-linux,x86_64-linux,m68k-linux,mips-linux,mips64-linux,mips64el-linux,mipsel-linux,ppc-linux,s390-linux,s390x-linux,sh-linux,sparc-linux,sparc64-linux,i386-linuxaout} \
 %if %{with gold}
-	--enable-gold=both/ld
+	--enable-gold
 %else
 	--disable-gold
 %endif
@@ -261,11 +261,11 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
-rm $RPM_BUILD_ROOT%{_infodir}/standards.info*
+%{__rm} $RPM_BUILD_ROOT%{_infodir}/standards.info*
 
 # remove these man pages unless we cross-build for win*/netware platforms.
 # however, this should be done in Makefiles.
-rm $RPM_BUILD_ROOT%{_mandir}/man1/{dlltool,nlmconv,windres}.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/man1/{dlltool,nlmconv,windres}.1
 
 bzip2 -dc %{SOURCE1} | tar xf - -C $RPM_BUILD_ROOT%{_mandir}
 
