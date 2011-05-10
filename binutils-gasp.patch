@@ -24,8 +24,8 @@
  	frags.h hash.h listing.h obj.h read.h symbols.h tc.h write.h
  
 +gasp_new_SOURCES = gasp.c macro.c sb.c hash.c
-+gasp_new_LDADD = ../libiberty/libiberty.a $(INTLLIBS)
-+gasp_new_DEPENDENCIES = ../libiberty/libiberty.a $(INTLDEPS)
++gasp_new_LDADD = ../bfd/libbfd.la ../libiberty/libiberty.a $(LIBINTL)
++gasp_new_DEPENDENCIES = ../bfd/libbfd.la ../libiberty/libiberty.a $(LIBINTL_DEP)
 +
  EXPECT = expect
  RUNTEST = runtest
