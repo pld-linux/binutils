@@ -247,7 +247,11 @@ rm -f $RPM_BUILD_ROOT%{_infodir}/dir
 %find_lang gprof
 touch ld.lang
 %find_lang ld
+%ifarch %{ix86} %{x8664}
 %find_lang gold
+%else
+:> gold.lang
+%endif
 %find_lang opcodes
 cat bfd.lang opcodes.lang > %{name}-libs.lang
 cat gas.lang gprof.lang ld.lang gold.lang >> %{name}.lang
@@ -281,7 +285,9 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/gprof
 %attr(755,root,root) %{_bindir}/ld
 %attr(755,root,root) %{_bindir}/ld.bfd
+%ifarch %{ix86} %{x8664}
 %attr(755,root,root) %{_bindir}/ld.gold
+%endif
 %attr(755,root,root) %{_bindir}/nm
 %attr(755,root,root) %{_bindir}/objcopy
 %attr(755,root,root) %{_bindir}/objdump
