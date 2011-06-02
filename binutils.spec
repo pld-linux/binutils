@@ -4,6 +4,7 @@
 # define addtargets x,y,z	# build with additional targets x,y,z (e.g. x86_64-linux)
 				# http://sourceware.org/ml/binutils/2008-03/msg00162.html
 %bcond_without	pax		# without PaX flags (for upstream bugreports)
+%bcond_without	default_ld	# default ld instead of gold
 #
 Summary:	GNU Binary Utility Development Utilities
 Summary(de.UTF-8):	GNU Binary Utility Development Utilities
@@ -212,7 +213,7 @@ sparc32 \
 %endif
 	%{?with_allarchs:--enable-targets=alpha-linux,arm-linux,cris-linux,hppa-linux,i386-linux,ia64-linux,x86_64-linux,m68k-linux,mips-linux,mips64-linux,mips64el-linux,mipsel-linux,ppc-linux,s390-linux,s390x-linux,sh-linux,sparc-linux,sparc64-linux,i386-linuxaout} \
 %ifarch %{ix86} %{x8664}
-	--enable-gold=default --enable-ld \
+	--enable-gold%{!?with_default_ld:=default} --enable-ld%{?with_default_ld:=default} \
 %endif
 
 %{__make}
