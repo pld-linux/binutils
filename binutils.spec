@@ -34,6 +34,7 @@ Patch6:		%{name}-absolute-gnu_debuglink-path.patch
 Patch7:		%{name}-libtool-m.patch
 Patch8:		%{name}-build-id.patch
 Patch9:		%{name}-tooldir.patch
+Patch10:	%{name}-pr12163.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.64
 BuildRequires:	automake >= 1:1.11
@@ -154,6 +155,7 @@ niektórych pakietów.
 %patch7 -p1
 %patch8 -p0
 %patch9 -p1
+%patch10 -p1
 
 # file contains hacks for ac 2.59 only
 %{__rm} config/override.m4
