@@ -17,7 +17,7 @@ Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.21.51.0.9
-Release:	3
+Release:	4
 Epoch:		3
 License:	GPL v3+
 Group:		Development/Tools
@@ -35,6 +35,7 @@ Patch7:		%{name}-libtool-m.patch
 Patch8:		%{name}-build-id.patch
 Patch9:		%{name}-tooldir.patch
 Patch10:	%{name}-pr12163.patch
+Patch11:	%{name}-warn_ro_relocs.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.64
 BuildRequires:	automake >= 1:1.11
@@ -156,6 +157,7 @@ niektórych pakietów.
 %patch8 -p0
 %patch9 -p1
 %patch10 -p1
+%patch11 -p1
 
 # file contains hacks for ac 2.59 only
 %{__rm} config/override.m4
