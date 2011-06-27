@@ -17,7 +17,7 @@ Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.21.52.0.2
-Release:	2
+Release:	3
 Epoch:		3
 License:	GPL v3+
 Group:		Development/Tools
@@ -201,6 +201,7 @@ sparc32 \
 	--enable-build-warnings=,-Wno-missing-prototypes \
 	--enable-shared \
 	--enable-lto \
+	--enable-plugins \
 	--prefix=%{_prefix} \
 	--libdir=%{_libdir} \
 	--infodir=%{_infodir} \
@@ -331,6 +332,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/bfdlink.h
 %{_includedir}/dis-asm.h
 %{_includedir}/libiberty.h
+%{_includedir}/plugin-api.h
 %{_includedir}/symcat.h
 %{_infodir}/bfd.info*
 
