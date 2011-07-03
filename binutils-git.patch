@@ -1,0 +1,22 @@
+commit 561198ab2fa5a09661e1570d1d463d8079814432
+Author: Ian Lance Taylor <ian@airs.com>
+Date:   Sun Jul 3 04:16:13 2011 +0000
+
+    	* dirsearch.cc (Dir_cache::read_files): Ignore ENOTDIR errors.
+
+diff --git a/gold/dirsearch.cc b/gold/dirsearch.cc
+index a149db5..1ae2055 100644
+--- a/gold/dirsearch.cc
++++ b/gold/dirsearch.cc
+@@ -66,8 +66,9 @@ Dir_cache::read_files()
+   DIR* d = opendir(this->dirname_);
+   if (d == NULL)
+     {
+-      // We ignore directories which do not exist.
+-      if (errno != ENOENT)
++      // We ignore directories which do not exist or are actually file
++      // names.
++      if (errno != ENOENT && errno != ENOTDIR)
+ 	gold::gold_error(_("%s: can not read directory: %s"),
+ 			 this->dirname_, strerror(errno));
+       return;
