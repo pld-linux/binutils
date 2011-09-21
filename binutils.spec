@@ -121,7 +121,7 @@ Summary:	GNU binutils static libraries
 Summary(pl.UTF-8):	Biblioteki statyczne do GNU binutils
 Group:		Development/Libraries
 Requires:	%{name}-devel = %{epoch}:%{version}-%{release}
-Requires:	zlib-static
+#Requires:	zlib-static
 
 %description static
 Static GNU binutils libraries (libbfd, libopcodes).
