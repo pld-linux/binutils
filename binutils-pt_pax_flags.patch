@@ -22,10 +22,10 @@
    return pt;
 @@ -2346,6 +2347,9 @@
      case PT_GNU_RELRO:
-       return _bfd_elf_make_section_from_phdr (abfd, hdr, index, "relro");
+       return _bfd_elf_make_section_from_phdr (abfd, hdr, hdr_index, "relro");
  
 +    case PT_PAX_FLAGS:
-+      return _bfd_elf_make_section_from_phdr (abfd, hdr, index, "pax_flags");
++      return _bfd_elf_make_section_from_phdr (abfd, hdr, hdr_index, "pax_flags");
 +
      default:
        /* Check for any processor-specific program segment types.  */
