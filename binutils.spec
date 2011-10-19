@@ -4,7 +4,7 @@
 # define addtargets x,y,z	# build with additional targets x,y,z (e.g. x86_64-linux)
 				# http://sourceware.org/ml/binutils/2008-03/msg00162.html
 %bcond_without	pax		# without PaX flags (for upstream bugreports)
-%bcond_with	default_ld	# default ld instead of gold
+%bcond_without	default_ld	# default ld instead of gold
 #
 Summary:	GNU Binary Utility Development Utilities
 Summary(de.UTF-8):	GNU Binary Utility Development Utilities
@@ -17,7 +17,7 @@ Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.21.53.0.2
-Release:	1
+Release:	2
 Epoch:		3
 License:	GPL v3+
 Group:		Development/Tools
