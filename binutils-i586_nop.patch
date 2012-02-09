@@ -1,0 +1,33 @@
+diff -dur binutils-2.22.52.0.1.orig/bfd/cpu-i386.c binutils-2.22.52.0.1/bfd/cpu-i386.c
+--- binutils-2.22.52.0.1.orig/bfd/cpu-i386.c	2012-02-01 00:46:04.000000000 +0100
++++ binutils-2.22.52.0.1/bfd/cpu-i386.c	2012-02-09 10:14:16.627045230 +0100
+@@ -52,28 +52,7 @@
+   static const char nop_1[] = { 0x90 };	
+   /* nopw */
+   static const char nop_2[] = { 0x66, 0x90 };
+-  /* nopl (%[re]ax) */
+-  static const char nop_3[] = { 0x0f, 0x1f, 0x00 };
+-  /* nopl 0(%[re]ax) */
+-  static const char nop_4[] = { 0x0f, 0x1f, 0x40, 0x00 };
+-  /* nopl 0(%[re]ax,%[re]ax,1) */
+-  static const char nop_5[] = { 0x0f, 0x1f, 0x44, 0x00, 0x00 };
+-  /* nopw 0(%[re]ax,%[re]ax,1) */
+-  static const char nop_6[] = { 0x66, 0x0f, 0x1f, 0x44, 0x00, 0x00 };
+-  /* nopl 0L(%[re]ax) */
+-  static const char nop_7[] = { 0x0f, 0x1f, 0x80, 0x00, 0x00, 0x00, 0x00 };
+-  /* nopl 0L(%[re]ax,%[re]ax,1) */
+-  static const char nop_8[] =
+-    { 0x0f, 0x1f, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00};
+-  /* nopw 0L(%[re]ax,%[re]ax,1) */
+-  static const char nop_9[] =
+-    { 0x66, 0x0f, 0x1f, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00 };
+-  /* nopw %cs:0L(%[re]ax,%[re]ax,1) */
+-  static const char nop_10[] =
+-    { 0x66, 0x2e, 0x0f, 0x1f, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00 };
+-  static const char *const nops[] =
+-    { nop_1, nop_2, nop_3, nop_4, nop_5,
+-      nop_6, nop_7, nop_8, nop_9, nop_10 };
++  static const char *const nops[] = { nop_1, nop_2 };
+ 
+   void *fill = bfd_malloc (count);
+   if (fill == NULL)
