@@ -37,6 +37,7 @@ Patch7:		%{name}-libtool-m.patch
 Patch8:		%{name}-build-id.patch
 Patch9:		%{name}-tooldir.patch
 Patch10:	%{name}-i586_nop.patch
+Patch11:	%{name}-weakdef.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.64
 BuildRequires:	automake >= 1:1.11
@@ -161,6 +162,7 @@ niektórych pakietów.
 %ifarch i386 i486 i586
 %patch10 -p1
 %endif
+%patch11 -p1
 
 # file contains hacks for ac 2.59 only
 %{__rm} config/override.m4
