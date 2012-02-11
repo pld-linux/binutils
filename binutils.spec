@@ -5,6 +5,7 @@
 				# http://sourceware.org/ml/binutils/2008-03/msg00162.html
 %bcond_without	pax		# without PaX flags (for upstream bugreports)
 %bcond_without	default_ld	# default ld instead of gold
+%bcond_without	tests
 #
 Summary:	GNU Binary Utility Development Utilities
 Summary(de.UTF-8):	GNU Binary Utility Development Utilities
@@ -17,7 +18,7 @@ Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.22.52.0.1
-Release:	2
+Release:	3
 Epoch:		3
 License:	GPL v3+
 Group:		Development/Tools
@@ -36,7 +37,7 @@ Patch6:		%{name}-absolute-gnu_debuglink-path.patch
 Patch7:		%{name}-libtool-m.patch
 Patch8:		%{name}-build-id.patch
 Patch9:		%{name}-tooldir.patch
-Patch10:	%{name}-i586_nop.patch
+Patch10:	%{name}-bug-13675.patch
 Patch11:	%{name}-weakdef.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.64
@@ -159,9 +160,7 @@ niektórych pakietów.
 %patch7 -p1
 %patch8 -p0
 %patch9 -p1
-%ifarch i386 i486 i586
 %patch10 -p1
-%endif
 %patch11 -p1
 
 # file contains hacks for ac 2.59 only
@@ -228,6 +227,8 @@ sparc32 \
 %endif
 
 %{__make}
+
+%{?with_tests:%{__make} check}
 
 %install
 rm -rf $RPM_BUILD_ROOT
