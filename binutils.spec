@@ -17,15 +17,15 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.22.52.0.1
-Release:	3
+Version:	2.22.52.0.2
+Release:	1
 Epoch:		3
 License:	GPL v3+
 Group:		Development/Tools
 # http://git.kernel.org/?p=linux/kernel/git/hjl/binutils.git;a=summary
 # git archive --prefix=binutils-2.22.51.0.1/ -o binutils-2.22.51.0.1.tar remotes/origin/linux/release/2.22.51.0.1
 Source0:	http://www.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	21847df8f55f006d1a2f683d9479919b
+# Source0-md5:	8f121aacee182912a71a610f73aff5da
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -37,8 +37,6 @@ Patch6:		%{name}-absolute-gnu_debuglink-path.patch
 Patch7:		%{name}-libtool-m.patch
 Patch8:		%{name}-build-id.patch
 Patch9:		%{name}-tooldir.patch
-Patch10:	%{name}-bug-13675.patch
-Patch11:	%{name}-weakdef.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.64
 BuildRequires:	automake >= 1:1.11
@@ -160,8 +158,6 @@ niektórych pakietów.
 %patch7 -p1
 %patch8 -p0
 %patch9 -p1
-%patch10 -p1
-%patch11 -p1
 
 # file contains hacks for ac 2.59 only
 %{__rm} config/override.m4
