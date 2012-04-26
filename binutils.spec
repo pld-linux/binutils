@@ -44,6 +44,7 @@ BuildRequires:	bison
 BuildRequires:	flex
 BuildRequires:	gettext-devel
 BuildRequires:	libstdc++-devel >= 6:4.0-1
+%{?with_tests:BuildRequires:	libstdc++-static >= 6:4.0}
 BuildRequires:	perl-tools-pod
 %ifarch sparc sparc32
 BuildRequires:	sparc32
