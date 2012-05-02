@@ -1,0 +1,32 @@
+It seems that this:
+http://sourceware.org/bugzilla/show_bug.cgi?id=13621
+breaks i686 3.3.x kernel build
+
+--- binutils-2.22.52.0.2/bfd/linker.c~	2012-04-25 19:42:51.000000000 +0200
++++ binutils-2.22.52.0.2/bfd/linker.c	2012-05-02 18:37:51.247665432 +0200
+@@ -3198,10 +3198,12 @@
+ 	best = prev;
+     }
+ 
+-  /* Refuse to choose a section for which we are out of bounds.  */
+-  /* ??? This may make most of the above moot.  */
+-  if (addr < best->vma || addr > best->vma + best->size)
+-    best = bfd_abs_section_ptr;
++// This code causes kernel issues in i686
++// http://lists.pld-linux.org/mailman/pipermail/pld-devel-pl/2012-April/155404.html
++//  /* Refuse to choose a section for which we are out of bounds.  */
++//  /* ??? This may make most of the above moot.  */
++//  if (addr < best->vma || addr > best->vma + best->size)
++//    best = bfd_abs_section_ptr;
+ 
+   return best;
+ }
+--- binutils-2.22.52.0.2/ld/testsuite/ld-elf/warn2.d~	2012-04-25 19:42:51.000000000 +0200
++++ binutils-2.22.52.0.2/ld/testsuite/ld-elf/warn2.d	2012-05-02 19:43:00.852579191 +0200
+@@ -13,5 +13,5 @@
+ # construct and that the symbol still appears as expected.
+ 
+ #...
+- +[0-9]+: +[0-9a-f]+ +20 +OBJECT +GLOBAL +DEFAULT +ABS Foo
++ +[0-9]+: +[0-9a-f]+ +20 +OBJECT +GLOBAL +DEFAULT +[1-9] Foo
+ #pass
