@@ -18,7 +18,7 @@ Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.22.52.0.2
-Release:	2
+Release:	3
 Epoch:		3
 License:	GPL v3+
 Group:		Development/Tools
@@ -37,7 +37,7 @@ Patch6:		%{name}-absolute-gnu_debuglink-path.patch
 Patch7:		%{name}-libtool-m.patch
 Patch8:		%{name}-build-id.patch
 Patch9:		%{name}-tooldir.patch
-Patch10:	%{name}-fix-i686-kernel.patch
+Patch10:	pr14052.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.64
 BuildRequires:	automake >= 1:1.11

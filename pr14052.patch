@@ -1,0 +1,147 @@
+--- a/bfd/bfd-in.h	
++++ a/bfd/bfd-in.h	
+@@ -703,6 +703,9 @@ _bfd_nearby_section (bfd *, struct bfd_section *, bfd_vma);
+ extern void _bfd_fix_excluded_sec_syms
+   (bfd *, struct bfd_link_info *);
+ 
++extern void _bfd_keep_sections_with_sym
++  (bfd *, struct bfd_link_info *);
++
+ extern unsigned bfd_m68k_mach_to_features (int);
+ 
+ extern int bfd_m68k_features_to_mach (unsigned);
+--- a/bfd/bfd-in2.h	
++++ a/bfd/bfd-in2.h	
+@@ -710,6 +710,9 @@ _bfd_nearby_section (bfd *, struct bfd_section *, bfd_vma);
+ extern void _bfd_fix_excluded_sec_syms
+   (bfd *, struct bfd_link_info *);
+ 
++extern void _bfd_keep_sections_with_sym
++  (bfd *, struct bfd_link_info *);
++
+ extern unsigned bfd_m68k_mach_to_features (int);
+ 
+ extern int bfd_m68k_features_to_mach (unsigned);
+--- a/bfd/linker.c	
++++ a/bfd/linker.c	
+@@ -3198,11 +3198,6 @@ _bfd_nearby_section (bfd *obfd, asection *s, bfd_vma addr)
+ 	best = prev;
+     }
+ 
+-  /* Refuse to choose a section for which we are out of bounds.  */
+-  /* ??? This may make most of the above moot.  */
+-  if (addr < best->vma || addr > best->vma + best->size)
+-    best = bfd_abs_section_ptr;
+-
+   return best;
+ }
+ 
+@@ -3240,6 +3235,36 @@ _bfd_fix_excluded_sec_syms (bfd *obfd, struct bfd_link_info *info)
+   bfd_link_hash_traverse (info->hash, fix_syms, obfd);
+ }
+ 
++/* Keep sections with symbols.  */
++
++static bfd_boolean
++keep_sections_with_sym (struct bfd_link_hash_entry *h, void *data)
++{
++  bfd *obfd = (bfd *) data;
++
++  if (h->type == bfd_link_hash_defined
++      || h->type == bfd_link_hash_defweak)
++    {
++      asection *s = h->u.def.section;
++      if (s != NULL
++	  && (s->flags
++	      & (SEC_LINKER_CREATED | SEC_EXCLUDE | SEC_KEEP)) == 0
++	  && s->output_section != NULL
++	  && (s->output_section->flags
++	      & (SEC_LINKER_CREATED | SEC_EXCLUDE | SEC_KEEP)) == 0
++	  && !bfd_section_removed_from_list (obfd, s->output_section))
++	s->output_section->flags |= SEC_KEEP;
++    }
++
++  return TRUE;
++}
++
++void
++_bfd_keep_sections_with_sym (bfd *obfd, struct bfd_link_info *info)
++{
++  bfd_link_hash_traverse (info->hash, keep_sections_with_sym, obfd);
++}
++
+ /*
+ FUNCTION
+ 	bfd_generic_define_common_symbol
+--- a/ld/ldlang.c	
++++ a/ld/ldlang.c	
+@@ -3858,6 +3858,9 @@ strip_excluded_output_sections (void)
+       lang_reset_memory_regions ();
+     }
+ 
++  if (!link_info.relocatable)
++    _bfd_keep_sections_with_sym (link_info.output_bfd, &link_info);
++
+   for (os = &lang_output_section_statement.head->output_section_statement;
+        os != NULL;
+        os = os->next)
+--- a/ld/testsuite/ld-elf/pr14052.d	
++++ a/ld/testsuite/ld-elf/pr14052.d	
+@@ -0,0 +1,8 @@ 
++#source: start.s
++#ld: -T pr14052.t
++#readelf: -s
++
++#failif
++#...
++ +[0-9]+: +[0-9a-f]+ +0 +(OBJECT|NOTYPE) +GLOBAL +DEFAULT +ABS _data_start
++#...
+--- a/ld/testsuite/ld-elf/pr14052.t	
++++ a/ld/testsuite/ld-elf/pr14052.t	
+@@ -0,0 +1,11 @@ 
++SECTIONS {
++	.text : {
++		*(.text)
++	}
++	. = ALIGN (0x1000);
++	.data : {
++		_data_start = .;
++		*(.data)
++	}
++	/DISCARD/ : { *(.*) }
++}
+--- a/ld/testsuite/ld-elf/warn2.d	
++++ a/ld/testsuite/ld-elf/warn2.d	
+@@ -13,5 +13,5 @@ 
+ # construct and that the symbol still appears as expected.
+ 
+ #...
+- +[0-9]+: +[0-9a-f]+ +20 +OBJECT +GLOBAL +DEFAULT +ABS Foo
++ +[0-9]+: +[0-9a-f]+ +20 +OBJECT +GLOBAL +DEFAULT +[1-9] Foo
+ #pass
+--- a/ld/testsuite/ld-elf/zerosize1.d	
++++ a/ld/testsuite/ld-elf/zerosize1.d	
+@@ -1,10 +1,12 @@ 
+ #source: start.s
+ #source: zerosize1.s
+-#ld:
+-#readelf: -s
++#ld: -T zerosize1.t
++#readelf: -sS --wide
+ 
+ # Check that xyzzy is not placed in the .text section.
+ 
+ #...
+- +[0-9]+: +[0-9a-f]+ +0 +(OBJECT|NOTYPE) +GLOBAL +DEFAULT +ABS xyzzy
++  \[[ 2]+\] zerosize[ \t]+PROGBITS[ \t0-9a-f]+WA.*
++#...
++ +[0-9]+: +[0-9a-f]+ +0 +(OBJECT|NOTYPE) +GLOBAL +DEFAULT +2 xyzzy
+ #pass
+--- a/ld/testsuite/ld-elf/zerosize1.t	
++++ a/ld/testsuite/ld-elf/zerosize1.t	
+@@ -0,0 +1,5 @@ 
++SECTIONS {
++	.text : { *(.text) }
++	.zerosize : { *(.zerosize) }
++	/DISCARD/ : { *(.*) }
++}
