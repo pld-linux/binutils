@@ -18,7 +18,7 @@ Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.22.52.0.2
-Release:	3
+Release:	4
 Epoch:		3
 License:	GPL v3+
 Group:		Development/Tools
@@ -225,9 +225,9 @@ sparc32 \
 	--enable-gold%{!?with_default_ld:=default} --enable-ld%{?with_default_ld:=default} \
 %endif
 
-%{__make}
+%{__make} -j1
 
-%{?with_tests:%{__make} check}
+%{?with_tests:%{__make} -j1 check}
 
 %install
 rm -rf $RPM_BUILD_ROOT
