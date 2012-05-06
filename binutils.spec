@@ -51,6 +51,7 @@ BuildRequires:	perl-tools-pod
 BuildRequires:	sparc32
 %endif
 BuildRequires:	texinfo >= 4.2
+BuildRequires:	zlib-devel
 Conflicts:	gcc-c++ < 5:3.3
 Conflicts:	modutils < 2.4.17
 Obsoletes:	binutils-gold
@@ -209,6 +210,7 @@ sparc32 \
 	--enable-shared \
 	--enable-lto \
 	--enable-plugins \
+	--with-zlib=yes \
 	--prefix=%{_prefix} \
 	--libdir=%{_libdir} \
 	--infodir=%{_infodir} \
