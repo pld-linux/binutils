@@ -51,6 +51,7 @@ BuildRequires:	sparc32
 %endif
 BuildRequires:	texinfo >= 4.2
 BuildRequires:	zlib-devel
+%{?with_tests:BuildRequires:	zlib-static}
 Conflicts:	gcc-c++ < 5:3.3
 Conflicts:	modutils < 2.4.17
 Obsoletes:	binutils-gold
