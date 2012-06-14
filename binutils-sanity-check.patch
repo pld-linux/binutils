@@ -12,3 +12,11 @@
  #ifdef __cplusplus
  extern "C" {
  #endif
+@@ -39,6 +39,7 @@
+ #include "ansidecl.h"
+ #include "symcat.h"
+ #include <sys/stat.h>
++#include <stddef.h>
+ 
+ #if defined (__STDC__) || defined (ALMOST_STDC) || defined (HAVE_STRINGIZE)
+ #ifndef SABER
