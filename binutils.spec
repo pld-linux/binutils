@@ -4,9 +4,14 @@
 # define addtargets x,y,z	# build with additional targets x,y,z (e.g. x86_64-linux)
 				# http://sourceware.org/ml/binutils/2008-03/msg00162.html
 %bcond_without	pax		# without PaX flags (for upstream bugreports)
+%bcond_without	gold		# don't build gold (no C++ dependencies)
 %bcond_without	default_ld	# default ld instead of gold
 %bcond_without	tests
-#
+
+%ifnarch %{ix86} %{x8664}
+%undefine	with_gold
+%endif
+
 Summary:	GNU Binary Utility Development Utilities
 Summary(de.UTF-8):	GNU Binary Utility Development Utilities
 Summary(es.UTF-8):	Utilitarios para desarrollo de binarios de la GNU
@@ -44,7 +49,7 @@ BuildRequires:	automake >= 1:1.11
 BuildRequires:	bison
 BuildRequires:	flex
 BuildRequires:	gettext-devel
-BuildRequires:	libstdc++-devel >= 6:4.0-1
+%{?with_gold:BuildRequires:	libstdc++-devel >= 6:4.0-1}
 %{?with_tests:BuildRequires:	libstdc++-static >= 6:4.0}
 BuildRequires:	perl-tools-pod
 %ifarch sparc sparc32
@@ -224,7 +229,7 @@ sparc32 \
 	%{?with_allarchs:--enable-64-bit-bfd} \
 %endif
 	%{?with_allarchs:--enable-targets=alpha-linux,arm-linux,cris-linux,hppa-linux,i386-linux,ia64-linux,x86_64-linux,m68k-linux,mips-linux,mips64-linux,mips64el-linux,mipsel-linux,ppc-linux,s390-linux,s390x-linux,sh-linux,sparc-linux,sparc64-linux,i386-linuxaout} \
-%ifarch %{ix86} %{x8664}
+%if %{with gold}
 	--enable-gold%{!?with_default_ld:=default} --enable-ld%{?with_default_ld:=default} \
 %endif
 
@@ -246,8 +251,8 @@ rm -rf $RPM_BUILD_ROOT
 
 bzip2 -dc %{SOURCE1} | tar xf - -C $RPM_BUILD_ROOT%{_mandir}
 
-install include/libiberty.h $RPM_BUILD_ROOT%{_includedir}
-install libiberty/pic/libiberty.a $RPM_BUILD_ROOT%{_libdir}
+cp -p include/libiberty.h $RPM_BUILD_ROOT%{_includedir}
+cp -p libiberty/pic/libiberty.a $RPM_BUILD_ROOT%{_libdir}
 
 # remove evil -L pointing inside builder's home
 perl -pi -e 's@-L[^ ]*/pic @@g' $RPM_BUILD_ROOT%{_libdir}/libbfd.la
@@ -260,12 +265,10 @@ rm -f $RPM_BUILD_ROOT%{_infodir}/dir
 %find_lang binutils
 %find_lang gas
 %find_lang gprof
-touch ld.lang
+touch ld.lang gold.lang
 %find_lang ld
-%ifarch %{ix86} %{x8664}
+%if %{with gold}
 %find_lang gold
-%else
-:> gold.lang
 %endif
 %find_lang opcodes
 cat bfd.lang opcodes.lang > %{name}-libs.lang
@@ -292,6 +295,7 @@ rm -rf $RPM_BUILD_ROOT
 %files -f %{name}.lang
 %defattr(644,root,root,755)
 %doc README
+%{?with_gold:%doc gold/{ChangeLog,README,TODO}}
 %attr(755,root,root) %{_bindir}/addr2line
 %attr(755,root,root) %{_bindir}/ar
 %attr(755,root,root) %{_bindir}/as
@@ -300,7 +304,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/gprof
 %attr(755,root,root) %{_bindir}/ld
 %attr(755,root,root) %{_bindir}/ld.bfd
-%ifarch %{ix86} %{x8664}
+%if %{with gold}
 %attr(755,root,root) %{_bindir}/ld.gold
 %endif
 %attr(755,root,root) %{_bindir}/nm
