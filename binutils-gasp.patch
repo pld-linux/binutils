@@ -35,7 +35,7 @@
  	$(COMPILE) -c $< $(NO_WERROR)
  
 +gasp.o:gasp.c $(INCDIR)/getopt.h $(INCDIR)/safe-ctype.h \
-+	sb.h macro.h $(INCDIR)/xregex.h $(INCDIR)/xregex2.h
++	as.h sb.h macro.h $(INCDIR)/xregex.h $(INCDIR)/xregex2.h
 +
  # Disable -Werror, if it has been enabled, since old versions of bison/
  # yacc will produce working code which contain compile time warnings.
@@ -1512,7 +1512,7 @@
 +@bye
 --- binutils-2.17.50.0.2/gas/gasp.c.orig	1970-01-01 01:00:00.000000000 +0100
 +++ binutils-2.17.50.0.2/gas/gasp.c	2006-06-07 11:22:13.774440000 +0200
-@@ -0,0 +1,3999 @@
+@@ -0,0 +1,4011 @@
 +/* gasp.c - Gnu assembler preprocessor main program.
 +   Copyright 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002
 +   Free Software Foundation, Inc.
@@ -1576,6 +1576,7 @@
 +extern char *malloc ();
 +#endif
 +
++#include "as.h"
 +#include "ansidecl.h"
 +#include "libiberty.h"
 +#include "safe-ctype.h"
@@ -1744,18 +1745,18 @@
 +static void hash_add_to_int_table PARAMS ((hash_table *, sb *, int));
 +static hash_entry *hash_lookup PARAMS ((hash_table *, sb *));
 +static void checkconst PARAMS ((int, exp_t *));
-+static int is_flonum PARAMS ((int, sb *));
-+static int chew_flonum PARAMS ((int, sb *, sb *));
-+static int sb_strtol PARAMS ((int, sb *, int, int *));
-+static int level_0 PARAMS ((int, sb *, exp_t *));
-+static int level_1 PARAMS ((int, sb *, exp_t *));
-+static int level_2 PARAMS ((int, sb *, exp_t *));
-+static int level_3 PARAMS ((int, sb *, exp_t *));
-+static int level_4 PARAMS ((int, sb *, exp_t *));
-+static int level_5 PARAMS ((int, sb *, exp_t *));
-+static int exp_parse PARAMS ((int, sb *, exp_t *));
++static int is_flonum PARAMS ((size_t, sb *));
++static int chew_flonum PARAMS ((size_t, sb *, sb *));
++static int sb_strtol PARAMS ((size_t, sb *, int, int *));
++static int level_0 PARAMS ((size_t, sb *, exp_t *));
++static int level_1 PARAMS ((size_t, sb *, exp_t *));
++static int level_2 PARAMS ((size_t, sb *, exp_t *));
++static int level_3 PARAMS ((size_t, sb *, exp_t *));
++static int level_4 PARAMS ((size_t, sb *, exp_t *));
++static int level_5 PARAMS ((size_t, sb *, exp_t *));
++static int exp_parse PARAMS ((size_t, sb *, exp_t *));
 +static void exp_string PARAMS ((exp_t *, sb *));
-+static int exp_get_abs PARAMS ((const char *, int, sb *, int *));
++static size_t exp_get_abs PARAMS ((const char *, size_t, sb *, offsetT *));
 +#if 0
 +static void strip_comments PARAMS ((sb *));
 +#endif
@@ -1763,67 +1764,67 @@
 +static void include_buf PARAMS ((sb *, sb *, include_type, int));
 +static void include_print_where_line PARAMS ((FILE *));
 +static void include_print_line PARAMS ((FILE *));
-+static int get_line PARAMS ((sb *));
++static size_t get_line PARAMS ((sb *));
 +static int grab_label PARAMS ((sb *, sb *));
-+static void change_base PARAMS ((int, sb *, sb *));
++static void change_base PARAMS ((size_t, sb *, sb *));
 +static void do_end PARAMS ((sb *));
-+static void do_assign PARAMS ((int, int, sb *));
++static void do_assign PARAMS ((int, size_t, sb *));
 +static void do_radix PARAMS ((sb *));
-+static int get_opsize PARAMS ((int, sb *, int *));
-+static int eol PARAMS ((int, sb *));
-+static void do_data PARAMS ((int, sb *, int));
-+static void do_datab PARAMS ((int, sb *));
-+static void do_align PARAMS ((int, sb *));
-+static void do_res PARAMS ((int, sb *, int));
++static int get_opsize PARAMS ((size_t, sb *, int *));
++static int eol PARAMS ((size_t, sb *));
++static void do_data PARAMS ((size_t, sb *, int));
++static void do_datab PARAMS ((size_t, sb *));
++static void do_align PARAMS ((size_t, sb *));
++static void do_res PARAMS ((size_t, sb *, int));
 +static void do_export PARAMS ((sb *));
-+static void do_print PARAMS ((int, sb *));
-+static void do_heading PARAMS ((int, sb *));
++static void do_print PARAMS ((size_t, sb *));
++static void do_heading PARAMS ((size_t, sb *));
 +static void do_page PARAMS ((void));
-+static void do_form PARAMS ((int, sb *));
-+static int get_any_string PARAMS ((int, sb *, sb *, int, int));
-+static int skip_openp PARAMS ((int, sb *));
-+static int skip_closep PARAMS ((int, sb *));
-+static int dolen PARAMS ((int, sb *, sb *));
-+static int doinstr PARAMS ((int, sb *, sb *));
-+static int dosubstr PARAMS ((int, sb *, sb *));
-+static void process_assigns PARAMS ((int, sb *, sb *));
-+static int get_and_process PARAMS ((int, sb *, sb *));
++static void do_form PARAMS ((size_t, sb *));
++static int get_any_string PARAMS ((size_t, sb *, sb *, int, int));
++static int skip_openp PARAMS ((size_t, sb *));
++static int skip_closep PARAMS ((size_t, sb *));
++static int dolen PARAMS ((size_t, sb *, sb *));
++static int doinstr PARAMS ((size_t, sb *, sb *));
++static int dosubstr PARAMS ((size_t, sb *, sb *));
++static void process_assigns PARAMS ((size_t, sb *, sb *));
++static int get_and_process PARAMS ((size_t, sb *, sb *));
 +static void process_file PARAMS ((void));
 +static void free_old_entry PARAMS ((hash_entry *));
-+static void do_assigna PARAMS ((int, sb *));
-+static void do_assignc PARAMS ((int, sb *));
-+static void do_reg PARAMS ((int, sb *));
-+static int condass_lookup_name PARAMS ((sb *, int, sb *, int));
-+static int whatcond PARAMS ((int, sb *, int *));
-+static int istrue PARAMS ((int, sb *));
-+static void do_aif PARAMS ((int, sb *));
++static void do_assigna PARAMS ((size_t, sb *));
++static void do_assignc PARAMS ((size_t, sb *));
++static void do_reg PARAMS ((size_t, sb *));
++static int condass_lookup_name PARAMS ((sb *, size_t, sb *, int));
++static int whatcond PARAMS ((size_t, sb *, int *));
++static int istrue PARAMS ((size_t, sb *));
++static void do_aif PARAMS ((size_t, sb *));
 +static void do_aelse PARAMS ((void));
 +static void do_aendi PARAMS ((void));
 +static int condass_on PARAMS ((void));
-+static void do_if PARAMS ((int, sb *, int));
-+static int get_mri_string PARAMS ((int, sb *, sb *, int));
-+static void do_ifc PARAMS ((int, sb *, int));
++static void do_if PARAMS ((size_t, sb *, int));
++static int get_mri_string PARAMS ((size_t, sb *, sb *, int));
++static void do_ifc PARAMS ((size_t, sb *, int));
 +static void do_aendr PARAMS ((void));
-+static void do_awhile PARAMS ((int, sb *));
++static void do_awhile PARAMS ((size_t, sb *));
 +static void do_aendw PARAMS ((void));
 +static void do_exitm PARAMS ((void));
-+static void do_arepeat PARAMS ((int, sb *));
++static void do_arepeat PARAMS ((size_t, sb *));
 +static void do_endm PARAMS ((void));
-+static void do_irp PARAMS ((int, sb *, int));
-+static void do_local PARAMS ((int, sb *));
-+static void do_macro PARAMS ((int, sb *));
-+static int macro_op PARAMS ((int, sb *));
-+static int getstring PARAMS ((int, sb *, sb *));
-+static void do_sdata PARAMS ((int, sb *, int));
-+static void do_sdatab PARAMS ((int, sb *));
++static void do_irp PARAMS ((size_t, sb *, int));
++static void do_local PARAMS ((size_t, sb *));
++static void do_macro PARAMS ((size_t, sb *));
++static int macro_op PARAMS ((size_t, sb *));
++static int getstring PARAMS ((size_t, sb *, sb *));
++static void do_sdata PARAMS ((size_t, sb *, int));
++static void do_sdatab PARAMS ((size_t, sb *));
 +static int new_file PARAMS ((const char *));
-+static void do_include PARAMS ((int, sb *));
++static void do_include PARAMS ((size_t, sb *));
 +static void include_pop PARAMS ((void));
 +static int get PARAMS ((void));
 +static int linecount PARAMS ((void));
 +static int include_next_index PARAMS ((void));
 +static void chartype_init PARAMS ((void));
-+static int process_pseudo_op PARAMS ((int, sb *, sb *));
++static int process_pseudo_op PARAMS ((size_t, sb *, sb *));
 +static void add_keyword PARAMS ((const char *, int));
 +static void process_init PARAMS ((void));
 +static void do_define PARAMS ((const char *));
@@ -1846,18 +1847,18 @@
 +/* print the sb at ptr to the output file */
 +
 +static void
-+sb_print (FILE *outfile, sb *ptr)
++sb_print (FILE *outfileP, sb *ptr)
 +{
-+  int i;
++  size_t i;
 +  int nc = 0;
 +
 +  for (i = 0; i < ptr->len; i++)
 +    {
 +      if (nc)
 +	{
-+	  fprintf (outfile, ",");
++	  fprintf (outfileP, ",");
 +	}
-+      fprintf (outfile, "%d", ptr->ptr[i]);
++      fprintf (outfileP, "%d", ptr->ptr[i]);
 +      nc = 1;
 +    }
 +}
@@ -1865,11 +1866,11 @@
 +/* print the sb at ptr to the output file */
 +
 +static void
-+sb_print_at (FILE *outfile, int idx, sb *ptr)
++sb_print_at (FILE *outfileP, size_t idx, sb *ptr)
 +{
-+  int i;
++  size_t i;
 +  for (i = idx; i < ptr->len; i++)
-+    putc (ptr->ptr[i], outfile);
++    putc (ptr->ptr[i], outfileP);
 +}
 +
 +#define FATAL(x)				\
@@ -1939,7 +1940,7 @@
 +     sb *key;
 +{
 +  int k = 0x1234;
-+  int i;
++  size_t i;
 +  char *p = key->ptr;
 +  for (i = 0; i < key->len; i++)
 +    {
@@ -2079,7 +2080,7 @@
 +
 +static int
 +chew_flonum (idx, string, out)
-+     int idx;
++     size_t idx;
 +     sb *string;
 +     sb *out;
 +{
@@ -2109,7 +2110,7 @@
 +
 +static int
 +is_flonum (idx, string)
-+     int idx;
++     size_t idx;
 +     sb *string;
 +{
 +  sb buf;
@@ -2135,7 +2136,7 @@
 +
 +static int
 +sb_strtol (idx, string, base, ptr)
-+     int idx;
++     size_t idx;
 +     sb *string;
 +     int base;
 +     int *ptr;
@@ -2168,7 +2169,7 @@
 +
 +static int
 +level_0 (idx, string, lhs)
-+     int idx;
++     size_t idx;
 +     sb *string;
 +     exp_t *lhs;
 +{
@@ -2215,7 +2216,7 @@
 +
 +static int
 +level_1 (idx, string, lhs)
-+     int idx;
++     size_t idx;
 +     sb *string;
 +     exp_t *lhs;
 +{
@@ -2258,7 +2259,7 @@
 +
 +static int
 +level_2 (idx, string, lhs)
-+     int idx;
++     size_t idx;
 +     sb *string;
 +     exp_t *lhs;
 +{
@@ -2293,7 +2294,7 @@
 +
 +static int
 +level_3 (idx, string, lhs)
-+     int idx;
++     size_t idx;
 +     sb *string;
 +     exp_t *lhs;
 +{
@@ -2332,7 +2333,7 @@
 +
 +static int
 +level_4 (idx, string, lhs)
-+     int idx;
++     size_t idx;
 +     sb *string;
 +     exp_t *lhs;
 +{
@@ -2359,7 +2360,7 @@
 +
 +static int
 +level_5 (idx, string, lhs)
-+     int idx;
++     size_t idx;
 +     sb *string;
 +     exp_t *lhs;
 +{
@@ -2395,7 +2396,7 @@
 +
 +static int
 +exp_parse (idx, string, res)
-+     int idx;
++     size_t idx;
 +     sb *string;
 +     exp_t *res;
 +{
@@ -2446,12 +2447,12 @@
 +   val.  If the expression is not constant, give ERROR emsg.  Return
 +   the index of the first character past the end of the expression.  */
 +
-+static int
++static size_t
 +exp_get_abs (emsg, idx, in, val)
 +     const char *emsg;
-+     int idx;
++     size_t idx;
 +     sb *in;
-+     int *val;
++     offsetT *val;
 +{
 +  exp_t res;
 +  idx = exp_parse (idx, in, &res);
@@ -2513,11 +2514,11 @@
 +   and index.  */
 +
 +static void
-+include_buf (name, ptr, type, index)
++include_buf (name, ptr, type, indx)
 +     sb *name;
 +     sb *ptr;
 +     include_type type;
-+     int index;
++     int indx;
 +{
 +  sp++;
 +  if (sp - include_stack >= MAX_INCLUDES)
@@ -2528,7 +2529,7 @@
 +  sp->linecount = 1;
 +  sp->pushback_index = 0;
 +  sp->type = type;
-+  sp->index = index;
++  sp->index = indx;
 +  sb_new (&sp->pushback);
 +  sb_add_sb (&sp->pushback, ptr);
 +}
@@ -2574,7 +2575,7 @@
 +
 +/* Read a line from the top of the include stack into sb in.  */
 +
-+static int
++static size_t
 +get_line (in)
 +     sb *in;
 +{
@@ -2652,7 +2653,7 @@
 +     sb *in;
 +     sb *out;
 +{
-+  int i = 0;
++  size_t i = 0;
 +  sb_reset (out);
 +  if (ISFIRSTCHAR (in->ptr[i]) || in->ptr[i] == '\\')
 +    {
@@ -2675,7 +2676,7 @@
 +
 +static void
 +change_base (idx, in, out)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +     sb *out;
 +{
@@ -2798,7 +2799,7 @@
 +static void
 +do_assign (again, idx, in)
 +     int again;
-+     int idx;
++     size_t idx;
 +     sb *in;
 +{
 +  /* Stick label in symbol table with following value.  */
@@ -2818,7 +2819,7 @@
 +do_radix (ptr)
 +     sb *ptr;
 +{
-+  int idx = sb_skip_white (0, ptr);
++  size_t idx = sb_skip_white (0, ptr);
 +  switch (ptr->ptr[idx])
 +    {
 +    case 'B':
@@ -2846,7 +2847,7 @@
 +
 +static int
 +get_opsize (idx, in, size)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +     int *size;
 +{
@@ -2883,7 +2884,7 @@
 +
 +static int
 +eol (idx, line)
-+     int idx;
++     size_t idx;
 +     sb *line;
 +{
 +  idx = sb_skip_white (idx, line);
@@ -2900,7 +2901,7 @@
 +
 +static void
 +do_data (idx, in, size)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +     int size;
 +{
@@ -2938,7 +2939,7 @@
 +      && idx < in->len
 +      && in->ptr[idx] == '"')
 +    {
-+      int i;
++      size_t i;
 +      idx = getstring (idx, in, &acc);
 +      for (i = 0; i < acc.len; i++)
 +	{
@@ -2972,12 +2973,12 @@
 +
 +static void
 +do_datab (idx, in)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +{
 +  int opsize;
-+  int repeat;
-+  int fill;
++  offsetT repeat;
++  offsetT fill;
 +
 +  idx = get_opsize (idx, in, &opsize);
 +
@@ -2985,17 +2986,17 @@
 +  idx = sb_skip_comma (idx, in);
 +  idx = exp_get_abs (_("datab data must be absolute.\n"), idx, in, &fill);
 +
-+  fprintf (outfile, ".fill\t%d,%d,%d\n", repeat, opsize, fill);
++  fprintf (outfile, ".fill\t%ld,%d,%ld\n", repeat, opsize, fill);
 +}
 +
 +/* .align <size>  */
 +
 +static void
 +do_align (idx, in)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +{
-+  int al, have_fill, fill;
++  int have_fill; offsetT al, fill;
 +
 +  idx = exp_get_abs (_("align needs absolute expression.\n"), idx, in, &al);
 +  idx = sb_skip_white (idx, in);
@@ -3009,9 +3010,9 @@
 +      have_fill = 1;
 +    }
 +
-+  fprintf (outfile, ".align	%d", al);
++  fprintf (outfile, ".align	%ld", al);
 +  if (have_fill)
-+    fprintf (outfile, ",%d", fill);
++    fprintf (outfile, ",%ld", fill);
 +  fprintf (outfile, "\n");
 +}
 +
@@ -3019,12 +3020,12 @@
 +
 +static void
 +do_res (idx, in, type)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +     int type;
 +{
 +  int size = 4;
-+  int count = 0;
++  offsetT count = 0;
 +
 +  idx = get_opsize (idx, in, &size);
 +  while (!eol (idx, in))
@@ -3037,7 +3038,7 @@
 +      if (type == 'c' || type == 'z')
 +	count++;
 +
-+      fprintf (outfile, ".space	%d\n", count * size);
++      fprintf (outfile, ".space	%ld\n", count * size);
 +    }
 +}
 +
@@ -3054,7 +3055,7 @@
 +
 +static void
 +do_print (idx, in)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +{
 +  idx = sb_skip_white (idx, in);
@@ -3078,7 +3079,7 @@
 +
 +static void
 +do_heading (idx, in)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +{
 +  sb head;
@@ -3100,11 +3101,11 @@
 +
 +static void
 +do_form (idx, in)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +{
-+  int lines = 60;
-+  int columns = 132;
++  offsetT lines = 60;
++  offsetT columns = 132;
 +  idx = sb_skip_white (idx, in);
 +
 +  while (idx < in->len)
@@ -3124,7 +3125,7 @@
 +
 +      idx++;
 +    }
-+  fprintf (outfile, ".psize %d,%d\n", lines, columns);
++  fprintf (outfile, ".psize %ld,%ld\n", lines, columns);
 +
 +}
 +
@@ -3138,7 +3139,7 @@
 +
 +static int
 +get_any_string (idx, in, out, expand, pretend_quoted)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +     sb *out;
 +     int expand;
@@ -3158,7 +3159,7 @@
 +	       && alternate
 +	       && expand)
 +	{
-+	  int val;
++	  offsetT val;
 +	  char buf[20];
 +	  /* Turns the next expression into a string.  */
 +	  /* xgettext: no-c-format */
@@ -3166,7 +3167,7 @@
 +			     idx + 1,
 +			     in,
 +			     &val);
-+	  sprintf (buf, "%d", val);
++	  sprintf (buf, "%ld", val);
 +	  sb_add_string (out, buf);
 +	}
 +      else if (in->ptr[idx] == '"'
@@ -3219,7 +3220,7 @@
 +
 +static int
 +skip_openp (idx, in)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +{
 +  idx = sb_skip_white (idx, in);
@@ -3234,7 +3235,7 @@
 +
 +static int
 +skip_closep (idx, in)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +{
 +  idx = sb_skip_white (idx, in);
@@ -3248,7 +3249,7 @@
 +
 +static int
 +dolen (idx, in, out)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +     sb *out;
 +{
@@ -3271,14 +3272,14 @@
 +
 +static int
 +doinstr (idx, in, out)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +     sb *out;
 +{
 +  sb string;
 +  sb search;
-+  int i;
-+  int start;
++  size_t i;
++  offsetT start;
 +  int res;
 +  char buffer[10];
 +
@@ -3316,13 +3317,13 @@
 +
 +static int
 +dosubstr (idx, in, out)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +     sb *out;
 +{
 +  sb string;
-+  int pos;
-+  int len;
++  offsetT pos;
++  offsetT len;
 +  sb_new (&string);
 +
 +  idx = skip_openp (idx, in);
@@ -3357,7 +3358,7 @@
 +
 +static void
 +process_assigns (idx, in, buf)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +     sb *buf;
 +{
@@ -3414,7 +3415,7 @@
 +	{
 +	  /* May be a simple name subsitution, see if we have a word.  */
 +	  sb acc;
-+	  int cur = idx + 1;
++	  size_t cur = idx + 1;
 +	  while (cur < in->len
 +		 && (ISNEXTCHAR (in->ptr[cur])))
 +	    cur++;
@@ -3444,7 +3445,7 @@
 +
 +static int
 +get_and_process (idx, in, out)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +     sb *out;
 +{
@@ -3475,7 +3476,7 @@
 +  while (more)
 +    {
 +      /* Find any label and pseudo op that we're intested in.  */
-+      int l;
++      size_t l;
 +      if (line.len == 0)
 +	{
 +	  if (condass_on ())
@@ -3507,7 +3508,7 @@
 +	      if (l < line.len
 +		  && (line.ptr[l] == '.' || alternate || mri))
 +		{
-+		  int lx = l;
++		  size_t lx = l;
 +
 +		  if (line.ptr[lx] == '.')
 +		    ++lx;
@@ -3594,11 +3595,11 @@
 +
 +static void
 +do_assigna (idx, in)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +{
 +  sb tmp;
-+  int val;
++  offsetT val;
 +  sb_new (&tmp);
 +
 +  process_assigns (idx, in, &tmp);
@@ -3622,7 +3623,7 @@
 +
 +static void
 +do_assignc (idx, in)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +{
 +  sb acc;
@@ -3648,7 +3649,7 @@
 +
 +static void
 +do_reg (idx, in)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +{
 +  /* Remove reg stuff from inside parens.  */
@@ -3673,7 +3674,7 @@
 +static int
 +condass_lookup_name (inbuf, idx, out, warn)
 +     sb *inbuf;
-+     int idx;
++     size_t idx;
 +     sb *out;
 +     int warn;
 +{
@@ -3729,7 +3730,7 @@
 +
 +static int
 +whatcond (idx, in, val)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +     int *val;
 +{
@@ -3770,7 +3771,7 @@
 +
 +static int
 +istrue (idx, in)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +{
 +  int res;
@@ -3784,31 +3785,31 @@
 +
 +  if (in->ptr[idx] == '"')
 +    {
-+      int cond;
++      int cond2;
 +      int same;
 +      /* This is a string comparision.  */
 +      idx = getstring (idx, in, &acc_a);
-+      idx = whatcond (idx, in, &cond);
++      idx = whatcond (idx, in, &cond2);
 +      idx = getstring (idx, in, &acc_b);
 +      same = acc_a.len == acc_b.len
 +	&& (strncmp (acc_a.ptr, acc_b.ptr, acc_a.len) == 0);
 +
-+      if (cond != EQ && cond != NE)
++      if (cond2 != EQ && cond2 != NE)
 +	{
 +	  ERROR ((stderr, _("Comparison operator for strings must be EQ or NE\n")));
 +	  res = 0;
 +	}
 +      else
-+	res = (cond != EQ) ^ same;
++	res = (cond2 != EQ) ^ same;
 +    }
 +  else
 +    /* This is a numeric expression.  */
 +    {
-+      int vala;
-+      int valb;
-+      int cond;
++      offsetT vala;
++      offsetT valb;
++      int cond2;
 +      idx = exp_get_abs (_("Conditional operator must have absolute operands.\n"), idx, in, &vala);
-+      idx = whatcond (idx, in, &cond);
++      idx = whatcond (idx, in, &cond2);
 +      idx = sb_skip_white (idx, in);
 +      if (in->ptr[idx] == '"')
 +	{
@@ -3818,7 +3819,7 @@
 +      else
 +	{
 +	  idx = exp_get_abs (_("Conditional operator must have absolute operands.\n"), idx, in, &valb);
-+	  switch (cond)
++	  switch (cond2)
 +	    {
 +	    default:
 +	      res = 42;
@@ -3858,7 +3859,7 @@
 +
 +static void
 +do_aif (idx, in)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +{
 +  if (ifi >= IFNESTING)
@@ -3908,11 +3909,11 @@
 +
 +static void
 +do_if (idx, in, cond)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +     int cond;
 +{
-+  int val;
++  offsetT val;
 +  int res;
 +
 +  if (ifi >= IFNESTING)
@@ -3942,7 +3943,7 @@
 +
 +static int
 +get_mri_string (idx, in, val, terminator)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +     sb *val;
 +     int terminator;
@@ -3989,7 +3990,7 @@
 +
 +static void
 +do_ifc (idx, in, ifnc)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +     int ifnc;
 +{
@@ -4039,7 +4040,7 @@
 +
 +static void
 +do_awhile (idx, in)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +{
 +  int line = linecount ();
@@ -4069,7 +4070,7 @@
 +
 +  if (doit)
 +    {
-+      int index = include_next_index ();
++      int indx = include_next_index ();
 +
 +      sb copy;
 +      sb_new (&copy);
@@ -4079,7 +4080,7 @@
 +      sb_add_sb (&copy, &sub);
 +      sb_add_string (&copy, "\t.AENDW\n");
 +      /* Push another WHILE.  */
-+      include_buf (&exp, &copy, include_while, index);
++      include_buf (&exp, &copy, include_while, indx);
 +      sb_kill (&copy);
 +    }
 +  sb_kill (&exp);
@@ -4106,9 +4107,9 @@
 +      || type == include_while
 +      || type == include_macro)
 +    {
-+      int index = sp->index;
++      int indx = sp->index;
 +      include_pop ();
-+      while (sp->index == index
++      while (sp->index == indx
 +	     && sp->type == type)
 +	{
 +	  include_pop ();
@@ -4120,14 +4121,14 @@
 +
 +static void
 +do_arepeat (idx, in)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +{
 +  int line = linecount ();
 +  sb exp;			/* Buffer with expression in it.  */
 +  sb copy;			/* Expanded repeat block.  */
 +  sb sub;			/* Contents of AREPEAT.  */
-+  int rc;
++  offsetT rc;
 +  int ret;
 +  char buffer[30];
 +
@@ -4155,14 +4156,14 @@
 +	 foo
 +	 .AENDR
 +      */
-+      int index = include_next_index ();
++      int indx = include_next_index ();
 +      sb_add_sb (&copy, &sub);
 +      if (rc > 1)
 +	{
 +	  if (!mri)
-+	    sprintf (buffer, "\t.AREPEAT	%d\n", rc - 1);
++	    sprintf (buffer, "\t.AREPEAT	%ld\n", rc - 1);
 +	  else
-+	    sprintf (buffer, "\tREPT	%d\n", rc - 1);
++	    sprintf (buffer, "\tREPT	%ld\n", rc - 1);
 +	  sb_add_string (&copy, buffer);
 +	  sb_add_sb (&copy, &sub);
 +	  if (!mri)
@@ -4171,7 +4172,7 @@
 +	    sb_add_string (&copy, "	ENDR\n");
 +	}
 +
-+      include_buf (&exp, &copy, include_repeat, index);
++      include_buf (&exp, &copy, include_repeat, indx);
 +    }
 +  sb_kill (&exp);
 +  sb_kill (&sub);
@@ -4190,7 +4191,7 @@
 +
 +static void
 +do_irp (idx, in, irpc)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +     int irpc;
 +{
@@ -4214,7 +4215,7 @@
 +
 +static void
 +do_local (idx, line)
-+     int idx ATTRIBUTE_UNUSED;
++     size_t idx ATTRIBUTE_UNUSED;
 +     sb *line ATTRIBUTE_UNUSED;
 +{
 +  ERROR ((stderr, _("LOCAL outside of MACRO")));
@@ -4222,7 +4223,7 @@
 +
 +static void
 +do_macro (idx, in)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +{
 +  const char *err;
@@ -4235,7 +4236,7 @@
 +
 +static int
 +macro_op (idx, in)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +{
 +  const char *err;
@@ -4267,7 +4268,7 @@
 +
 +static int
 +getstring (idx, in, acc)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +     sb *acc;
 +{
@@ -4305,7 +4306,7 @@
 +	    }
 +	  else
 +	    {
-+	      int code;
++	      offsetT code;
 +	      idx++;
 +	      idx = exp_get_abs (_("Character code in string must be absolute expression.\n"),
 +				 idx, in, &code);
@@ -4349,7 +4350,7 @@
 +
 +static void
 +do_sdata (idx, in, type)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +     int type;
 +{
@@ -4361,7 +4362,7 @@
 +
 +  while (!eol (idx, in))
 +    {
-+      int i;
++      size_t i;
 +      sb_reset (&acc);
 +      idx = sb_skip_white (idx, in);
 +      while (!eol (idx, in))
@@ -4414,10 +4415,10 @@
 +
 +static void
 +do_sdatab (idx, in)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +{
-+  int repeat;
++  offsetT repeat;
 +  int i;
 +  sb acc;
 +  sb_new (&acc);
@@ -4425,7 +4426,7 @@
 +  idx = exp_get_abs (_("Must have absolute SDATAB repeat count.\n"), idx, in, &repeat);
 +  if (repeat <= 0)
 +    {
-+      ERROR ((stderr, _("Must have positive SDATAB repeat count (%d).\n"), repeat));
++      ERROR ((stderr, _("Must have positive SDATAB repeat count (%ld).\n"), repeat));
 +      repeat = 1;
 +    }
 +
@@ -4471,7 +4472,7 @@
 +
 +static void
 +do_include (idx, in)
-+     int idx;
++     size_t idx;
 +     sb *in;
 +{
 +  sb t;
@@ -4578,11 +4579,11 @@
 +static int
 +include_next_index ()
 +{
-+  static int index;
++  static int indx;
 +  if (!unreasonable
-+      && index > MAX_REASONABLE)
++      && indx > MAX_REASONABLE)
 +    FATAL ((stderr, _("Unreasonable expansion (-u turns off check).\n")));
-+  return ++index;
++  return ++indx;
 +}
 +
 +/* Initialize the chartype vector.  */
@@ -4760,7 +4761,7 @@
 +
 +static int
 +process_pseudo_op (idx, line, acc)
-+     int idx;
++     size_t idx;
 +     sb *line;
 +     sb *acc;
 +{
@@ -5022,20 +5023,20 @@
 +     const char *name;
 +     int code;
 +{
-+  sb label;
++  sb label2;
 +  int j;
 +
-+  sb_new (&label);
-+  sb_add_string (&label, name);
++  sb_new (&label2);
++  sb_add_string (&label2, name);
 +
-+  hash_add_to_int_table (&keyword_hash_table, &label, code);
++  hash_add_to_int_table (&keyword_hash_table, &label2, code);
 +
-+  sb_reset (&label);
++  sb_reset (&label2);
 +  for (j = 0; name[j]; j++)
-+    sb_add_char (&label, name[j] - 'A' + 'a');
-+  hash_add_to_int_table (&keyword_hash_table, &label, code);
++    sb_add_char (&label2, name[j] - 'A' + 'a');
++  hash_add_to_int_table (&keyword_hash_table, &label2, code);
 +
-+  sb_kill (&label);
++  sb_kill (&label2);
 +}
 +
 +/* Build the keyword hash table - put each keyword in the table twice,
@@ -5060,10 +5061,10 @@
 +do_define (string)
 +     const char *string;
 +{
-+  sb label;
-+  int res = 1;
++  sb label2;
++  offsetT res = 1;
 +  hash_entry *ptr;
-+  sb_new (&label);
++  sb_new (&label2);
 +
 +  while (*string)
 +    {
@@ -5082,16 +5083,16 @@
 +	  sb_kill (&value);
 +	  break;
 +	}
-+      sb_add_char (&label, *string);
++      sb_add_char (&label2, *string);
 +
 +      string++;
 +    }
 +
-+  ptr = hash_create (&vars, &label);
++  ptr = hash_create (&vars, &label2);
 +  free_old_entry (ptr);
 +  ptr->type = hash_integer;
 +  ptr->value.i = res;
-+  sb_kill (&label);
++  sb_kill (&label2);
 +}
 +
 +char *program_name;
@@ -5511,10 +5512,21 @@
 +};
 +
 +/* just a stub to satisfy unused function in sb.o */
-+int do_scrub_chars (int (*get) (char*, int), char *tostart, int tolen) {}
---- binutils-2.16.91.0.2.org/gas/macro.c	2005-05-10 22:46:44.000000000 +0000
-+++ binutils-2.16.91.0.2/gas/macro.c	2005-07-21 18:31:04.000000000 +0000
-@@ -754,7 +754,7 @@
++size_t do_scrub_chars (size_t (*getF) (char*, size_t), char *tostart, size_t tolen) { return 0; }
++/* required by sb.o; cut down from messages.c */
++void as_fatal(const char *format, ...)
++{
++  va_list args;
++  va_start (args, format);
++  fprintf (stderr, _("Fatal error: "));
++  vfprintf (stderr, format, args);
++  (void) putc ('\n', stderr);
++  va_end (args);
++  xexit (EXIT_FAILURE);
++}
+--- binutils-2.23.51.0.1/gas/macro.c.orig	2012-08-07 19:47:23.000000000 +0200
++++ binutils-2.23.51.0.1/gas/macro.c	2012-08-21 20:21:33.256276269 +0200
+@@ -770,7 +770,7 @@
  
  static const char *
  macro_expand_body (sb *in, sb *out, formal_entry *formals,
@@ -5522,8 +5534,8 @@
 +		   struct hash_control *formal_hash, const macro_entry *macro, int comment_char)
  {
    sb t;
-   int src = 0, inquote = 0, macro_line = 0;
-@@ -786,7 +786,14 @@
+   size_t src = 0;
+@@ -802,7 +802,14 @@
        else if (in->ptr[src] == '\\')
  	{
  	  src++;
@@ -5539,7 +5551,7 @@
  	    {
  	      /* Sub in till the next ')' literally.  */
  	      src++;
-@@ -867,7 +874,7 @@
+@@ -885,7 +892,7 @@
  	  else
  	    {
  	      src = sb_skip_white (src + 5, in);
@@ -5548,7 +5560,7 @@
  		{
  		  const char *name;
  		  formal_entry *f = new_formal ();
-@@ -903,6 +910,17 @@
+@@ -921,6 +928,17 @@
  		}
  	    }
  	}
@@ -5566,25 +5578,25 @@
        else if (in->ptr[src] == '"'
  	       || (macro_mri && in->ptr[src] == '\''))
  	{
-@@ -984,7 +1002,7 @@
+@@ -1002,7 +1020,7 @@
     body.  */
  
  static const char *
--macro_expand (int idx, sb *in, macro_entry *m, sb *out)
-+macro_expand (int idx, sb *in, macro_entry *m, sb *out, int comment_char)
+-macro_expand (size_t idx, sb *in, macro_entry *m, sb *out)
++macro_expand (size_t idx, sb *in, macro_entry *m, sb *out, int comment_char)
  {
    sb t;
    formal_entry *ptr;
-@@ -1029,7 +1047,7 @@
+@@ -1047,7 +1065,7 @@
  
    /* Peel off the actuals and store them away in the hash tables' actuals.  */
    idx = sb_skip_white (idx, in);
 -  while (idx < in->len)
 +  while (idx < in->len && in->ptr[idx] != comment_char)
      {
-       int scan;
+       size_t scan;
  
-@@ -1156,7 +1174,7 @@
+@@ -1178,7 +1196,7 @@
  	  sb_add_string (&ptr->actual, buffer);
  	}
  
@@ -5593,7 +5605,7 @@
      }
  
    /* Discard any unnamed formal arguments.  */
-@@ -1189,7 +1207,7 @@
+@@ -1211,7 +1229,7 @@
     *EXPAND.  Return 1 if a macro is found, 0 otherwise.  */
  
  int
@@ -5602,7 +5614,7 @@
  	     const char **error, macro_entry **info)
  {
    const char *s;
-@@ -1224,7 +1242,7 @@
+@@ -1246,7 +1264,7 @@
      sb_add_char (&line_sb, *s++);
  
    sb_new (expand);
@@ -5611,16 +5623,16 @@
  
    sb_kill (&line_sb);
  
-@@ -1285,7 +1303,7 @@
+@@ -1289,7 +1307,7 @@
     success, or an error message otherwise.  */
  
  const char *
--expand_irp (int irpc, int idx, sb *in, sb *out, int (*get_line) (sb *))
-+expand_irp (int irpc, int idx, sb *in, sb *out, int (*get_line) (sb *), int comment_char)
+-expand_irp (int irpc, size_t idx, sb *in, sb *out, size_t (*get_line) (sb *))
++expand_irp (int irpc, size_t idx, sb *in, sb *out, size_t (*get_line) (sb *), int comment_char)
  {
    sb sub;
    formal_entry f;
-@@ -1318,10 +1336,10 @@
+@@ -1322,10 +1340,10 @@
    sb_reset (out);
  
    idx = sb_skip_comma (idx, in);
@@ -5633,7 +5645,7 @@
      }
    else
      {
-@@ -1333,7 +1351,7 @@
+@@ -1337,7 +1355,7 @@
  	  ++idx;
  	}
  
@@ -5642,7 +5654,7 @@
  	{
  	  if (!irpc)
  	    idx = get_any_string (idx, in, &f.actual);
-@@ -1347,7 +1365,7 @@
+@@ -1351,7 +1369,7 @@
  		    in_quotes = ! in_quotes;
  	  
  		  nxt = sb_skip_white (idx + 1, in);
@@ -5651,7 +5663,7 @@
  		    {
  		      idx = nxt;
  		      break;
-@@ -1358,7 +1376,7 @@
+@@ -1362,7 +1380,7 @@
  	      ++idx;
  	    }
  
@@ -5660,17 +5672,17 @@
  	  if (err != NULL)
  	    break;
  	  if (!irpc)
---- binutils-2.16.91.0.2.org/gas/macro.h	2005-05-10 22:46:44.000000000 +0000
-+++ binutils-2.16.91.0.2/gas/macro.h	2005-07-21 18:31:04.000000000 +0000
+--- binutils-2.23.51.0.1/gas/macro.h.orig	2012-08-07 19:47:23.000000000 +0200
++++ binutils-2.23.51.0.1/gas/macro.h	2012-08-21 20:20:59.152943647 +0200
 @@ -90,8 +90,8 @@
  extern void macro_mri_mode (int);
- extern const char *define_macro
-   (int, sb *, sb *, int (*) (sb *), char *, unsigned int, const char **);
+ extern const char *define_macro (size_t, sb *, sb *, size_t (*) (sb *),
+ 				 char *, unsigned int, const char **);
 -extern int check_macro (const char *, sb *, const char **, macro_entry **);
 +extern int check_macro (const char *, sb *, int, const char **, macro_entry **);
  extern void delete_macro (const char *);
--extern const char *expand_irp (int, int, sb *, sb *, int (*) (sb *));
-+extern const char *expand_irp (int, int, sb *, sb *, int (*) (sb *), int);
+-extern const char *expand_irp (int, size_t, sb *, sb *, size_t (*) (sb *));
++extern const char *expand_irp (int, size_t, sb *, sb *, size_t (*) (sb *), int);
  
  #endif
 --- binutils-2.16.91.0.2.org/gas/read.c	2005-06-22 20:53:34.000000000 +0000
