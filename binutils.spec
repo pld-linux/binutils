@@ -22,7 +22,7 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.23.51.0.2
+Version:	2.23.51.0.3
 Release:	1
 Epoch:		3
 License:	GPL v3+
@@ -30,7 +30,7 @@ Group:		Development/Tools
 # http://git.kernel.org/?p=linux/kernel/git/hjl/binutils.git;a=summary
 # git archive --prefix=binutils-2.22.51.0.1/ -o binutils-2.22.51.0.1.tar remotes/origin/linux/release/2.22.51.0.1
 Source0:	http://www.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	438ab3c6b5d1bbbeb99e94f10aee00dd
+# Source0-md5:	0f81033f89158111aeaf60e528a8dfd6
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
