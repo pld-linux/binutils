@@ -199,7 +199,7 @@ TARGETS=x86_64-linux
 %ifarch sparc
 TARGETS=sparc64-linux
 %endif
-%ifarch x86_64
+%ifarch %{x8664}
 TARGETS="x86_64-pep"
 %endif
 %{?addtargets:TARGETS="%{addtargets}"}
