@@ -23,7 +23,7 @@ Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.23.51.0.3
-Release:	1
+Release:	2
 Epoch:		3
 License:	GPL v3+
 Group:		Development/Tools
@@ -199,6 +199,9 @@ TARGETS=x86_64-linux
 %ifarch sparc
 TARGETS=sparc64-linux
 %endif
+%ifarch x86_64
+TARGETS="x86_64-pep"
+%endif
 %{?addtargets:TARGETS="%{addtargets}"}
 
 cp -f /usr/share/automake/config.* .
@@ -228,7 +231,7 @@ sparc32 \
 %else
 	%{?with_allarchs:--enable-64-bit-bfd} \
 %endif
-	%{?with_allarchs:--enable-targets=alpha-linux,arm-linux,cris-linux,hppa-linux,i386-linux,ia64-linux,x86_64-linux,m68k-linux,mips-linux,mips64-linux,mips64el-linux,mipsel-linux,ppc-linux,s390-linux,s390x-linux,sh-linux,sparc-linux,sparc64-linux,i386-linuxaout} \
+	%{?with_allarchs:--enable-targets=alpha-linux,arm-linux,cris-linux,hppa-linux,i386-linux,ia64-linux,x86_64-linux,m68k-linux,mips-linux,mips64-linux,mips64el-linux,mipsel-linux,ppc-linux,s390-linux,s390x-linux,sh-linux,sparc-linux,sparc64-linux,i386-linuxaout,x86_64-pep} \
 %if %{with gold}
 	--enable-gold%{!?with_default_ld:=default} --enable-ld%{?with_default_ld:=default} \
 %endif
