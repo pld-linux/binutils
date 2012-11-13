@@ -22,15 +22,13 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.23.51.0.3
-Release:	2
+Version:	2.23.51.0.5
+Release:	1
 Epoch:		3
 License:	GPL v3+
 Group:		Development/Tools
-# http://git.kernel.org/?p=linux/kernel/git/hjl/binutils.git;a=summary
-# git archive --prefix=binutils-2.22.51.0.1/ -o binutils-2.22.51.0.1.tar remotes/origin/linux/release/2.22.51.0.1
-Source0:	http://www.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	0f81033f89158111aeaf60e528a8dfd6
+Source0:	http://www.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.xz
+# Source0-md5:	25ab1cdd20e9080c873428320a294fa4
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -55,7 +53,9 @@ BuildRequires:	perl-tools-pod
 %ifarch sparc sparc32
 BuildRequires:	sparc32
 %endif
+BuildRequires:	tar >= 1:1.22
 BuildRequires:	texinfo >= 4.2
+BuildRequires:	xz
 BuildRequires:	zlib-devel
 %{?with_tests:BuildRequires:	zlib-static}
 Conflicts:	gcc-c++ < 5:3.3
@@ -165,7 +165,7 @@ niektórych pakietów.
 %patch5 -p1
 %patch6 -p1
 %patch7 -p1
-%patch8 -p0
+%patch8 -p1
 %patch9 -p1
 %patch10 -p1
 
@@ -309,6 +309,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/ld.bfd
 %if %{with gold}
 %attr(755,root,root) %{_bindir}/ld.gold
+%attr(755,root,root) %{_bindir}/dwp
 %endif
 %attr(755,root,root) %{_bindir}/nm
 %attr(755,root,root) %{_bindir}/objcopy

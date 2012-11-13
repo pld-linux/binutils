@@ -81,12 +81,12 @@
     && (segment->p_type != PT_TLS					\
         || (section->flags & SEC_THREAD_LOCAL))				\
     && (segment->p_type == PT_LOAD					\
---- binutils-2.17.50.0.13/bfd/elflink.c.orig	2007-03-16 20:44:46.377789106 +0100
-+++ binutils-2.17.50.0.13/bfd/elflink.c	2007-03-16 20:45:24.781816352 +0100
-@@ -5296,16 +5296,30 @@
-     return TRUE;
+--- binutils-2.23.51.0.5/bfd/elflink.c.orig	2012-11-12 17:45:23.000000000 +0100
++++ binutils-2.23.51.0.5/bfd/elflink.c	2012-11-13 16:17:51.815999934 +0100
+@@ -5780,18 +5780,32 @@
+       && ! (*bed->elf_backend_always_size_sections) (output_bfd, info))
+     return FALSE;
  
-   bed = get_elf_backend_data (output_bfd);
 +  elf_tdata (output_bfd)->pax_flags = PF_NORANDEXEC;
 +
 +  if (info->execheap)
@@ -94,18 +94,18 @@
 +  else if (info->noexecheap)
 +    elf_tdata (output_bfd)->pax_flags |= PF_MPROTECT;
 +
+   /* Determine any GNU_STACK segment requirements, after the backend
+      has had a chance to set a default segment size.  */
    if (info->execstack)
--    elf_tdata (output_bfd)->stack_flags = PF_R | PF_W | PF_X;
-+    {
-+      elf_tdata (output_bfd)->stack_flags = PF_R | PF_W | PF_X;
-+      elf_tdata (output_bfd)->pax_flags |= PF_EMUTRAMP;
-+    }
++  {
+     elf_tdata (output_bfd)->stack_flags = PF_R | PF_W | PF_X;
++    elf_tdata (output_bfd)->pax_flags |= PF_EMUTRAMP;
++  }
    else if (info->noexecstack)
--    elf_tdata (output_bfd)->stack_flags = PF_R | PF_W;
-+    {
-+      elf_tdata (output_bfd)->stack_flags = PF_R | PF_W;
-+      elf_tdata (output_bfd)->pax_flags |= PF_NOEMUTRAMP;
-+    }
++  {
+     elf_tdata (output_bfd)->stack_flags = PF_R | PF_W;
++    elf_tdata (output_bfd)->pax_flags |= PF_NOEMUTRAMP;
++  }
    else
      {
        bfd *inputobj;
@@ -116,7 +116,7 @@
        for (inputobj = info->input_bfds;
  	   inputobj;
  	   inputobj = inputobj->link_next)
-@@ -5318,7 +5332,11 @@
+@@ -5805,7 +5819,11 @@
  	  if (s)
  	    {
  	      if (s->flags & SEC_CODE)
