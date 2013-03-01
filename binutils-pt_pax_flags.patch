@@ -81,9 +81,9 @@
     && (segment->p_type != PT_TLS					\
         || (section->flags & SEC_THREAD_LOCAL))				\
     && (segment->p_type == PT_LOAD					\
---- binutils-2.23.51.0.5/bfd/elflink.c.orig	2012-11-12 17:45:23.000000000 +0100
-+++ binutils-2.23.51.0.5/bfd/elflink.c	2012-11-13 16:17:51.815999934 +0100
-@@ -5780,18 +5780,32 @@
+--- binutils-2.23.52.0.1/bfd/elflink.c.orig	2013-02-27 21:28:03.000000000 +0100
++++ binutils-2.23.52.0.1/bfd/elflink.c	2013-03-01 17:32:44.922717879 +0100
+@@ -5764,18 +5764,32 @@
        && ! (*bed->elf_backend_always_size_sections) (output_bfd, info))
      return FALSE;
  
@@ -98,12 +98,12 @@
       has had a chance to set a default segment size.  */
    if (info->execstack)
 +  {
-     elf_tdata (output_bfd)->stack_flags = PF_R | PF_W | PF_X;
+     elf_stack_flags (output_bfd) = PF_R | PF_W | PF_X;
 +    elf_tdata (output_bfd)->pax_flags |= PF_EMUTRAMP;
 +  }
    else if (info->noexecstack)
 +  {
-     elf_tdata (output_bfd)->stack_flags = PF_R | PF_W;
+     elf_stack_flags (output_bfd) = PF_R | PF_W;
 +    elf_tdata (output_bfd)->pax_flags |= PF_NOEMUTRAMP;
 +  }
    else
@@ -116,7 +116,7 @@
        for (inputobj = info->input_bfds;
  	   inputobj;
  	   inputobj = inputobj->link_next)
-@@ -5805,7 +5819,11 @@
+@@ -5789,7 +5803,11 @@
  	  if (s)
  	    {
  	      if (s->flags & SEC_CODE)
