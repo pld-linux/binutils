@@ -5,7 +5,7 @@
 				# http://sourceware.org/ml/binutils/2008-03/msg00162.html
 %bcond_without	pax		# without PaX flags (for upstream bugreports)
 %bcond_without	gold		# don't build gold (no C++ dependencies)
-%bcond_without	default_ld	# default ld instead of gold
+%bcond_with	default_ld	# default ld instead of gold
 %bcond_without	tests
 
 %ifnarch %{ix86} %{x8664}
@@ -23,7 +23,7 @@ Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.23.52.0.1
-Release:	2
+Release:	3
 Epoch:		3
 License:	GPL v3+
 Group:		Development/Tools
@@ -61,6 +61,7 @@ BuildRequires:	zlib-devel
 %{?with_tests:BuildRequires:	zlib-static}
 Conflicts:	gcc-c++ < 5:3.3
 Conflicts:	modutils < 2.4.17
+Conflicts:	rpmbuild(macros) < 1.660
 Obsoletes:	binutils-gold
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
