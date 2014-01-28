@@ -1590,7 +1590,7 @@
 +/* This is normally declared in as.h, but we don't include that.  We
 +   need the function because other files linked with gasp.c might call
 +   it.  */
-+extern void as_abort PARAMS ((const char *, int, const char *));
++extern void as_abort (const char *, int, const char *);
 +
 +/* The default obstack chunk size.  If we set this to zero, the
 +   obstack code will use whatever will fit in a 4096 byte block.  This
@@ -1737,99 +1737,99 @@
 +include_path *paths_head;
 +include_path *paths_tail;
 +
-+static void quit PARAMS ((void));
-+static void hash_new_table PARAMS ((int, hash_table *));
-+static int hash PARAMS ((sb *));
-+static hash_entry *hash_create PARAMS ((hash_table *, sb *));
-+static void hash_add_to_string_table PARAMS ((hash_table *, sb *, sb *, int));
-+static void hash_add_to_int_table PARAMS ((hash_table *, sb *, int));
-+static hash_entry *hash_lookup PARAMS ((hash_table *, sb *));
-+static void checkconst PARAMS ((int, exp_t *));
-+static int is_flonum PARAMS ((size_t, sb *));
-+static int chew_flonum PARAMS ((size_t, sb *, sb *));
-+static int sb_strtol PARAMS ((size_t, sb *, int, int *));
-+static int level_0 PARAMS ((size_t, sb *, exp_t *));
-+static int level_1 PARAMS ((size_t, sb *, exp_t *));
-+static int level_2 PARAMS ((size_t, sb *, exp_t *));
-+static int level_3 PARAMS ((size_t, sb *, exp_t *));
-+static int level_4 PARAMS ((size_t, sb *, exp_t *));
-+static int level_5 PARAMS ((size_t, sb *, exp_t *));
-+static int exp_parse PARAMS ((size_t, sb *, exp_t *));
-+static void exp_string PARAMS ((exp_t *, sb *));
-+static size_t exp_get_abs PARAMS ((const char *, size_t, sb *, offsetT *));
++static void quit (void);
++static void hash_new_table (int, hash_table *);
++static int hash (sb *);
++static hash_entry *hash_create (hash_table *, sb *);
++static void hash_add_to_string_table (hash_table *, sb *, sb *, int);
++static void hash_add_to_int_table (hash_table *, sb *, int);
++static hash_entry *hash_lookup (hash_table *, sb *);
++static void checkconst (int, exp_t *);
++static int is_flonum (size_t, sb *);
++static int chew_flonum (size_t, sb *, sb *);
++static int sb_strtol (size_t, sb *, int, int *);
++static int level_0 (size_t, sb *, exp_t *);
++static int level_1 (size_t, sb *, exp_t *);
++static int level_2 (size_t, sb *, exp_t *);
++static int level_3 (size_t, sb *, exp_t *);
++static int level_4 (size_t, sb *, exp_t *);
++static int level_5 (size_t, sb *, exp_t *);
++static int exp_parse (size_t, sb *, exp_t *);
++static void exp_string (exp_t *, sb *);
++static size_t exp_get_abs (const char *, size_t, sb *, offsetT *);
 +#if 0
-+static void strip_comments PARAMS ((sb *));
++static void strip_comments (sb *);
 +#endif
-+static void unget PARAMS ((int));
-+static void include_buf PARAMS ((sb *, sb *, include_type, int));
-+static void include_print_where_line PARAMS ((FILE *));
-+static void include_print_line PARAMS ((FILE *));
-+static size_t get_line PARAMS ((sb *));
-+static int grab_label PARAMS ((sb *, sb *));
-+static void change_base PARAMS ((size_t, sb *, sb *));
-+static void do_end PARAMS ((sb *));
-+static void do_assign PARAMS ((int, size_t, sb *));
-+static void do_radix PARAMS ((sb *));
-+static int get_opsize PARAMS ((size_t, sb *, int *));
-+static int eol PARAMS ((size_t, sb *));
-+static void do_data PARAMS ((size_t, sb *, int));
-+static void do_datab PARAMS ((size_t, sb *));
-+static void do_align PARAMS ((size_t, sb *));
-+static void do_res PARAMS ((size_t, sb *, int));
-+static void do_export PARAMS ((sb *));
-+static void do_print PARAMS ((size_t, sb *));
-+static void do_heading PARAMS ((size_t, sb *));
-+static void do_page PARAMS ((void));
-+static void do_form PARAMS ((size_t, sb *));
-+static int get_any_string PARAMS ((size_t, sb *, sb *, int, int));
-+static int skip_openp PARAMS ((size_t, sb *));
-+static int skip_closep PARAMS ((size_t, sb *));
-+static int dolen PARAMS ((size_t, sb *, sb *));
-+static int doinstr PARAMS ((size_t, sb *, sb *));
-+static int dosubstr PARAMS ((size_t, sb *, sb *));
-+static void process_assigns PARAMS ((size_t, sb *, sb *));
-+static int get_and_process PARAMS ((size_t, sb *, sb *));
-+static void process_file PARAMS ((void));
-+static void free_old_entry PARAMS ((hash_entry *));
-+static void do_assigna PARAMS ((size_t, sb *));
-+static void do_assignc PARAMS ((size_t, sb *));
-+static void do_reg PARAMS ((size_t, sb *));
-+static int condass_lookup_name PARAMS ((sb *, size_t, sb *, int));
-+static int whatcond PARAMS ((size_t, sb *, int *));
-+static int istrue PARAMS ((size_t, sb *));
-+static void do_aif PARAMS ((size_t, sb *));
-+static void do_aelse PARAMS ((void));
-+static void do_aendi PARAMS ((void));
-+static int condass_on PARAMS ((void));
-+static void do_if PARAMS ((size_t, sb *, int));
-+static int get_mri_string PARAMS ((size_t, sb *, sb *, int));
-+static void do_ifc PARAMS ((size_t, sb *, int));
-+static void do_aendr PARAMS ((void));
-+static void do_awhile PARAMS ((size_t, sb *));
-+static void do_aendw PARAMS ((void));
-+static void do_exitm PARAMS ((void));
-+static void do_arepeat PARAMS ((size_t, sb *));
-+static void do_endm PARAMS ((void));
-+static void do_irp PARAMS ((size_t, sb *, int));
-+static void do_local PARAMS ((size_t, sb *));
-+static void do_macro PARAMS ((size_t, sb *));
-+static int macro_op PARAMS ((size_t, sb *));
-+static int getstring PARAMS ((size_t, sb *, sb *));
-+static void do_sdata PARAMS ((size_t, sb *, int));
-+static void do_sdatab PARAMS ((size_t, sb *));
-+static int new_file PARAMS ((const char *));
-+static void do_include PARAMS ((size_t, sb *));
-+static void include_pop PARAMS ((void));
-+static int get PARAMS ((void));
-+static int linecount PARAMS ((void));
-+static int include_next_index PARAMS ((void));
-+static void chartype_init PARAMS ((void));
-+static int process_pseudo_op PARAMS ((size_t, sb *, sb *));
-+static void add_keyword PARAMS ((const char *, int));
-+static void process_init PARAMS ((void));
-+static void do_define PARAMS ((const char *));
-+static void show_usage PARAMS ((FILE *, int));
-+static void show_help PARAMS ((void));
++static void unget (int);
++static void include_buf (sb *, sb *, include_type, int);
++static void include_print_where_line (FILE *);
++static void include_print_line (FILE *);
++static size_t get_line (sb *);
++static int grab_label (sb *, sb *);
++static void change_base (size_t, sb *, sb *);
++static void do_end (sb *);
++static void do_assign (int, size_t, sb *);
++static void do_radix (sb *);
++static int get_opsize (size_t, sb *, int *);
++static int eol (size_t, sb *);
++static void do_data (size_t, sb *, int);
++static void do_datab (size_t, sb *);
++static void do_align (size_t, sb *);
++static void do_res (size_t, sb *, int);
++static void do_export (sb *);
++static void do_print (size_t, sb *);
++static void do_heading (size_t, sb *);
++static void do_page (void);
++static void do_form (size_t, sb *);
++static int get_any_string (size_t, sb *, sb *, int, int);
++static int skip_openp (size_t, sb *);
++static int skip_closep (size_t, sb *);
++static int dolen (size_t, sb *, sb *);
++static int doinstr (size_t, sb *, sb *);
++static int dosubstr (size_t, sb *, sb *);
++static void process_assigns (size_t, sb *, sb *);
++static int get_and_process (size_t, sb *, sb *);
++static void process_file (void);
++static void free_old_entry (hash_entry *);
++static void do_assigna (size_t, sb *);
++static void do_assignc (size_t, sb *);
++static void do_reg (size_t, sb *);
++static int condass_lookup_name (sb *, size_t, sb *, int);
++static int whatcond (size_t, sb *, int *);
++static int istrue (size_t, sb *);
++static void do_aif (size_t, sb *);
++static void do_aelse (void);
++static void do_aendi (void);
++static int condass_on (void);
++static void do_if (size_t, sb *, int);
++static int get_mri_string (size_t, sb *, sb *, int);
++static void do_ifc (size_t, sb *, int);
++static void do_aendr (void);
++static void do_awhile (size_t, sb *);
++static void do_aendw (void);
++static void do_exitm (void);
++static void do_arepeat (size_t, sb *);
++static void do_endm (void);
++static void do_irp (size_t, sb *, int);
++static void do_local (size_t, sb *);
++static void do_macro (size_t, sb *);
++static int macro_op (size_t, sb *);
++static int getstring (size_t, sb *, sb *);
++static void do_sdata (size_t, sb *, int);
++static void do_sdatab (size_t, sb *);
++static int new_file (const char *);
++static void do_include (size_t, sb *);
++static void include_pop (void);
++static int get (void);
++static int linecount (void);
++static int include_next_index (void);
++static void chartype_init (void);
++static int process_pseudo_op (size_t, sb *, sb *);
++static void add_keyword (const char *, int);
++static void process_init (void);
++static void do_define (const char *);
++static void show_usage (FILE *, int);
++static void show_help (void);
 +
 +/* --- functions recently removed from sb.c --- */
 +
@@ -5151,7 +5151,7 @@
 +  show_usage (stdout, 0);
 +}
 +
-+int main PARAMS ((int, char **));
++int main (int, char **);
 +
 +int
 +main (argc, argv)
