@@ -6,6 +6,7 @@
 %bcond_without	pax		# without PaX flags (for upstream bugreports)
 %bcond_without	gold		# don't build gold (no C++ dependencies)
 %bcond_without	default_bfd	# default ld.bfd instead of gold
+%bcond_without	gasp		# gasp
 %bcond_without	tests
 
 %ifnarch %{ix86} %{x8664}
@@ -22,13 +23,17 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.24.51.0.3
-Release:	2
+Version:	2.24.51.0.4
+Release:	1
 Epoch:		3
 License:	GPL v3+
 Group:		Development/Tools
-Source0:	https://www.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.xz
-# Source0-md5:	49757ef8c29ddf84ddf2a1f8b574f7e0
+# Source0:	https://www.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.xz
+
+# release with no tarball - https://sourceware.org/git/?p=binutils-gdb.git;a=summary
+Source0:	%{name}-%{version}.tar.bz2
+# Source0-md5:	a44a86209c84e2072824183c4b0a11f4
+
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -160,7 +165,7 @@ niektórych pakietów.
 
 %prep
 %setup -q
-%patch0 -p1
+%{?with_gasp:%patch0 -p1}
 %patch1 -p1
 %patch2 -p1
 %{?with_pax:%patch3 -p1}
@@ -249,8 +254,6 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
-%{__rm} $RPM_BUILD_ROOT%{_infodir}/standards.info*
-
 # remove these man pages unless we cross-build for win*/netware platforms.
 # however, this should be done in Makefiles.
 %{__rm} $RPM_BUILD_ROOT%{_mandir}/man1/{dlltool,nlmconv,windres}.1
@@ -330,7 +333,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/strip
 %{_infodir}/as.info*
 %{_infodir}/binutils.info*
-%{_infodir}/configure.info*
 %{_infodir}/gprof.info*
 %{_infodir}/ld.info*
 %{_prefix}/lib/ldscripts
@@ -370,7 +372,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libbfd.a
 %{_libdir}/libopcodes.a
 
+%if %{with gasp}
 %files gasp
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/gasp
 %{_infodir}/gasp.info*
+%endif
