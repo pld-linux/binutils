@@ -5709,3 +5709,19 @@
    if (err != NULL)
      as_bad_where (file, line, "%s", err);
  
+--- binutils-2.14.90.0.7.org/gas/doc/gasp.texinfo	Mon Mar 11 22:37:38 2002
++++ binutils-2.14.90.0.7/gas/doc/gasp.texinfo	Mon Mar 11 22:37:52 2002
+@@ -14,9 +14,10 @@
+ 
+ @ifinfo
+ @format
+-START-INFO-DIR-ENTRY
+-* gasp: (gasp).                     The GNU Assembler Preprocessor
+-END-INFO-DIR-ENTRY
++@dircategory Programming tools:
++@direntry
++* gasp: (gasp).				The GNU Assembler Preprocessor
++@end direntry
+ @end format
+ @end ifinfo
+ 
