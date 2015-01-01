@@ -9,7 +9,7 @@
 %bcond_without	gasp		# gasp
 %bcond_without	tests
 
-%ifnarch %{ix86} %{x8664}
+%ifnarch %{ix86} %{x8664} x32
 %undefine	with_gold
 %endif
 
@@ -210,6 +210,9 @@ TARGETS=sparc64-linux
 %ifarch %{x8664}
 TARGETS="x86_64-pep"
 %endif
+%ifarch x32
+TARGETS="x86_64-linux,x86_64-pep"
+%endif
 %{?addtargets:TARGETS="%{addtargets}"}
 
 cp -f /usr/share/automake/config.* .
@@ -239,7 +242,7 @@ sparc32 \
 %else
 	%{?with_allarchs:--enable-64-bit-bfd} \
 %endif
-	%{?with_allarchs:--enable-targets=alpha-linux,arm-linux,cris-linux,hppa-linux,i386-linux,ia64-linux,x86_64-linux,m68k-linux,mips-linux,mips64-linux,mips64el-linux,mipsel-linux,ppc-linux,s390-linux,s390x-linux,sh-linux,sparc-linux,sparc64-linux,i386-linuxaout,x86_64-pep} \
+	%{?with_allarchs:--enable-targets=alpha-linux,arm-linux,cris-linux,hppa-linux,i386-linux,ia64-linux,x86_64-linux,x86_64-linux-gnux32,m68k-linux,mips-linux,mips64-linux,mips64el-linux,mipsel-linux,ppc-linux,s390-linux,s390x-linux,sh-linux,sparc-linux,sparc64-linux,i386-linuxaout,x86_64-pep} \
 %if %{with gold}
 	--enable-gold%{!?with_default_bfd:=default} --enable-ld%{?with_default_bfd:=default} \
 %endif
