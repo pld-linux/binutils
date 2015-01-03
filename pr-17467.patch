@@ -1,0 +1,188 @@
+From 5b69e3572d1ee8e8e6e1991fd07f87a96c48746d Mon Sep 17 00:00:00 2001
+From: Alan Modra <amodra@gmail.com>
+Date: Mon, 13 Oct 2014 15:18:21 +1030
+Subject: [PATCH] Run eh_frame optimisation for relocatable link
+
+The idea here is to drop .eh_frame FDEs corresponding to dropped
+comdat group sections or linkonce sections, but not perform changes in
+encoding.
+
+bfd/
+	PR 17467
+	* elf-eh-frame.c (ENSURE_NO_RELOCS): Don't stop at first NONE reloc.
+	(_bfd_elf_parse_eh_frame): When relocatable output, don't set
+	flags enabling conversion of CIEs and FDEs to use relative encoding.
+	(find_merged_cie): Similarly.
+	(_bfd_elf_write_section_eh_frame): Don't edit FDEs when
+	relocatable, except for CIE pointer.
+	* elflink.c (bfd_elf_reloc_symbol_deleted_p): Return true for
+	relocs against symbols in dropped comdat group sections.
+	(bfd_elf_discard_info): Do some eh_frame optimisation when
+	relocatable.
+ld/
+	* ldlang.c (lang_add_section): Set up map_head.s and map_tail.s when
+	relocatable.
+---
+ bfd/ChangeLog      |   14 ++++++++++++++
+ bfd/elf-eh-frame.c |   25 +++++++++++++++++--------
+ bfd/elflink.c      |   14 +++++++-------
+ ld/ChangeLog       |    5 +++++
+ ld/ldlang.c        |    3 +--
+ 5 files changed, 44 insertions(+), 17 deletions(-)
+
+diff --git a/bfd/ChangeLog b/bfd/ChangeLog
+index aa2f3ef..be3ae38 100644
+--- a/bfd/ChangeLog
++++ b/bfd/ChangeLog
+@@ -1,3 +1,17 @@
++2014-10-13  Alan Modra  <amodra@gmail.com>
++
++	PR 17467
++	* elf-eh-frame.c (ENSURE_NO_RELOCS): Don't stop at first NONE reloc.
++	(_bfd_elf_parse_eh_frame): When relocatable output, don't set
++	flags enabling conversion of CIEs and FDEs to use relative encoding.
++	(find_merged_cie): Similarly.
++	(_bfd_elf_write_section_eh_frame): Don't edit FDEs when
++	relocatable, except for CIE pointer.
++	* elflink.c (bfd_elf_reloc_symbol_deleted_p): Return true for
++	relocs against symbols in dropped comdat group sections.
++	(bfd_elf_discard_info): Do some eh_frame optimisation when
++	relocatable.
++
+ 2014-10-04  Alan Modra  <amodra@gmail.com>
+ 
+ 	PR 17447
+diff --git a/bfd/elf-eh-frame.c b/bfd/elf-eh-frame.c
+index 331570a..e481f34 100644
+--- a/bfd/elf-eh-frame.c
++++ b/bfd/elf-eh-frame.c
+@@ -556,10 +556,13 @@ _bfd_elf_parse_eh_frame (bfd *abfd, struct bfd_link_info *info,
+ 
+   /* FIXME: octets_per_byte.  */
+ #define ENSURE_NO_RELOCS(buf)				\
+-  REQUIRE (!(cookie->rel < cookie->relend		\
+-	     && (cookie->rel->r_offset			\
+-		 < (bfd_size_type) ((buf) - ehbuf))	\
+-	     && cookie->rel->r_info != 0))
++  while (cookie->rel < cookie->relend			\
++	 && (cookie->rel->r_offset			\
++	     < (bfd_size_type) ((buf) - ehbuf)))	\
++    {							\
++      REQUIRE (cookie->rel->r_info == 0);		\
++      cookie->rel++;					\
++    }
+ 
+   /* FIXME: octets_per_byte.  */
+ #define SKIP_RELOCS(buf)				\
+@@ -726,6 +729,7 @@ _bfd_elf_parse_eh_frame (bfd *abfd, struct bfd_link_info *info,
+ 	  /* For shared libraries, try to get rid of as many RELATIVE relocs
+ 	     as possible.  */
+ 	  if (info->shared
++	      && !info->relocatable
+ 	      && (get_elf_backend_data (abfd)
+ 		  ->elf_backend_can_make_relative_eh_frame
+ 		  (abfd, info, sec)))
+@@ -763,10 +767,12 @@ _bfd_elf_parse_eh_frame (bfd *abfd, struct bfd_link_info *info,
+ 	  ENSURE_NO_RELOCS (buf);
+ 
+ 	  if (!info->relocatable)
+-	    /* Keep info for merging cies.  */
+-	    this_inf->u.cie.u.full_cie = cie;
+-	  this_inf->u.cie.per_encoding_relative
+-	    = (cie->per_encoding & 0x70) == DW_EH_PE_pcrel;
++	    {
++	      /* Keep info for merging cies.  */
++	      this_inf->u.cie.u.full_cie = cie;
++	      this_inf->u.cie.per_encoding_relative
++		= (cie->per_encoding & 0x70) == DW_EH_PE_pcrel;
++	    }
+ 	}
+       else
+ 	{
+@@ -1071,6 +1077,7 @@ find_merged_cie (bfd *abfd, struct bfd_link_info *info, asection *sec,
+ 
+       if (per_binds_local
+ 	  && info->shared
++	  && !info->relocatable
+ 	  && (cie->per_encoding & 0x70) == DW_EH_PE_absptr
+ 	  && (get_elf_backend_data (abfd)
+ 	      ->elf_backend_can_make_relative_eh_frame (abfd, info, sec)))
+@@ -1577,6 +1584,8 @@ _bfd_elf_write_section_eh_frame (bfd *abfd,
+ 	  value = ((ent->new_offset + sec->output_offset + 4)
+ 		   - (cie->new_offset + cie->u.cie.u.sec->output_offset));
+ 	  bfd_put_32 (abfd, value, buf);
++	  if (info->relocatable)
++	    continue;
+ 	  buf += 4;
+ 	  width = get_DW_EH_PE_width (ent->fde_encoding, ptr_size);
+ 	  value = read_value (abfd, buf, width,
+diff --git a/bfd/elflink.c b/bfd/elflink.c
+index d33efe0..c8068c0 100644
+--- a/bfd/elflink.c
++++ b/bfd/elflink.c
+@@ -12602,10 +12602,10 @@ bfd_elf_reloc_symbol_deleted_p (bfd_vma offset, void *cookie)
+ 
+ 	  if ((h->root.type == bfd_link_hash_defined
+ 	       || h->root.type == bfd_link_hash_defweak)
+-	      && discarded_section (h->root.u.def.section))
++	      && (h->root.u.def.section->owner != rcookie->abfd
++		  || h->root.u.def.section->kept_section != NULL
++		  || discarded_section (h->root.u.def.section)))
+ 	    return TRUE;
+-	  else
+-	    return FALSE;
+ 	}
+       else
+ 	{
+@@ -12618,7 +12618,9 @@ bfd_elf_reloc_symbol_deleted_p (bfd_vma offset, void *cookie)
+ 	  /* Need to: get the symbol; get the section.  */
+ 	  isym = &rcookie->locsyms[r_symndx];
+ 	  isec = bfd_section_from_elf_index (rcookie->abfd, isym->st_shndx);
+-	  if (isec != NULL && discarded_section (isec))
++	  if (isec != NULL
++	      && (isec->kept_section != NULL
++		  || discarded_section (isec)))
+ 	    return TRUE;
+ 	}
+       return FALSE;
+@@ -12672,9 +12674,7 @@ bfd_elf_discard_info (bfd *output_bfd, struct bfd_link_info *info)
+ 	}
+     }
+ 
+-  o = NULL;
+-  if (!info->relocatable)
+-    o = bfd_get_section_by_name (output_bfd, ".eh_frame");
++  o = bfd_get_section_by_name (output_bfd, ".eh_frame");
+   if (o != NULL)
+     {
+       asection *i;
+diff --git a/ld/ChangeLog b/ld/ChangeLog
+index ca27cc2..effacb0 100644
+--- a/ld/ChangeLog
++++ b/ld/ChangeLog
+@@ -1,3 +1,8 @@
++2014-10-13  Alan Modra  <amodra@gmail.com>
++
++	* ldlang.c (lang_add_section): Set up map_head.s and map_tail.s when
++	relocatable.
++
+ 2014-09-16  Kuan-Lin Chen  <kuanlinchentw@gmail.com>
+ 
+ 	* emultempl/nds32elf.em (nds32_elf_after_open): Do not keep
+diff --git a/ld/ldlang.c b/ld/ldlang.c
+index 899f710..5960e5c 100644
+--- a/ld/ldlang.c
++++ b/ld/ldlang.c
+@@ -2411,8 +2411,7 @@ lang_add_section (lang_statement_list_type *ptr,
+ 
+   section->output_section = output->bfd_section;
+ 
+-  if (!link_info.relocatable
+-      && !map_head_is_link_order)
++  if (!map_head_is_link_order)
+     {
+       asection *s = output->bfd_section->map_tail.s;
+       output->bfd_section->map_tail.s = section;
+-- 
+1.7.1
+
