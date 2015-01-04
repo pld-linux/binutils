@@ -7,7 +7,7 @@
 %bcond_without	gold		# don't build gold (no C++ dependencies)
 %bcond_without	default_bfd	# default ld.bfd instead of gold
 %bcond_without	gasp		# gasp
-%bcond_without	tests
+%bcond_with	tests
 
 %ifnarch %{ix86} %{x8664} x32
 %undefine	with_gold
