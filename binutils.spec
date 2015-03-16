@@ -23,16 +23,16 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.24.51.0.4
-Release:	3
+Version:	2.25.51.0.1
+Release:	1
 Epoch:		3
 License:	GPL v3+
 Group:		Development/Tools
 # Source0:	https://www.kernel.org/pub/linux/devel/binutils/%{name}-%{version}.tar.xz
 
 # release with no tarball - https://sourceware.org/git/?p=binutils-gdb.git;a=summary
-Source0:	%{name}-%{version}.tar.bz2
-# Source0-md5:	a44a86209c84e2072824183c4b0a11f4
+Source0:	%{name}-%{version}.tar.xz
+# Source0-md5:	4d3bd9694a1c9c318e7afe6db4a23b69
 
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
@@ -47,10 +47,6 @@ Patch8:		%{name}-build-id.patch
 Patch9:		%{name}-tooldir.patch
 Patch10:	%{name}-sanity-check.patch
 Patch11:	%{name}-am.patch
-Patch12:	pr-17422.patch
-Patch13:	pr-17440.patch
-Patch14:	pr-17447.patch
-Patch15:	pr-17467.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.64
 BuildRequires:	automake >= 1:1.11
@@ -180,10 +176,6 @@ niektórych pakietów.
 %patch9 -p1
 %patch10 -p1
 %patch11 -p1
-%patch12 -p1
-%patch13 -p1
-%patch14 -p1
-%patch15 -p1
 
 # file contains hacks for ac 2.59 only
 %{__rm} config/override.m4
@@ -262,6 +254,7 @@ sparc32 \
 %install
 rm -rf $RPM_BUILD_ROOT
 
+install -d $RPM_BUILD_ROOT%{_prefix}/lib/bfd-plugins
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
@@ -346,6 +339,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_infodir}/binutils.info*
 %{_infodir}/gprof.info*
 %{_infodir}/ld.info*
+%{_prefix}/lib/bfd-plugins
 %{_prefix}/lib/ldscripts
 %{_mandir}/man1/*
 %lang(cs) %{_mandir}/cs/man1/*
