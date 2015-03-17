@@ -40,6 +40,7 @@ Patch0:		%{name}-gasp.patch
 Patch1:		%{name}-info.patch
 Patch2:		%{name}-libtool-relink.patch
 Patch3:		%{name}-pt_pax_flags.patch
+Patch4:		%{name}-libdir.patch
 Patch5:		%{name}-discarded.patch
 Patch6:		%{name}-absolute-gnu_debuglink-path.patch
 Patch7:		%{name}-libtool-m.patch
@@ -169,6 +170,7 @@ niektórych pakietów.
 %patch1 -p1
 %patch2 -p1
 %{?with_pax:%patch3 -p1}
+%patch4 -p1
 %patch5 -p1
 %patch6 -p1
 %patch7 -p1
@@ -253,14 +255,14 @@ sparc32 \
 
 %install
 rm -rf $RPM_BUILD_ROOT
+install -d $RPM_BUILD_ROOT%{_libdir}/bfd-plugins
 
-install -d $RPM_BUILD_ROOT%{_prefix}/lib/bfd-plugins
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
 # remove these man pages unless we cross-build for win*/netware platforms.
 # however, this should be done in Makefiles.
-%{__rm} $RPM_BUILD_ROOT%{_mandir}/man1/{dlltool,nlmconv,windres}.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/man1/{dlltool,nlmconv,windmc,windres}.1
 
 bzip2 -dc %{SOURCE1} | tar xf - -C $RPM_BUILD_ROOT%{_mandir}
 
@@ -335,13 +337,26 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/size
 %attr(755,root,root) %{_bindir}/strings
 %attr(755,root,root) %{_bindir}/strip
+%{_prefix}/lib/ldscripts
 %{_infodir}/as.info*
 %{_infodir}/binutils.info*
 %{_infodir}/gprof.info*
 %{_infodir}/ld.info*
-%{_prefix}/lib/bfd-plugins
-%{_prefix}/lib/ldscripts
-%{_mandir}/man1/*
+%{_mandir}/man1/addr2line.1*
+%{_mandir}/man1/ar.1*
+%{_mandir}/man1/as.1*
+%{_mandir}/man1/c++filt.1*
+%{_mandir}/man1/elfedit.1*
+%{_mandir}/man1/gprof.1*
+%{_mandir}/man1/ld.1*
+%{_mandir}/man1/nm.1*
+%{_mandir}/man1/objcopy.1*
+%{_mandir}/man1/objdump.1*
+%{_mandir}/man1/ranlib.1*
+%{_mandir}/man1/readelf.1*
+%{_mandir}/man1/size.1*
+%{_mandir}/man1/strings.1*
+%{_mandir}/man1/strip.1*
 %lang(cs) %{_mandir}/cs/man1/*
 %lang(de) %{_mandir}/de/man1/*
 %lang(es) %{_mandir}/es/man1/*
@@ -355,6 +370,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libbfd-*.so
 %attr(755,root,root) %{_libdir}/libopcodes-*.so
+%dir %{_libdir}/bfd-plugins
 
 %files devel
 %defattr(644,root,root,755)
