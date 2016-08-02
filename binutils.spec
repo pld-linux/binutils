@@ -23,13 +23,13 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.26
+Version:	2.26.1
 Release:	1
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
 Source0:	http://ftp.gnu.org/gnu/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	64146a0faa3b411ba774f47d41de239f
+# Source0-md5:	d2b24e5b5301b7ff0207414c34c3e0fb
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -364,8 +364,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %files libs -f %{name}-libs.lang
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libbfd-*.so
-%attr(755,root,root) %{_libdir}/libopcodes-*.so
+%attr(755,root,root) %{_libdir}/libbfd-%{version}.so
+%attr(755,root,root) %{_libdir}/libopcodes-%{version}.so
 %dir %{_libdir}/bfd-plugins
 
 %files devel
