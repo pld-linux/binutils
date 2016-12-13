@@ -7,7 +7,7 @@
 %bcond_without	gold		# don't build gold (no C++ dependencies)
 %bcond_without	default_bfd	# default ld.bfd instead of gold
 %bcond_without	gasp		# gasp
-%bcond_with	tests
+%bcond_with	tests		# check target
 
 %ifnarch %{ix86} %{x8664} x32
 %undefine	with_gold
@@ -23,13 +23,13 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.26.1
+Version:	2.27
 Release:	1
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
 Source0:	http://ftp.gnu.org/gnu/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	d2b24e5b5301b7ff0207414c34c3e0fb
+# Source0-md5:	2869c9bf3e60ee97c74ac2a6bf4e9d68
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch

@@ -1585,7 +1585,7 @@
 +#include "asintl.h"
 +#include "xregex.h"
 +
-+char *program_version = "1.2";
++const char *program_version = "1.2";
 +
 +/* This is normally declared in as.h, but we don't include that.  We
 +   need the function because other files linked with gasp.c might call
@@ -1774,7 +1774,7 @@
 +static int eol (size_t, sb *);
 +static void do_data (size_t, sb *, int);
 +static void do_datab (size_t, sb *);
-+static void do_align (size_t, sb *);
++static void gasp_do_align (size_t, sb *);
 +static void do_res (size_t, sb *, int);
 +static void do_export (sb *);
 +static void do_print (size_t, sb *);
@@ -2906,7 +2906,7 @@
 +     int size;
 +{
 +  int opsize = 4;
-+  char *opname = ".yikes!";
++  const char *opname = ".yikes!";
 +  sb acc;
 +  sb_new (&acc);
 +
@@ -2992,7 +2992,7 @@
 +/* .align <size>  */
 +
 +static void
-+do_align (idx, in)
++gasp_do_align (idx, in)
 +     size_t idx;
 +     sb *in;
 +{
@@ -4681,7 +4681,7 @@
 +#define K_IRPC		(PROCESS|55)
 +
 +struct keyword {
-+  char *name;
++  const char *name;
 +  int code;
 +  int extra;
 +};
@@ -4919,7 +4919,7 @@
 +	      do_assign (1, idx, line);
 +	      return 1;
 +	    case K_ALIGN:
-+	      do_align (idx, line);
++	      gasp_do_align (idx, line);
 +	      return 1;
 +	    case K_RES:
 +	      do_res (idx, line, 0);
@@ -5312,7 +5312,7 @@
 +/* duplicated from as internals */
 +
 +static void
-+identify (char *file)
++identify (const char *file)
 +{
 +  static int identified;
 +
@@ -5331,7 +5331,7 @@
 +/* The common portion of as_warn and as_warn_where.  */
 +
 +static void
-+as_warn_internal (char *file, unsigned int line, char *buffer)
++as_warn_internal (const char *file, unsigned int line, char *buffer)
 +{
 +  ++warning_count;
 +
@@ -5358,7 +5358,7 @@
 +  if (1 /*!flag_no_warnings*/)
 +    {
 +      va_start (args, format);
-+      vsprintf (buffer, format, args);
++      vsnprintf (buffer, sizeof (buffer), format, args);
 +      va_end (args);
 +      as_warn_internal ((char *) NULL, 0, buffer);
 +    }
@@ -5369,7 +5369,7 @@
 +   the varargs correctly and portably.  */
 +
 +void
-+as_warn_where (char *file, unsigned int line, const char *format, ...)
++as_warn_where (const char *file, unsigned int line, const char *format, ...)
 +{
 +  va_list args;
 +  char buffer[2000];
@@ -5377,7 +5377,7 @@
 +  if (1 /*!flag_no_warnings*/)
 +    {
 +      va_start (args, format);
-+      vsprintf (buffer, format, args);
++      vsnprintf (buffer, sizeof (buffer), format, args);
 +      va_end (args);
 +      as_warn_internal (file, line, buffer);
 +    }
@@ -5391,7 +5391,7 @@
 +/* The common portion of as_bad and as_bad_where.  */
 +
 +static void
-+as_bad_internal (char *file, unsigned int line, char *buffer)
++as_bad_internal (const char *file, unsigned int line, char *buffer)
 +{
 +  ++error_count;
 +
@@ -5416,7 +5416,7 @@
 +  char buffer[2000];
 +
 +  va_start (args, format);
-+  vsprintf (buffer, format, args);
++  vsnprintf (buffer, sizeof (buffer), format, args);
 +  va_end (args);
 +
 +  as_bad_internal ((char *) NULL, 0, buffer);
@@ -5427,13 +5427,13 @@
 +   the varargs correctly and portably.  */
 +
 +void
-+as_bad_where (char *file, unsigned int line, const char *format, ...)
++as_bad_where (const char *file, unsigned int line, const char *format, ...)
 +{
 +  va_list args;
 +  char buffer[2000];
 +
 +  va_start (args, format);
-+  vsprintf (buffer, format, args);
++  vsnprintf (buffer, sizeof (buffer), format, args);
 +  va_end (args);
 +
 +  as_bad_internal (file, line, buffer);
@@ -5676,12 +5676,12 @@
  	  if (err != NULL)
  	    break;
  	  if (!irpc)
---- binutils-2.23.51.0.1/gas/macro.h.orig	2012-08-07 19:47:23.000000000 +0200
-+++ binutils-2.23.51.0.1/gas/macro.h	2012-08-21 20:20:59.152943647 +0200
-@@ -90,8 +90,8 @@
+--- binutils-2.27/gas/macro.h.orig	2016-12-13 17:20:58.662894688 +0100
++++ binutils-2.27/gas/macro.h	2016-12-13 17:36:44.799550552 +0100
+@@ -89,8 +89,8 @@
  extern void macro_mri_mode (int);
  extern const char *define_macro (size_t, sb *, sb *, size_t (*) (sb *),
- 				 char *, unsigned int, const char **);
+ 				 const char *, unsigned int, const char **);
 -extern int check_macro (const char *, sb *, const char **, macro_entry **);
 +extern int check_macro (const char *, sb *, int, const char **, macro_entry **);
  extern void delete_macro (const char *);
