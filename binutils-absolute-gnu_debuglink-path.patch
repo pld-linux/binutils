@@ -21,7 +21,7 @@
    if (include_dirs)
      {
 +      /* PLD: check the possible absolute debuginfo path (e.g. /tmp/.../usr/lib/debug/... */
-+      if (separate_debug_file_exists (basename, crc32))
++      if (separate_debug_file_exists (basename, func_data))
 +        return basename;
 +
        for (dirlen = strlen (abfd->filename); dirlen > 0; dirlen--)
