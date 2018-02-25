@@ -23,13 +23,13 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.29.1
+Version:	2.30
 Release:	1
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
-Source0:	http://ftp.gnu.org/gnu/binutils/%{name}-%{version}.tar.bz2
-# Source0-md5:	9af59a2ca3488823e453bb356fe0f113
+Source0:	http://ftp.gnu.org/gnu/binutils/%{name}-%{version}.tar.lz
+# Source0-md5:	e64eb5655c6c2caa78677e19c84ba5b5
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -52,13 +52,13 @@ BuildRequires:	flex
 BuildRequires:	gettext-tools
 %{?with_gold:BuildRequires:	libstdc++-devel >= 6:4.0-1}
 %{?with_tests:BuildRequires:	libstdc++-static >= 6:4.0}
+BuildRequires:	lzip
 BuildRequires:	perl-tools-pod
 %ifarch sparc sparc32
 BuildRequires:	sparc32
 %endif
 BuildRequires:	tar >= 1:1.22
 BuildRequires:	texinfo >= 4.2
-BuildRequires:	xz
 BuildRequires:	zlib-devel
 %{?with_tests:BuildRequires:	zlib-static}
 Conflicts:	gcc-c++ < 5:3.3
@@ -222,25 +222,26 @@ CXX="%{__cxx}"; export CXX
 sparc32 \
 %endif
 ./configure %{_target_platform} \
-	--disable-debug \
-	--disable-werror \
-	--enable-build-warnings=,-Wno-missing-prototypes \
-	--enable-shared \
-	--enable-lto \
-	--enable-plugins \
-	--with-zlib=yes \
 	--prefix=%{_prefix} \
 	--libdir=%{_libdir} \
 	--infodir=%{_infodir} \
 	--mandir=%{_mandir} \
-	--with-tooldir=%{_prefix} \
-	%{!?with_allarchs:`[ -n "${TARGETS}" ] && echo "--enable-targets=${TARGETS}"`} \
+	--disable-debug \
+	--disable-werror \
 %ifarch sparc
 	--enable-64-bit-bfd \
 %else
 	%{?with_allarchs:--enable-64-bit-bfd} \
 %endif
+	--enable-build-warnings=,-Wno-missing-prototypes \
+	--enable-install-libiberty \
+	--enable-lto \
+	--enable-plugins \
+	--enable-shared \
 	%{?with_allarchs:--enable-targets=alpha-linux,arm-linux,cris-linux,hppa-linux,i386-linux,ia64-linux,x86_64-linux,x86_64-linux-gnux32,m68k-linux,mips-linux,mips64-linux,mips64el-linux,mipsel-linux,ppc-linux,s390-linux,s390x-linux,sh-linux,sparc-linux,sparc64-linux,i386-linuxaout,x86_64-pep} \
+	%{!?with_allarchs:`[ -n "${TARGETS}" ] && echo "--enable-targets=${TARGETS}"`} \
+	--with-tooldir=%{_prefix} \
+	--with-zlib \
 %if %{with gold}
 	--enable-gold%{!?with_default_bfd:=default} --enable-ld%{?with_default_bfd:=default} \
 %endif
@@ -262,8 +263,8 @@ install -d $RPM_BUILD_ROOT%{_libdir}/bfd-plugins
 
 bzip2 -dc %{SOURCE1} | tar xf - -C $RPM_BUILD_ROOT%{_mandir}
 
-cp -p include/libiberty.h $RPM_BUILD_ROOT%{_includedir}
-cp -p libiberty/pic/libiberty.a $RPM_BUILD_ROOT%{_libdir}
+# overwrite libiberty.a with PIC version
+cp -pf libiberty/pic/libiberty.a $RPM_BUILD_ROOT%{_libdir}
 
 # remove evil -L pointing inside builder's home
 perl -pi -e 's@-L[^ ]*/pic @@g' $RPM_BUILD_ROOT%{_libdir}/libbfd.la
@@ -379,9 +380,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/bfd.h
 %{_includedir}/bfdlink.h
 %{_includedir}/dis-asm.h
-%{_includedir}/libiberty.h
 %{_includedir}/plugin-api.h
 %{_includedir}/symcat.h
+%{_includedir}/libiberty
 %{_infodir}/bfd.info*
 
 %files static
