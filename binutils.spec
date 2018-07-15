@@ -76,7 +76,7 @@ Binutils is a collection of binary utilities, including:
 - size - list the section sizes of an object or archive file,
 - strings - list printable strings from files,
 - strip - discard symbols,
-- addr2line - convert addresses to file and line,
+- addr2line - convert addresses to file and line.
 
 %description -l es.UTF-8
 Binutils es una colección de utilitarios necesarios para compilar

@@ -47,12 +47,12 @@
  man_MANS = as.1
  
 -info_TEXINFOS = as.texi
-+info_TEXINFOS = as.texi gasp.texinfo
++info_TEXINFOS = as.texi gasp.texi
  as_TEXINFOS = asconfig.texi $(CPU_DOCS)
  
  AM_MAKEINFOFLAGS = -I "$(srcdir)" -I "$(top_srcdir)/../libiberty" \
---- binutils-2.16.91.0.2.org/gas/doc/gasp.texinfo	1970-01-01 00:00:00.000000000 +0000
-+++ binutils-2.16.91.0.2/gas/doc/gasp.texinfo	2005-07-21 18:31:04.000000000 +0000
+--- binutils-2.16.91.0.2.org/gas/doc/gasp.texi	1970-01-01 00:00:00.000000000 +0000
++++ binutils-2.16.91.0.2/gas/doc/gasp.texi	2005-07-21 18:31:04.000000000 +0000
 @@ -0,0 +1,1456 @@
 +\input texinfo               @c             -*- Texinfo -*-
 +@setfilename gasp.info
@@ -5709,8 +5709,8 @@
    if (err != NULL)
      as_bad_where (file, line, "%s", err);
  
---- binutils-2.14.90.0.7.org/gas/doc/gasp.texinfo	Mon Mar 11 22:37:38 2002
-+++ binutils-2.14.90.0.7/gas/doc/gasp.texinfo	Mon Mar 11 22:37:52 2002
+--- binutils-2.14.90.0.7.org/gas/doc/gasp.texi	Mon Mar 11 22:37:38 2002
++++ binutils-2.14.90.0.7/gas/doc/gasp.texi	Mon Mar 11 22:37:52 2002
 @@ -14,9 +14,10 @@
  
  @ifinfo
