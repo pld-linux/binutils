@@ -23,13 +23,13 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.30
+Version:	2.31
 Release:	1
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
 Source0:	http://ftp.gnu.org/gnu/binutils/%{name}-%{version}.tar.lz
-# Source0-md5:	e64eb5655c6c2caa78677e19c84ba5b5
+# Source0-md5:	1ea8ddd13bd6fdcab1fe6cf377894476
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -37,13 +37,12 @@ Patch1:		%{name}-info.patch
 Patch2:		%{name}-libtool-relink.patch
 Patch3:		%{name}-pt_pax_flags.patch
 Patch4:		%{name}-libdir.patch
-Patch5:		%{name}-discarded.patch
+
 Patch6:		%{name}-absolute-gnu_debuglink-path.patch
 Patch7:		%{name}-libtool-m.patch
 Patch8:		%{name}-build-id.patch
 Patch9:		%{name}-tooldir.patch
 Patch10:	%{name}-sanity-check.patch
-Patch11:	%{name}-am.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.64
 BuildRequires:	automake >= 1:1.11
@@ -78,7 +77,6 @@ Binutils is a collection of binary utilities, including:
 - strings - list printable strings from files,
 - strip - discard symbols,
 - addr2line - convert addresses to file and line,
-- nlmconv - convert object code into an NLM.
 
 %description -l es.UTF-8
 Binutils es una colección de utilitarios necesarios para compilar
@@ -167,13 +165,12 @@ niektórych pakietów.
 %patch2 -p1
 %{?with_pax:%patch3 -p1}
 %patch4 -p1
-%patch5 -p1
+
 %patch6 -p1
 %patch7 -p1
 %patch8 -p1
 %patch9 -p1
 %patch10 -p1
-%patch11 -p1
 
 # file contains hacks for ac 2.59 only
 %{__rm} config/override.m4
@@ -259,7 +256,7 @@ install -d $RPM_BUILD_ROOT%{_libdir}/bfd-plugins
 
 # remove these man pages unless we cross-build for win*/netware platforms.
 # however, this should be done in Makefiles.
-%{__rm} $RPM_BUILD_ROOT%{_mandir}/man1/{dlltool,nlmconv,windmc,windres}.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/man1/{dlltool,windmc,windres}.1
 
 bzip2 -dc %{SOURCE1} | tar xf - -C $RPM_BUILD_ROOT%{_mandir}
 
@@ -379,6 +376,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/ansidecl.h
 %{_includedir}/bfd.h
 %{_includedir}/bfdlink.h
+%{_includedir}/diagnostics.h
 %{_includedir}/dis-asm.h
 %{_includedir}/plugin-api.h
 %{_includedir}/symcat.h

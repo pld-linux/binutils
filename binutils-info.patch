@@ -1,6 +1,6 @@
-diff -urN binutils-2.24.51.0.4.org/bfd/doc/bfd.texinfo binutils-2.24.51.0.4/bfd/doc/bfd.texinfo
---- binutils-2.24.51.0.4.org/bfd/doc/bfd.texinfo	2014-10-10 21:39:07.000000000 +0200
-+++ binutils-2.24.51.0.4/bfd/doc/bfd.texinfo	2014-10-11 21:34:42.948190928 +0200
+diff -urN binutils-2.24.51.0.4.org/bfd/doc/bfd.texi binutils-2.24.51.0.4/bfd/doc/bfd.texi
+--- binutils-2.24.51.0.4.org/bfd/doc/bfd.texi	2014-10-10 21:39:07.000000000 +0200
++++ binutils-2.24.51.0.4/bfd/doc/bfd.texi	2014-10-11 21:34:42.948190928 +0200
 @@ -5,9 +5,9 @@
  @synindex fn cp
  
@@ -16,7 +16,7 @@ diff -urN binutils-2.24.51.0.4.org/bfd/doc/bfd.texinfo binutils-2.24.51.0.4/bfd/
 diff -urN binutils-2.24.51.0.4.org/binutils/doc/binutils.texi binutils-2.24.51.0.4/binutils/doc/binutils.texi
 --- binutils-2.24.51.0.4.org/binutils/doc/binutils.texi	2014-10-10 21:39:07.000000000 +0200
 +++ binutils-2.24.51.0.4/binutils/doc/binutils.texi	2014-10-11 21:34:45.891625226 +0200
-@@ -22,30 +22,26 @@
+@@ -22,29 +22,25 @@
  @c man end
  @end copying
  
@@ -33,7 +33,6 @@ diff -urN binutils-2.24.51.0.4.org/binutils/doc/binutils.texi binutils-2.24.51.0
 -* c++filt: (binutils)c++filt.	  Filter to demangle encoded C++ symbols.
 -* cxxfilt: (binutils)c++filt.     MS-DOS name for c++filt.
 -* dlltool: (binutils)dlltool.	  Create files needed to build and use DLLs.
--* nlmconv: (binutils)nlmconv.     Converts object code into an NLM.
 -* nm: (binutils)nm.               List symbols from object files.
 -* objcopy: (binutils)objcopy.	  Copy and translate object files.
 -* objdump: (binutils)objdump.     Display information from object files.
@@ -51,7 +50,6 @@ diff -urN binutils-2.24.51.0.4.org/binutils/doc/binutils.texi binutils-2.24.51.0
 +* c++filt: (binutils)c++filt.		Filter to demangle encoded C++ symbols
 +* cxxfilt: (binutils)c++filt.		MS-DOS name for c++filt
 +* dlltool: (binutils)dlltool.		Create files needed to build and use DLLs
-+* nlmconv: (binutils)nlmconv.		Converts object code into an NLM
 +* nm: (binutils)nm.			List symbols from object files
 +* objcopy: (binutils)objcopy.		Copy and translate object files
 +* objdump: (binutils)objdump.		Display information from object files
@@ -66,9 +64,9 @@ diff -urN binutils-2.24.51.0.4.org/binutils/doc/binutils.texi binutils-2.24.51.0
  @end direntry
  
  @titlepage
-diff -urN binutils-2.24.51.0.4.org/gas/doc/as.texinfo binutils-2.24.51.0.4/gas/doc/as.texinfo
---- binutils-2.24.51.0.4.org/gas/doc/as.texinfo	2014-10-10 21:39:07.000000000 +0200
-+++ binutils-2.24.51.0.4/gas/doc/as.texinfo	2014-10-11 21:34:45.224935691 +0200
+diff -urN binutils-2.24.51.0.4.org/gas/doc/as.texi binutils-2.24.51.0.4/gas/doc/as.texi
+--- binutils-2.24.51.0.4.org/gas/doc/as.texi	2014-10-10 21:39:07.000000000 +0200
++++ binutils-2.24.51.0.4/gas/doc/as.texi	2014-10-11 21:34:45.224935691 +0200
 @@ -86,10 +86,10 @@
  @end ifinfo
  
@@ -98,9 +96,9 @@ diff -urN binutils-2.24.51.0.4.org/gprof/gprof.texi binutils-2.24.51.0.4/gprof/g
  @end direntry
  @end ifnottex
  
-diff -urN binutils-2.24.51.0.4.org/ld/ld.texinfo binutils-2.24.51.0.4/ld/ld.texinfo
---- binutils-2.24.51.0.4.org/ld/ld.texinfo	2014-10-10 21:39:07.000000000 +0200
-+++ binutils-2.24.51.0.4/ld/ld.texinfo	2014-10-11 21:34:45.888291778 +0200
+diff -urN binutils-2.24.51.0.4.org/ld/ld.texi binutils-2.24.51.0.4/ld/ld.texi
+--- binutils-2.24.51.0.4.org/ld/ld.texi	2014-10-10 21:39:07.000000000 +0200
++++ binutils-2.24.51.0.4/ld/ld.texi	2014-10-11 21:34:45.888291778 +0200
 @@ -42,9 +42,9 @@
  @c man end
  
