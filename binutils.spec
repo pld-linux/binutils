@@ -24,7 +24,7 @@ Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.31
-Release:	1
+Release:	2
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
@@ -37,7 +37,7 @@ Patch1:		%{name}-info.patch
 Patch2:		%{name}-libtool-relink.patch
 Patch3:		%{name}-pt_pax_flags.patch
 Patch4:		%{name}-libdir.patch
-
+Patch5:		bug-23409.patch
 Patch6:		%{name}-absolute-gnu_debuglink-path.patch
 Patch7:		%{name}-libtool-m.patch
 Patch8:		%{name}-build-id.patch
@@ -165,7 +165,7 @@ niektórych pakietów.
 %patch2 -p1
 %{?with_pax:%patch3 -p1}
 %patch4 -p1
-
+%patch5 -p1
 %patch6 -p1
 %patch7 -p1
 %patch8 -p1
