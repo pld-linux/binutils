@@ -23,13 +23,13 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.31
-Release:	3
+Version:	2.31.1
+Release:	1
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
 Source0:	http://ftp.gnu.org/gnu/binutils/%{name}-%{version}.tar.lz
-# Source0-md5:	1ea8ddd13bd6fdcab1fe6cf377894476
+# Source0-md5:	a517a836dd5747cc9e64d81addc517ad
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -37,7 +37,7 @@ Patch1:		%{name}-info.patch
 Patch2:		%{name}-libtool-relink.patch
 Patch3:		%{name}-pt_pax_flags.patch
 Patch4:		%{name}-libdir.patch
-Patch5:		bug-23409.patch
+
 Patch6:		%{name}-absolute-gnu_debuglink-path.patch
 Patch7:		%{name}-libtool-m.patch
 Patch8:		%{name}-build-id.patch
@@ -167,7 +167,7 @@ niektórych pakietów.
 %patch2 -p1
 %{?with_pax:%patch3 -p1}
 %patch4 -p1
-%patch5 -p1
+
 %patch6 -p1
 %patch7 -p1
 %patch8 -p1
