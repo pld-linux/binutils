@@ -24,7 +24,7 @@ Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.31.1
-Release:	1
+Release:	2
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
@@ -45,6 +45,7 @@ Patch9:		%{name}-tooldir.patch
 Patch10:	%{name}-sanity-check.patch
 # https://bugzilla.redhat.com/show_bug.cgi?id=1599521
 Patch11:	binutils-do-not-provide-shared-section-symbols.patch
+Patch12:	fd-leak.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.64
 BuildRequires:	automake >= 1:1.11
@@ -174,6 +175,7 @@ niektórych pakietów.
 %patch9 -p1
 %patch10 -p1
 %patch11 -p1
+%patch12 -p1
 
 # file contains hacks for ac 2.59 only
 %{__rm} config/override.m4
