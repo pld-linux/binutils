@@ -1,0 +1,70 @@
+commit 48e30f5238c70e738f44474d595c476ef4e4ec38
+Author: H.J. Lu <hjl.tools@gmail.com>
+Date:   Fri Aug 10 12:21:58 2018 -0700
+
+    Always clear h->verinfo.verdef when overriding a dynamic definition
+    
+    When linker defines a symbol to override a dynamic definition, it should
+    always clear h->verinfo.verdef so that the symbol won't be associated
+    with the version information from the dynamic object.  This happened to
+    the symbol "_edata" when creating an unversioned dynamic object linking
+    against:
+    
+    1. libKF5ConfigCore.so.5.49.0
+    2. libKF5CoreAddons.so.5.49.0
+    3. libKF5I18n.so.5.49.0
+    4. libKF5DBusAddons.so.5.49.0
+    5. libQt5Xml.so.5.11.1
+    6. libQt5DBus.so.5.11.1
+    7. libQt5Core.so.5.11.1
+    
+    Among them
+    
+    libQt5Xml.so.5.11.1
+       299: 000000000003e000     0 NOTYPE  GLOBAL DEFAULT   18 _edata@@Qt_5
+    libQt5DBus.so.5.11.1
+       597: 0000000000092018     0 NOTYPE  GLOBAL DEFAULT   18 _edata@@Qt_5
+    libQt5Core.so.5.11.1
+      2292: 00000000004df640     0 NOTYPE  GLOBAL DEFAULT   21 _edata@Qt_5
+      2293: 00000000004df640     0 NOTYPE  GLOBAL DEFAULT   21 _edata@Qt_5
+    
+    The problem is triggered by 2 duplicated entries of _edata@Qt_5 in
+    libQt5Core.so.5.11.1 which was created by gold.  Before this commit,
+    ld created the dynamic object with "_edata" in its dynamic symbol table
+    which was linker defined and associated with the version information
+    from libQt5Core.so.5.11.1.  The code in question was there when the
+    binutils source was imported to sourceware.org.  When such a dynamic
+    object was used later, we got:
+    
+    /usr/bin/ld: bin/libKF5Service.so.5.49.0: _edata: invalid version 21 (max 0)
+    /usr/bin/ld: bin/libKF5Service.so.5.49.0: error adding symbols: bad value
+    
+    Tested with many ELF targets.
+    
+            PR ld/23499
+            * elflink.c (bfd_elf_record_link_assignment): Always clear
+            h->verinfo.verdef when overriding a dynamic definition.
+
+diff --git a/bfd/elflink.c b/bfd/elflink.c
+index b24fb95848..02618bed8f 100644
+--- a/bfd/elflink.c
++++ b/bfd/elflink.c
+@@ -686,13 +686,11 @@ bfd_elf_record_link_assignment (bfd *output_bfd,
+       && !h->def_regular)
+     h->root.type = bfd_link_hash_undefined;
+ 
+-  /* If this symbol is not being provided by the linker script, and it is
+-     currently defined by a dynamic object, but not by a regular object,
+-     then clear out any version information because the symbol will not be
+-     associated with the dynamic object any more.  */
+-  if (!provide
+-      && h->def_dynamic
+-      && !h->def_regular)
++  /* If this symbol is currently defined by a dynamic object, but not
++     by a regular object, then clear out any version information because
++     the symbol will not be associated with the dynamic object any
++     more.  */
++  if (h->def_dynamic && !h->def_regular)
+     h->verinfo.verdef = NULL;
+ 
+   /* Make sure this symbol is not garbage collected.  */
