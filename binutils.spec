@@ -3,7 +3,7 @@
 %bcond_with	allarchs	# enable all targets
 # define addtargets x,y,z	# build with additional targets x,y,z (e.g. x86_64-linux)
 				# http://sourceware.org/ml/binutils/2008-03/msg00162.html
-%bcond_without	pax		# without PaX flags (for upstream bugreports)
+%bcond_with	pax		# without PaX flags (for upstream bugreports)
 %bcond_without	gold		# don't build gold (no C++ dependencies)
 %bcond_without	default_bfd	# default ld.bfd instead of gold
 %bcond_without	gasp		# gasp
@@ -23,13 +23,13 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.31.1
-Release:	4
+Version:	2.32
+Release:	1
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
 Source0:	http://ftp.gnu.org/gnu/binutils/%{name}-%{version}.tar.lz
-# Source0-md5:	a517a836dd5747cc9e64d81addc517ad
+# Source0-md5:	3f1013fc8c5b18e1c28ba5c018a4110c
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -43,8 +43,11 @@ Patch7:		%{name}-libtool-m.patch
 Patch8:		%{name}-build-id.patch
 Patch9:		%{name}-tooldir.patch
 Patch10:	%{name}-sanity-check.patch
-Patch11:	binutils-bug-23499.patch
-Patch12:	fd-leak.patch
+Patch11:	binutils-CVE-2019-9071.patch
+Patch12:	binutils-CVE-2019-9073.patch
+Patch13:	binutils-CVE-2019-9074.patch
+Patch14:	binutils-CVE-2019-9075.patch
+Patch15:	binutils-CVE-2019-9077.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.64
 BuildRequires:	automake >= 1:1.11
@@ -163,7 +166,7 @@ niektórych pakietów.
 %prep
 %setup -q
 %{?with_gasp:%patch0 -p1}
-%patch1 -p1
+#%patch1 -p1
 %patch2 -p1
 %{?with_pax:%patch3 -p1}
 %patch4 -p1
@@ -175,6 +178,9 @@ niektórych pakietów.
 %patch10 -p1
 %patch11 -p1
 %patch12 -p1
+%patch13 -p1
+%patch14 -p1
+%patch15 -p1
 
 # file contains hacks for ac 2.59 only
 %{__rm} config/override.m4
@@ -379,6 +385,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libiberty.a
 %{_includedir}/ansidecl.h
 %{_includedir}/bfd.h
+%{_includedir}/bfd_stdint.h
 %{_includedir}/bfdlink.h
 %{_includedir}/diagnostics.h
 %{_includedir}/dis-asm.h
