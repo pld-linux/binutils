@@ -166,7 +166,7 @@ niektórych pakietów.
 %prep
 %setup -q
 %{?with_gasp:%patch0 -p1}
-#%patch1 -p1
+%patch1 -p1
 %patch2 -p1
 %{?with_pax:%patch3 -p1}
 %patch4 -p1
