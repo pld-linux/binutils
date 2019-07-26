@@ -24,7 +24,7 @@ Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.32
-Release:	1
+Release:	2
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
@@ -48,6 +48,7 @@ Patch12:	binutils-CVE-2019-9073.patch
 Patch13:	binutils-CVE-2019-9074.patch
 Patch14:	binutils-CVE-2019-9075.patch
 Patch15:	binutils-CVE-2019-9077.patch
+Patch16:	%{name}-elf_remove_property.patch
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.64
 BuildRequires:	automake >= 1:1.11
@@ -181,6 +182,7 @@ niektórych pakietów.
 %patch13 -p1
 %patch14 -p1
 %patch15 -p1
+%patch16 -p1
 
 # file contains hacks for ac 2.59 only
 %{__rm} config/override.m4
