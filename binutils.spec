@@ -6,7 +6,7 @@
 %bcond_with	pax		# without PaX flags (for upstream bugreports)
 %bcond_without	gold		# don't build gold (no C++ dependencies)
 %bcond_without	default_bfd	# default ld.bfd instead of gold
-%bcond_with	gasp		# gasp
+%bcond_without	gasp		# gasp
 %bcond_with	tests		# check target
 
 %ifnarch %{ix86} %{x8664} x32
