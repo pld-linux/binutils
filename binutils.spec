@@ -28,7 +28,7 @@ Release:	2
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
-Source0:	http://ftp.gnu.org/gnu/binutils/%{name}-%{version}.tar.lz
+Source0:	https://ftp.gnu.org/gnu/binutils/%{name}-%{version}.tar.lz
 # Source0-md5:	f4e7e023664f087b3017fc42955ebb46
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
