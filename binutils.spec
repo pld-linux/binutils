@@ -23,13 +23,13 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.33.1
-Release:	2
+Version:	2.34
+Release:	1
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
 Source0:	https://ftp.gnu.org/gnu/binutils/%{name}-%{version}.tar.lz
-# Source0-md5:	f4e7e023664f087b3017fc42955ebb46
+# Source0-md5:	eda15400c0e76f4a152ef2505e7204d2
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -364,20 +364,30 @@ rm -rf $RPM_BUILD_ROOT
 %files libs -f %{name}-libs.lang
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libbfd-%{version}.so
+%attr(755,root,root) %{_libdir}/libctf.so.*.*
+%attr(755,root,root) %ghost %{_libdir}/libctf.so.0
+%attr(755,root,root) %{_libdir}/libctf-nobfd.so.*.*
+%attr(755,root,root) %ghost %{_libdir}/libctf-nobfd.so.0
 %attr(755,root,root) %{_libdir}/libopcodes-%{version}.so
 %dir %{_libdir}/bfd-plugins
 
 %files devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libbfd.so
+%attr(755,root,root) %{_libdir}/libctf.so
+%attr(755,root,root) %{_libdir}/libctf-nobfd.so
 %attr(755,root,root) %{_libdir}/libopcodes.so
 %{_libdir}/libbfd.la
+%{_libdir}/libctf.la
+%{_libdir}/libctf-nobfd.la
 %{_libdir}/libopcodes.la
 %{_libdir}/libiberty.a
 %{_includedir}/ansidecl.h
 %{_includedir}/bfd.h
 %{_includedir}/bfd_stdint.h
 %{_includedir}/bfdlink.h
+%{_includedir}/ctf-api.h
+%{_includedir}/ctf.h
 %{_includedir}/diagnostics.h
 %{_includedir}/dis-asm.h
 %{_includedir}/plugin-api.h
@@ -388,6 +398,8 @@ rm -rf $RPM_BUILD_ROOT
 %files static
 %defattr(644,root,root,755)
 %{_libdir}/libbfd.a
+%{_libdir}/libctf.a
+%{_libdir}/libctf-nobfd.a
 %{_libdir}/libopcodes.a
 
 %if %{with gasp}
