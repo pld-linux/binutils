@@ -24,7 +24,7 @@ Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.34
-Release:	1
+Release:	2
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
@@ -43,6 +43,7 @@ Patch8:		%{name}-build-id.patch
 Patch9:		%{name}-tooldir.patch
 Patch10:	%{name}-sanity-check.patch
 Patch11:	binutils-CVE-2019-1010204.patch
+Patch12:	%{name}-bug-25516.patch
 
 URL:		http://sources.redhat.com/binutils/
 BuildRequires:	autoconf >= 2.64
@@ -172,6 +173,7 @@ niektórych pakietów.
 %patch9 -p1
 %patch10 -p1
 %patch11 -p1
+%patch12 -p1
 
 # file contains hacks for ac 2.59 only
 %{__rm} config/override.m4
