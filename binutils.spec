@@ -23,13 +23,13 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.34
-Release:	2
+Version:	2.35
+Release:	1
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
 Source0:	https://ftp.gnu.org/gnu/binutils/%{name}-%{version}.tar.lz
-# Source0-md5:	eda15400c0e76f4a152ef2505e7204d2
+# Source0-md5:	28a8e8831b93de22468df1d8a9a74b00
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -43,10 +43,8 @@ Patch8:		%{name}-build-id.patch
 Patch9:		%{name}-tooldir.patch
 Patch10:	%{name}-sanity-check.patch
 Patch11:	binutils-CVE-2019-1010204.patch
-Patch12:	%{name}-bug-25516.patch
-
 URL:		http://sources.redhat.com/binutils/
-BuildRequires:	autoconf >= 2.64
+BuildRequires:	autoconf >= 2.69
 BuildRequires:	automake >= 1:1.11
 BuildRequires:	bison
 BuildRequires:	flex
@@ -173,9 +171,8 @@ niektórych pakietów.
 %patch9 -p1
 %patch10 -p1
 %patch11 -p1
-%patch12 -p1
 
-# file contains hacks for ac 2.59 only
+# file contains hacks for ac 2.69 only
 %{__rm} config/override.m4
 
 %build
