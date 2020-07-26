@@ -1,3 +1,4 @@
+# TODO: PR/26302 <https://sourceware.org/bugzilla/show_bug.cgi?id=26302> (breaks kernel-tools build)
 #
 # Conditional build:
 %bcond_with	allarchs	# enable all targets
