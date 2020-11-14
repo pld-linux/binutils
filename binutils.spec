@@ -13,6 +13,9 @@
 %ifnarch %{ix86} %{x8664} x32 aarch64
 %undefine	with_gold
 %endif
+%ifarch %{arm}
+%undefine	with_gasp
+%endif
 
 Summary:	GNU Binary Utility Development Utilities
 Summary(de.UTF-8):	GNU Binary Utility Development Utilities
