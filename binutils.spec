@@ -10,7 +10,7 @@
 %bcond_without	gasp		# gasp
 %bcond_with	tests		# check target
 
-%ifnarch %{ix86} %{x8664} x32 aarch64
+%ifnarch %{ix86} %{x8664} x32 aarch64 %{arm}
 %undefine	with_gold
 %endif
 %ifarch %{arm}
