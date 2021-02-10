@@ -47,7 +47,7 @@ Patch8:		%{name}-build-id.patch
 Patch9:		%{name}-tooldir.patch
 Patch10:	%{name}-sanity-check.patch
 Patch11:	binutils-CVE-2019-1010204.patch
-URL:		http://sources.redhat.com/binutils/
+URL:		http://www.sourceware.org/binutils/
 BuildRequires:	autoconf >= 2.69
 BuildRequires:	automake >= 1:1.11
 BuildRequires:	bison
