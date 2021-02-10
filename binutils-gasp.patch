@@ -5535,8 +5535,8 @@
  
  static const char *
  macro_expand_body (sb *in, sb *out, formal_entry *formals,
--		   struct hash_control *formal_hash, const macro_entry *macro)
-+		   struct hash_control *formal_hash, const macro_entry *macro, int comment_char)
+-		   struct htab *formal_hash, const macro_entry *macro)
++		   struct htab *formal_hash, const macro_entry *macro, int comment_char)
  {
    sb t;
    size_t src = 0;

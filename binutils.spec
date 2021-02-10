@@ -27,13 +27,13 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.35.1
+Version:	2.36.1
 Release:	1
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
 Source0:	https://ftp.gnu.org/gnu/binutils/%{name}-%{version}.tar.lz
-# Source0-md5:	701103b50966364eadff838f5a5df928
+# Source0-md5:	c5b19413fba1faa491ae884ce7f3129f
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -247,7 +247,7 @@ sparc32 \
 	--enable-gold%{!?with_default_bfd:=default} --enable-ld%{?with_default_bfd:=default} \
 %endif
 
-%{__make} -j1
+%{__make}
 
 %{?with_tests:%{__make} -j1 check}
 
@@ -255,7 +255,7 @@ sparc32 \
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT%{_libdir}/bfd-plugins
 
-%{__make} install \
+%{__make} -j1 install \
 	DESTDIR=$RPM_BUILD_ROOT
 
 # remove these man pages unless we cross-build for win*/netware platforms.
@@ -373,6 +373,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %ghost %{_libdir}/libctf-nobfd.so.0
 %attr(755,root,root) %{_libdir}/libopcodes-%{version}.so
 %dir %{_libdir}/bfd-plugins
+%attr(755,root,root) %{_libdir}/bfd-plugins/libdep.so
 
 %files devel
 %defattr(644,root,root,755)
