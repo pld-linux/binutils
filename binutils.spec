@@ -274,6 +274,11 @@ perl -pi -e 's@-L[^ ]*/pic @@g' $RPM_BUILD_ROOT%{_libdir}/libbfd.la
 
 rm -f $RPM_BUILD_ROOT%{_infodir}/dir
 
+%if %{with gold}
+install -d gold-doc
+cp -p gold/{README,ChangeLog,TODO} gold-doc
+%endif
+
 %find_lang bfd
 %find_lang binutils
 %find_lang gas
@@ -314,7 +319,7 @@ rm -rf $RPM_BUILD_ROOT
 %files -f %{name}.lang
 %defattr(644,root,root,755)
 %doc README
-%{?with_gold:%doc gold/{ChangeLog,README,TODO}}
+%{?with_gold:%doc gold-doc}
 %attr(755,root,root) %{_bindir}/addr2line
 %attr(755,root,root) %{_bindir}/ar
 %attr(755,root,root) %{_bindir}/as
