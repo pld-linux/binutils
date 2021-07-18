@@ -6,8 +6,8 @@
  m4_include(config/acx.m4)
 -m4_include(config/override.m4)
  m4_include(config/proginstall.m4)
- 
- AC_INIT(move-if-change)
+ m4_include(config/elf.m4)
+ m4_include(config/gcc-plugin.m4)
 @@ -2113,7 +2112,11 @@
  
  # Some systems (e.g., one of the i386-aix systems the gas testers are

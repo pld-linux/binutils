@@ -20,8 +20,8 @@
  EXTRA_SCRIPTS = .gdbinit
  
 @@ -517,6 +518,10 @@
- 	as.h asintl.h bignum.h bit_fix.h config.h emul.h expr.h flonum.h \
- 	frags.h hash.h listing.h obj.h read.h symbols.h tc.h write.h
+ 	$(OBJ_FORMAT_CFILES) $(OBJ_FORMAT_HFILES) \
+ 	$(CONFIG_ATOF_CFILES) $(MULTI_CFILES)
  
 +gasp_new_SOURCES = gasp.c macro.c sb.c hash.c
 +gasp_new_LDADD = ../bfd/libbfd.la ../libiberty/libiberty.a $(LIBINTL)
@@ -31,15 +31,15 @@
  RUNTEST = runtest
  RUNTESTFLAGS=
 @@ -682,6 +682,9 @@
- itbl-lex.o: itbl-lex.c itbl-parse.h $(srcdir)/itbl-lex.h
- 	$(COMPILE) -c $< $(NO_WERROR)
+ 
+ itbl-lex-wrapper.@OBJEXT@: itbl-lex.c itbl-parse.h
  
 +gasp.o:gasp.c $(INCDIR)/getopt.h $(INCDIR)/safe-ctype.h \
 +	as.h sb.h macro.h $(INCDIR)/xregex.h $(INCDIR)/xregex2.h
 +
- # Disable -Werror, if it has been enabled, since old versions of bison/
- # yacc will produce working code which contain compile time warnings.
- itbl-parse.o: itbl-parse.c itbl-parse.h $(srcdir)/itbl-ops.h $(srcdir)/itbl-lex.h
+ itbl-parse.c: $(srcdir)/itbl-parse.y
+ 	$(SHELL) $(YLWRAP) $(srcdir)/itbl-parse.y y.tab.c $@ y.tab.h itbl-parse.h -- $(YACCCOMPILE) -d
+ 
 --- binutils-2.23.51.0.9/gas/doc/Makefile.am.orig	2013-02-02 00:24:54.000000000 +0100
 +++ binutils-2.23.51.0.9/gas/doc/Makefile.am	2013-02-04 21:03:53.135274636 +0100
 @@ -32,7 +32,7 @@ POD2MAN = pod2man --center="GNU Developm
@@ -5661,7 +5661,7 @@
  	    idx = get_any_string (idx, in, &f.actual);
 @@ -1351,7 +1369,7 @@
  		    in_quotes = ! in_quotes;
- 	  
+ 
  		  nxt = sb_skip_white (idx + 1, in);
 -		  if (nxt >= in->len)
 +		  if (nxt >= in->len || in->ptr[nxt] == comment_char)
