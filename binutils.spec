@@ -27,13 +27,13 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.37
+Version:	2.38
 Release:	1
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
 Source0:	https://ftp.gnu.org/gnu/binutils/%{name}-%{version}.tar.lz
-# Source0-md5:	a030c64f442d224aa3baa04a11f8cf34
+# Source0-md5:	a54dd3cba0f276a52063b7de151e6334
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -187,7 +187,7 @@ for dir in gas bfd; do
 	cd $dir || exit 1
 	%{__aclocal} -I .. -I ../config -I ../bfd
 	%{__automake} Makefile
-	%{__automake} doc/Makefile
+	test -f doc/Makefile.am && %{__automake} doc/Makefile
 	%{__autoconf}
 	cd ..
 done
@@ -341,6 +341,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_prefix}/lib/ldscripts
 %{_infodir}/as.info*
 %{_infodir}/binutils.info*
+%{_infodir}/ctf-spec.info*
 %{_infodir}/gprof.info*
 %{_infodir}/ld.info*
 %{_mandir}/man1/addr2line.1*
