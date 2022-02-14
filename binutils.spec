@@ -226,6 +226,7 @@ sparc32 \
 	--infodir=%{_infodir} \
 	--mandir=%{_mandir} \
 	--disable-debug \
+	--disable-silent-rules \
 	--disable-werror \
 %ifarch sparc
 	--enable-64-bit-bfd \
