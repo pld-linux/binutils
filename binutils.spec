@@ -28,7 +28,7 @@ Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.38
-Release:	1
+Release:	2
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
@@ -46,6 +46,7 @@ Patch7:		%{name}-libtool-m.patch
 Patch9:		%{name}-tooldir.patch
 Patch10:	%{name}-sanity-check.patch
 Patch11:	binutils-CVE-2019-1010204.patch
+Patch12:	x86_crash.patch
 URL:		http://www.sourceware.org/binutils/
 BuildRequires:	autoconf >= 2.69
 BuildRequires:	automake >= 1:1.11
@@ -173,6 +174,7 @@ niektórych pakietów.
 %patch9 -p1
 %patch10 -p1
 %patch11 -p1
+%patch12 -p1
 
 # file contains hacks for ac 2.69 only
 %{__rm} config/override.m4
