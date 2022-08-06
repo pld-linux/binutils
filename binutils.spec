@@ -74,7 +74,7 @@ BuildRequires:	tar >= 1:1.22
 BuildRequires:	texinfo >= 4.2
 BuildRequires:	zlib-devel
 %{?with_tests:BuildRequires:	zlib-static}
-%{?with_debuginfod:Requires:	elfutils-debuginfod >= 0.179}
+%{?with_debuginfod:Requires:	elfutils-debuginfod-libs >= 0.179}
 Conflicts:	gcc-c++ < 5:3.3
 Conflicts:	modutils < 2.4.17
 Conflicts:	rpmbuild(macros) < 1.660
