@@ -7,6 +7,7 @@
 %bcond_with	pax		# without PaX flags (for upstream bugreports)
 %bcond_without	gold		# don't build gold (no C++ dependencies)
 %bcond_without	default_bfd	# default ld.bfd instead of gold
+%bcond_without	debuginfod	# debuginfo lokups with debuginfod
 %bcond_with	gasp		# gasp
 %bcond_without	gprofng		# gprofng
 %bcond_without	jansson		# Package Metadata embedding support
@@ -55,6 +56,7 @@ URL:		http://www.sourceware.org/binutils/
 BuildRequires:	autoconf >= 2.69
 BuildRequires:	automake >= 1:1.11
 BuildRequires:	bison
+%{?with_debuginfod:BuildRequires:	elfutils-debuginfod-devel >= 0.179}
 BuildRequires:	flex
 BuildRequires:	gettext-tools
 %{?with_jansson:BuildRequires:	jansson-devel}
@@ -72,6 +74,7 @@ BuildRequires:	tar >= 1:1.22
 BuildRequires:	texinfo >= 4.2
 BuildRequires:	zlib-devel
 %{?with_tests:BuildRequires:	zlib-static}
+%{?with_debuginfod:Requires:	elfutils-debuginfod >= 0.179}
 Conflicts:	gcc-c++ < 5:3.3
 Conflicts:	modutils < 2.4.17
 Conflicts:	rpmbuild(macros) < 1.660
@@ -257,7 +260,8 @@ sparc32 \
 	--enable-gold%{!?with_default_bfd:=default} --enable-ld%{?with_default_bfd:=default} \
 %endif
 	%{__enable_disable msgpack} \
-	%{__enable_disable jansson}
+	%{__enable_disable jansson} \
+	%{__with_without debuginfod}
 
 %{__make}
 
