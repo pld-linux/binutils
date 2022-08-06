@@ -7,7 +7,10 @@
 %bcond_with	pax		# without PaX flags (for upstream bugreports)
 %bcond_without	gold		# don't build gold (no C++ dependencies)
 %bcond_without	default_bfd	# default ld.bfd instead of gold
-%bcond_without	gasp		# gasp
+%bcond_with	gasp		# gasp
+%bcond_without	gprofng		# gprofng
+%bcond_without	jansson		# Package Metadata embedding support
+%bcond_without	msgpack		# msgpack support
 %bcond_with	tests		# check target
 
 %ifnarch %{ix86} %{x8664} x32 aarch64 %{arm}
@@ -15,6 +18,9 @@
 %endif
 %ifarch %{arm}
 %undefine	with_gasp
+%endif
+%ifnarch %{ix86} %{x8664} aarch64
+%undefine	with_gprofng	1
 %endif
 
 Summary:	GNU Binary Utility Development Utilities
@@ -27,13 +33,13 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.38
-Release:	2
+Version:	2.39
+Release:	1
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
 Source0:	https://ftp.gnu.org/gnu/binutils/%{name}-%{version}.tar.lz
-# Source0-md5:	a54dd3cba0f276a52063b7de151e6334
+# Source0-md5:	061a1460a09cc71e51886c008be55d44
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch0:		%{name}-gasp.patch
@@ -45,18 +51,20 @@ Patch6:		%{name}-absolute-gnu_debuglink-path.patch
 Patch7:		%{name}-libtool-m.patch
 Patch9:		%{name}-tooldir.patch
 Patch10:	%{name}-sanity-check.patch
-Patch11:	binutils-CVE-2019-1010204.patch
-Patch12:	x86_crash.patch
 URL:		http://www.sourceware.org/binutils/
 BuildRequires:	autoconf >= 2.69
 BuildRequires:	automake >= 1:1.11
 BuildRequires:	bison
 BuildRequires:	flex
 BuildRequires:	gettext-tools
+%{?with_jansson:BuildRequires:	jansson-devel}
 %{?with_gold:BuildRequires:	libstdc++-devel >= 6:4.0-1}
 %{?with_tests:BuildRequires:	libstdc++-static >= 6:4.0}
 BuildRequires:	lzip
+%{?with_msgpack:BuildRequires:	msgpack-devel}
 BuildRequires:	perl-tools-pod
+BuildRequires:	pkgconfig
+BuildRequires:	rpmbuild(macros) >= 1.527
 %ifarch sparc sparc32
 BuildRequires:	sparc32
 %endif
@@ -173,8 +181,8 @@ niektórych pakietów.
 %patch7 -p1
 %patch9 -p1
 %patch10 -p1
-%patch11 -p1
-%patch12 -p1
+
+%{__sed} -i -e '1s,.*env perl,#!%{__perl},' gprofng/gp-display-html/gp-display-html.in
 
 # file contains hacks for ac 2.69 only
 %{__rm} config/override.m4
@@ -227,6 +235,7 @@ sparc32 \
 	--libdir=%{_libdir} \
 	--infodir=%{_infodir} \
 	--mandir=%{_mandir} \
+	--sysconfdir=%{_sysconfdir} \
 	--disable-debug \
 	--disable-silent-rules \
 	--disable-werror \
@@ -247,6 +256,8 @@ sparc32 \
 %if %{with gold}
 	--enable-gold%{!?with_default_bfd:=default} --enable-ld%{?with_default_bfd:=default} \
 %endif
+	%{__enable_disable msgpack} \
+	%{__enable_disable jansson}
 
 %{__make}
 
@@ -321,11 +332,20 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %doc README
 %{?with_gold:%doc gold-doc}
+%{?with_gprofng:%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/gprofng.rc}
 %attr(755,root,root) %{_bindir}/addr2line
 %attr(755,root,root) %{_bindir}/ar
 %attr(755,root,root) %{_bindir}/as
 %attr(755,root,root) %{_bindir}/c++filt
 %attr(755,root,root) %{_bindir}/elfedit
+%if %{with gprofng}
+%attr(755,root,root) %{_bindir}/gp-archive
+%attr(755,root,root) %{_bindir}/gp-collect-app
+%attr(755,root,root) %{_bindir}/gp-display-html
+%attr(755,root,root) %{_bindir}/gp-display-src
+%attr(755,root,root) %{_bindir}/gp-display-text
+%attr(755,root,root) %{_bindir}/gprofng
+%endif
 %attr(755,root,root) %{_bindir}/gprof
 %attr(755,root,root) %{_bindir}/ld
 %attr(755,root,root) %{_bindir}/ld.bfd
@@ -341,17 +361,36 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/size
 %attr(755,root,root) %{_bindir}/strings
 %attr(755,root,root) %{_bindir}/strip
+%if %{with gprofng}
+%dir %{_libdir}/gprofng
+%attr(755,root,root) %{_libdir}/gprofng/libgp-collector.so
+%attr(755,root,root) %{_libdir}/gprofng/libgp-collectorAPI.so
+%attr(755,root,root) %{_libdir}/gprofng/libgp-heap.so
+%attr(755,root,root) %{_libdir}/gprofng/libgp-iotrace.so
+%attr(755,root,root) %{_libdir}/gprofng/libgp-sync.so
+%attr(755,root,root) %{_libdir}/gprofng/libgprofng.so.*.*.*
+%attr(755,root,root) %{_libdir}/gprofng/libgprofng.so.0
+%endif
 %{_prefix}/lib/ldscripts
 %{_infodir}/as.info*
 %{_infodir}/binutils.info*
 %{_infodir}/ctf-spec.info*
 %{_infodir}/gprof.info*
+%{?with_gprofng:%{_infodir}/gprofng.info*}
 %{_infodir}/ld.info*
 %{_mandir}/man1/addr2line.1*
 %{_mandir}/man1/ar.1*
 %{_mandir}/man1/as.1*
 %{_mandir}/man1/c++filt.1*
 %{_mandir}/man1/elfedit.1*
+%if %{with gprofng}
+%{_mandir}/man1/gp-archive.*
+%{_mandir}/man1/gp-collect-app.*
+%{_mandir}/man1/gp-display-html.*
+%{_mandir}/man1/gp-display-src.*
+%{_mandir}/man1/gp-display-text.*
+%{_mandir}/man1/gprofng.1*
+%endif
 %{_mandir}/man1/gprof.1*
 %{_mandir}/man1/ld.1*
 %{_mandir}/man1/nm.1*
@@ -388,6 +427,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/libctf.so
 %attr(755,root,root) %{_libdir}/libctf-nobfd.so
 %attr(755,root,root) %{_libdir}/libopcodes.so
+%{?with_gprofng:%attr(755,root,root) %{_libdir}/gprofng/libgprofng.so}
 %{_libdir}/libbfd.la
 %{_libdir}/libctf.la
 %{_libdir}/libctf-nobfd.la
@@ -403,6 +443,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/plugin-api.h
 %{_includedir}/symcat.h
 %{_includedir}/libiberty
+%if %{with gprofng}
+%{_includedir}/collectorAPI.h
+%{_includedir}/libcollector.h
+%{_includedir}/libfcollector.h
+%endif
 %{_infodir}/bfd.info*
 
 %files static
