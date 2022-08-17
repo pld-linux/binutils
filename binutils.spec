@@ -35,7 +35,7 @@ Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.39
-Release:	2
+Release:	3
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
@@ -52,6 +52,7 @@ Patch6:		%{name}-absolute-gnu_debuglink-path.patch
 Patch7:		%{name}-libtool-m.patch
 Patch9:		%{name}-tooldir.patch
 Patch10:	%{name}-sanity-check.patch
+Patch11:	pr29451.patch
 URL:		http://www.sourceware.org/binutils/
 BuildRequires:	autoconf >= 2.69
 BuildRequires:	automake >= 1:1.11
@@ -184,6 +185,7 @@ niektórych pakietów.
 %patch7 -p1
 %patch9 -p1
 %patch10 -p1
+%patch11 -p1
 
 %{__sed} -i -e '1s,.*env perl,#!%{__perl},' gprofng/gp-display-html/gp-display-html.in
 
