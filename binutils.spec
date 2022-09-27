@@ -8,7 +8,6 @@
 %bcond_without	gold		# don't build gold (no C++ dependencies)
 %bcond_without	default_bfd	# default ld.bfd instead of gold
 %bcond_without	debuginfod	# debuginfo lokups with debuginfod
-%bcond_with	gasp		# gasp
 %bcond_without	gprofng		# gprofng
 %bcond_without	jansson		# Package Metadata embedding support
 %bcond_without	msgpack		# msgpack support
@@ -16,9 +15,6 @@
 
 %ifnarch %{ix86} %{x8664} x32 aarch64 %{arm}
 %undefine	with_gold
-%endif
-%ifarch %{arm}
-%undefine	with_gasp
 %endif
 %ifnarch %{ix86} %{x8664} aarch64
 %undefine	with_gprofng	1
@@ -43,7 +39,6 @@ Source0:	https://ftp.gnu.org/gnu/binutils/%{name}-%{version}.tar.lz
 # Source0-md5:	061a1460a09cc71e51886c008be55d44
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
-Patch0:		%{name}-gasp.patch
 Patch1:		%{name}-info.patch
 Patch2:		%{name}-libtool-relink.patch
 Patch3:		%{name}-pt_pax_flags.patch
@@ -159,24 +154,8 @@ Static GNU binutils libraries (libbfd, libopcodes).
 %description static -l pl.UTF-8
 Biblioteki statyczne GNU binutils (libbfd, libopcodes).
 
-%package gasp
-Summary:	GASP - old preprocessor for assembly programs
-Summary(pl.UTF-8):	GASP - stary preprocesor dla programów w asemblerze
-Group:		Development/Tools
-Requires:	%{name} = %{epoch}:%{version}-%{release}
-
-%description gasp
-GASP - old preprocessor for assembly programs. It's officially
-obsoleted, but it's still needed to build some packages.
-
-%description gasp -l pl.UTF-8
-GASP - stary preprocesor dla programów w asemblerze. Jest oficjalnie
-uznany za przestarzały, ale jest nadal potrzebny do zbudowania
-niektórych pakietów.
-
 %prep
 %setup -q
-%{?with_gasp:%patch0 -p1}
 %patch1 -p1
 %patch2 -p1
 %{?with_pax:%patch3 -p1}
@@ -196,7 +175,7 @@ niektórych pakietów.
 %{__aclocal}
 %{__autoconf}
 
-# non-standard regeneration (needed because of gasp patch)
+# non-standard regeneration
 # AM_BINUTILS_WARNINGS in bfd/warning.m4, ZW_GNU_GETTEXT_SISTER_DIR in config/gettext-sister.m4
 for dir in gas bfd; do
 	cd $dir || exit 1
@@ -328,12 +307,6 @@ rm -rf $RPM_BUILD_ROOT
 %postun	devel -p /sbin/postshell
 -/usr/sbin/fix-info-dir -c %{_infodir}
 
-%post	gasp -p /sbin/postshell
--/usr/sbin/fix-info-dir -c %{_infodir}
-
-%postun	gasp -p /sbin/postshell
--/usr/sbin/fix-info-dir -c %{_infodir}
-
 %files -f %{name}.lang
 %defattr(644,root,root,755)
 %doc README
@@ -462,10 +435,3 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libctf.a
 %{_libdir}/libctf-nobfd.a
 %{_libdir}/libopcodes.a
-
-%if %{with gasp}
-%files gasp
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_bindir}/gasp
-%{_infodir}/gasp.info*
-%endif
