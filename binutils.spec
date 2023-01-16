@@ -30,13 +30,13 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.39
-Release:	3
+Version:	2.40
+Release:	1
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
 Source0:	https://ftp.gnu.org/gnu/binutils/%{name}-%{version}.tar.lz
-# Source0-md5:	061a1460a09cc71e51886c008be55d44
+# Source0-md5:	be3411283c27eb0984104a2fda12e102
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch1:		%{name}-info.patch
@@ -47,7 +47,6 @@ Patch6:		%{name}-absolute-gnu_debuglink-path.patch
 Patch7:		%{name}-libtool-m.patch
 Patch9:		%{name}-tooldir.patch
 Patch10:	%{name}-sanity-check.patch
-Patch11:	pr29451.patch
 URL:		http://www.sourceware.org/binutils/
 BuildRequires:	autoconf >= 2.69
 BuildRequires:	automake >= 1:1.11
@@ -70,6 +69,7 @@ BuildRequires:	tar >= 1:1.22
 BuildRequires:	texinfo >= 4.2
 BuildRequires:	zlib-devel
 %{?with_tests:BuildRequires:	zlib-static}
+BuildRequires:	zstd-devel
 %{?with_debuginfod:Requires:	elfutils-debuginfod-libs >= 0.179}
 Conflicts:	gcc-c++ < 5:3.3
 Conflicts:	modutils < 2.4.17
@@ -164,7 +164,6 @@ Biblioteki statyczne GNU binutils (libbfd, libopcodes).
 %patch7 -p1
 %patch9 -p1
 %patch10 -p1
-%patch11 -p1
 
 %{__sed} -i -e '1s,.*env perl,#!%{__perl},' gprofng/gp-display-html/gp-display-html.in
 
@@ -357,6 +356,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_infodir}/gprof.info*
 %{?with_gprofng:%{_infodir}/gprofng.info*}
 %{_infodir}/ld.info*
+%{_infodir}/sframe-spec.info*
 %{_mandir}/man1/addr2line.1*
 %{_mandir}/man1/ar.1*
 %{_mandir}/man1/as.1*
@@ -397,6 +397,8 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/libctf-nobfd.so.*.*
 %attr(755,root,root) %ghost %{_libdir}/libctf-nobfd.so.0
 %attr(755,root,root) %{_libdir}/libopcodes-%{version}.so
+%attr(755,root,root) %{_libdir}/libsframe.so.*.*
+%attr(755,root,root) %ghost %{_libdir}/libsframe.so.0
 %dir %{_libdir}/bfd-plugins
 %attr(755,root,root) %{_libdir}/bfd-plugins/libdep.so
 
@@ -406,12 +408,14 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/libctf.so
 %attr(755,root,root) %{_libdir}/libctf-nobfd.so
 %attr(755,root,root) %{_libdir}/libopcodes.so
+%attr(755,root,root) %{_libdir}/libsframe.so
 %{?with_gprofng:%attr(755,root,root) %{_libdir}/gprofng/libgprofng.so}
 %{_libdir}/libbfd.la
 %{_libdir}/libctf.la
 %{_libdir}/libctf-nobfd.la
 %{_libdir}/libopcodes.la
 %{_libdir}/libiberty.a
+%{_libdir}/libsframe.la
 %{_includedir}/ansidecl.h
 %{_includedir}/bfd.h
 %{_includedir}/bfdlink.h
@@ -420,6 +424,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/diagnostics.h
 %{_includedir}/dis-asm.h
 %{_includedir}/plugin-api.h
+%{_includedir}/sframe-api.h
+%{_includedir}/sframe.h
 %{_includedir}/symcat.h
 %{_includedir}/libiberty
 %if %{with gprofng}
@@ -435,3 +441,4 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libctf.a
 %{_libdir}/libctf-nobfd.a
 %{_libdir}/libopcodes.a
+%{_libdir}/libsframe.a
