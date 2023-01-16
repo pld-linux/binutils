@@ -239,7 +239,7 @@ sparc32 \
 %if %{with gold}
 	--enable-gold%{!?with_default_bfd:=default} --enable-ld%{?with_default_bfd:=default} \
 %endif
-	%{__enable_disable msgpack} \
+	%{__with_without msgpack} \
 	%{__enable_disable jansson} \
 	%{__with_without debuginfod}
 
