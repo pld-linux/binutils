@@ -66,7 +66,7 @@ BuildRequires:	rpmbuild(macros) >= 1.527
 BuildRequires:	sparc32
 %endif
 BuildRequires:	tar >= 1:1.22
-BuildRequires:	texinfo >= 4.2
+BuildRequires:	texinfo >= 6.3
 BuildRequires:	zlib-devel
 %{?with_tests:BuildRequires:	zlib-static}
 BuildRequires:	zstd-devel
@@ -74,7 +74,7 @@ BuildRequires:	zstd-devel
 Conflicts:	gcc-c++ < 5:3.3
 Conflicts:	modutils < 2.4.17
 Conflicts:	rpmbuild(macros) < 1.660
-Obsoletes:	binutils-gold
+Obsoletes:	binutils-gold < 3:2.21.51.0.7-2
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -184,6 +184,12 @@ for dir in gas bfd; do
 	%{__autoconf}
 	cd ..
 done
+cd libctf
+%{__aclocal} -I.. -I../config -I../bfd
+%{__autoconf}
+%{__autoheader}
+%{__automake}
+cd ..
 
 # More targets
 TARGETS=
