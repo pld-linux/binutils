@@ -31,7 +31,7 @@ Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
 Version:	2.40
-Release:	2
+Release:	3
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
@@ -153,6 +153,32 @@ Static GNU binutils libraries (libbfd, libopcodes).
 
 %description static -l pl.UTF-8
 Biblioteki statyczne GNU binutils (libbfd, libopcodes).
+
+%package gprofng
+Summary:	GNU Next Generation profiler
+Summary(pl.UTF-8):	Narzędzie profilujące GNU Next Generation
+Group:		Development/Tools
+Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
+Requires:	perl-base >= 1:5.10.0
+
+%description gprofng
+Gprofng is the GNU Next Generation profiler for analyzing the
+performance of Linux applications. Gprofng allows you to:
+- Profile C / C++ / Java / Scala applications without needing to
+  recompile
+- Profile multi-threaded applications
+- Analyze and compare multiple experiments
+- Use time-based sampling and / or hardware event counters
+
+%description gprofng -l pl.UTF-8
+Gprofng jest narzędziem profilującym GNU Next Generation do analizy
+wydajności aplikacji w systemie Linux. Gprofng pozwala na:
+- Profilowanie aplikacji C / C++ / Java / Scala bez potrzeby ponownej
+  kompilacji
+- Profilowanie aplikacji wielowątkowych
+- Analizę i porównanie wielu eksperymentów
+- Użycie próbkowania w dziedzinie czasu i/lub sprzętowych liczników
+  zdarzeń
 
 %prep
 %setup -q
@@ -312,24 +338,21 @@ rm -rf $RPM_BUILD_ROOT
 %postun	devel -p /sbin/postshell
 -/usr/sbin/fix-info-dir -c %{_infodir}
 
+%post	gprofng -p /sbin/postshell
+-/usr/sbin/fix-info-dir -c %{_infodir}
+
+%postun	gprofng -p /sbin/postshell
+-/usr/sbin/fix-info-dir -c %{_infodir}
+
 %files -f %{name}.lang
 %defattr(644,root,root,755)
 %doc README
 %{?with_gold:%doc gold-doc}
-%{?with_gprofng:%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/gprofng.rc}
 %attr(755,root,root) %{_bindir}/addr2line
 %attr(755,root,root) %{_bindir}/ar
 %attr(755,root,root) %{_bindir}/as
 %attr(755,root,root) %{_bindir}/c++filt
 %attr(755,root,root) %{_bindir}/elfedit
-%if %{with gprofng}
-%attr(755,root,root) %{_bindir}/gp-archive
-%attr(755,root,root) %{_bindir}/gp-collect-app
-%attr(755,root,root) %{_bindir}/gp-display-html
-%attr(755,root,root) %{_bindir}/gp-display-src
-%attr(755,root,root) %{_bindir}/gp-display-text
-%attr(755,root,root) %{_bindir}/gprofng
-%endif
 %attr(755,root,root) %{_bindir}/gprof
 %attr(755,root,root) %{_bindir}/ld
 %attr(755,root,root) %{_bindir}/ld.bfd
@@ -345,22 +368,11 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/size
 %attr(755,root,root) %{_bindir}/strings
 %attr(755,root,root) %{_bindir}/strip
-%if %{with gprofng}
-%dir %{_libdir}/gprofng
-%attr(755,root,root) %{_libdir}/gprofng/libgp-collector.so
-%attr(755,root,root) %{_libdir}/gprofng/libgp-collectorAPI.so
-%attr(755,root,root) %{_libdir}/gprofng/libgp-heap.so
-%attr(755,root,root) %{_libdir}/gprofng/libgp-iotrace.so
-%attr(755,root,root) %{_libdir}/gprofng/libgp-sync.so
-%attr(755,root,root) %{_libdir}/gprofng/libgprofng.so.*.*.*
-%attr(755,root,root) %{_libdir}/gprofng/libgprofng.so.0
-%endif
 %{_prefix}/lib/ldscripts
 %{_infodir}/as.info*
 %{_infodir}/binutils.info*
 %{_infodir}/ctf-spec.info*
 %{_infodir}/gprof.info*
-%{?with_gprofng:%{_infodir}/gprofng.info*}
 %{_infodir}/ld.info*
 %{_infodir}/sframe-spec.info*
 %{_mandir}/man1/addr2line.1*
@@ -368,14 +380,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/as.1*
 %{_mandir}/man1/c++filt.1*
 %{_mandir}/man1/elfedit.1*
-%if %{with gprofng}
-%{_mandir}/man1/gp-archive.*
-%{_mandir}/man1/gp-collect-app.*
-%{_mandir}/man1/gp-display-html.*
-%{_mandir}/man1/gp-display-src.*
-%{_mandir}/man1/gp-display-text.*
-%{_mandir}/man1/gprofng.1*
-%endif
 %{_mandir}/man1/gprof.1*
 %{_mandir}/man1/ld.1*
 %{_mandir}/man1/nm.1*
@@ -415,7 +419,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/libctf-nobfd.so
 %attr(755,root,root) %{_libdir}/libopcodes.so
 %attr(755,root,root) %{_libdir}/libsframe.so
-%{?with_gprofng:%attr(755,root,root) %{_libdir}/gprofng/libgprofng.so}
 %{_libdir}/libbfd.la
 %{_libdir}/libctf.la
 %{_libdir}/libctf-nobfd.la
@@ -434,11 +437,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/sframe.h
 %{_includedir}/symcat.h
 %{_includedir}/libiberty
-%if %{with gprofng}
-%{_includedir}/collectorAPI.h
-%{_includedir}/libcollector.h
-%{_includedir}/libfcollector.h
-%endif
 %{_infodir}/bfd.info*
 
 %files static
@@ -448,3 +446,34 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libctf-nobfd.a
 %{_libdir}/libopcodes.a
 %{_libdir}/libsframe.a
+
+%if %{with gprofng}
+%files gprofng
+%defattr(644,root,root,755)
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/gprofng.rc
+%attr(755,root,root) %{_bindir}/gp-archive
+%attr(755,root,root) %{_bindir}/gp-collect-app
+%attr(755,root,root) %{_bindir}/gp-display-html
+%attr(755,root,root) %{_bindir}/gp-display-src
+%attr(755,root,root) %{_bindir}/gp-display-text
+%attr(755,root,root) %{_bindir}/gprofng
+%dir %{_libdir}/gprofng
+%attr(755,root,root) %{_libdir}/gprofng/libgp-collector.so
+%attr(755,root,root) %{_libdir}/gprofng/libgp-collectorAPI.so
+%attr(755,root,root) %{_libdir}/gprofng/libgp-heap.so
+%attr(755,root,root) %{_libdir}/gprofng/libgp-iotrace.so
+%attr(755,root,root) %{_libdir}/gprofng/libgp-sync.so
+%attr(755,root,root) %{_libdir}/gprofng/libgprofng.so.*.*.*
+%attr(755,root,root) %{_libdir}/gprofng/libgprofng.so.0
+%attr(755,root,root) %{_libdir}/gprofng/libgprofng.so
+%{_infodir}/gprofng.info*
+%{_mandir}/man1/gp-archive.*
+%{_mandir}/man1/gp-collect-app.*
+%{_mandir}/man1/gp-display-html.*
+%{_mandir}/man1/gp-display-src.*
+%{_mandir}/man1/gp-display-text.*
+%{_mandir}/man1/gprofng.1*
+%{_includedir}/collectorAPI.h
+%{_includedir}/libcollector.h
+%{_includedir}/libfcollector.h
+%endif
