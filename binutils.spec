@@ -158,8 +158,11 @@ Biblioteki statyczne GNU binutils (libbfd, libopcodes).
 Summary:	GNU Next Generation profiler
 Summary(pl.UTF-8):	Narzędzie profilujące GNU Next Generation
 Group:		Development/Tools
-Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	coreutils
+Requires:	hostname
 Requires:	perl-base >= 1:5.10.0
+Requires:	which
 
 %description gprofng
 Gprofng is the GNU Next Generation profiler for analyzing the
