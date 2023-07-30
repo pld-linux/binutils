@@ -30,13 +30,13 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.40
-Release:	3
+Version:	2.41
+Release:	1
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
 Source0:	https://ftp.gnu.org/gnu/binutils/%{name}-%{version}.tar.lz
-# Source0-md5:	be3411283c27eb0984104a2fda12e102
+# Source0-md5:	288970f59090ce9c1b7ce8c649a0296a
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch1:		%{name}-info.patch
@@ -159,6 +159,7 @@ Summary:	GNU Next Generation profiler
 Summary(pl.UTF-8):	Narzędzie profilujące GNU Next Generation
 Group:		Development/Tools
 Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	%{name}-gprofng-libs = %{epoch}:%{version}-%{release}
 Requires:	coreutils
 Requires:	hostname
 Requires:	perl-base >= 1:5.10.0
@@ -182,6 +183,41 @@ wydajności aplikacji w systemie Linux. Gprofng pozwala na:
 - Analizę i porównanie wielu eksperymentów
 - Użycie próbkowania w dziedzinie czasu i/lub sprzętowych liczników
   zdarzeń
+
+%package gprofng-libs
+Summary:	GNU Next Generation profiler shared libraries
+Summary(pl.UTF-8):	Biblioteki narzędzia profilującego GNU Next Generation
+Group:		Libraries
+
+%description gprofng-libs
+GNU Next Generation profiler shared libraries.
+
+%description gprofng-libs -l pl.UTF-8
+Biblioteki narzędzia profilującego GNU Next Generation.
+
+%package gprofng-devel
+Summary:	Development files for GNU Next Generation profiler
+Summary(pl.UTF-8):	Pliki programistyczne bibliotek narzędzia profilującego GNU Next Generation
+Group:		Development/Libraries
+Requires:	%{name}-gprofng-libs = %{epoch}:%{version}-%{release}
+
+%description gprofng-devel
+Development files for GNU Next Generation profiler.
+
+%description gprofng-devel -l pl.UTF-8
+Pliki programistyczne bibliotek narzędzia profilującego GNU Next Generation.
+
+%package gprofng-static
+Summary:	GNU Next Generation profiler static libraries
+Summary(pl.UTF-8):	Biblioteki statyczne narzędzia profilującego GNU Next Generation
+Group:		Development/Libraries
+Requires:	%{name}-gprofng-devel = %{epoch}:%{version}-%{release}
+
+%description gprofng-static
+GNU Next Generation profiler static libraries.
+
+%description gprofng-static -l pl.UTF-8
+Biblioteki statyczne narzędzia profilującego GNU Next Generation.
 
 %prep
 %setup -q
@@ -347,6 +383,9 @@ rm -rf $RPM_BUILD_ROOT
 %postun	gprofng -p /sbin/postshell
 -/usr/sbin/fix-info-dir -c %{_infodir}
 
+%post	gprofng-libs -p /sbin/ldconfig
+%postun	gprofng-libs -p /sbin/ldconfig
+
 %files -f %{name}.lang
 %defattr(644,root,root,755)
 %doc README
@@ -377,6 +416,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_infodir}/ctf-spec.info*
 %{_infodir}/gprof.info*
 %{_infodir}/ld.info*
+%{_infodir}/ldint.info*
 %{_infodir}/sframe-spec.info*
 %{_mandir}/man1/addr2line.1*
 %{_mandir}/man1/ar.1*
@@ -411,7 +451,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %ghost %{_libdir}/libctf-nobfd.so.0
 %attr(755,root,root) %{_libdir}/libopcodes-%{version}.so
 %attr(755,root,root) %{_libdir}/libsframe.so.*.*
-%attr(755,root,root) %ghost %{_libdir}/libsframe.so.0
+%attr(755,root,root) %ghost %{_libdir}/libsframe.so.1
 %dir %{_libdir}/bfd-plugins
 %attr(755,root,root) %{_libdir}/bfd-plugins/libdep.so
 
@@ -460,15 +500,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/gp-display-src
 %attr(755,root,root) %{_bindir}/gp-display-text
 %attr(755,root,root) %{_bindir}/gprofng
-%dir %{_libdir}/gprofng
-%attr(755,root,root) %{_libdir}/gprofng/libgp-collector.so
-%attr(755,root,root) %{_libdir}/gprofng/libgp-collectorAPI.so
-%attr(755,root,root) %{_libdir}/gprofng/libgp-heap.so
-%attr(755,root,root) %{_libdir}/gprofng/libgp-iotrace.so
-%attr(755,root,root) %{_libdir}/gprofng/libgp-sync.so
-%attr(755,root,root) %{_libdir}/gprofng/libgprofng.so.*.*.*
-%attr(755,root,root) %{_libdir}/gprofng/libgprofng.so.0
-%attr(755,root,root) %{_libdir}/gprofng/libgprofng.so
 %{_infodir}/gprofng.info*
 %{_mandir}/man1/gp-archive.*
 %{_mandir}/man1/gp-collect-app.*
@@ -476,7 +507,27 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/gp-display-src.*
 %{_mandir}/man1/gp-display-text.*
 %{_mandir}/man1/gprofng.1*
+
+%files gprofng-libs
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libgprofng.so.*.*.*
+%attr(755,root,root) %ghost %{_libdir}/libgprofng.so.0
+%dir %{_libdir}/gprofng
+%attr(755,root,root) %{_libdir}/gprofng/libgp-collector.so
+%attr(755,root,root) %{_libdir}/gprofng/libgp-collectorAPI.so
+%attr(755,root,root) %{_libdir}/gprofng/libgp-heap.so
+%attr(755,root,root) %{_libdir}/gprofng/libgp-iotrace.so
+%attr(755,root,root) %{_libdir}/gprofng/libgp-sync.so
+
+%files gprofng-devel
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libgprofng.so
+%attr(755,root,root) %{_libdir}/libgprofng.la
 %{_includedir}/collectorAPI.h
 %{_includedir}/libcollector.h
 %{_includedir}/libfcollector.h
+
+%files gprofng-static
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libgprofng.a
 %endif

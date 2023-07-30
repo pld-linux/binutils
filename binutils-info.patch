@@ -147,8 +147,8 @@ diff -urN binutils-2.24.51.0.4.org/ld/ld.texi binutils-2.24.51.0.4/ld/ld.texi
  @end direntry
  
  @titlepage
---- binutils-2.40/gprofng/doc/gprofng.texi.orig	2023-01-14 01:00:00.000000000 +0100
-+++ binutils-2.40/gprofng/doc/gprofng.texi	2023-04-09 13:12:26.545081432 +0200
+--- binutils-2.40/gprofng/doc/gprofng_ug.texi.orig	2023-01-14 01:00:00.000000000 +0100
++++ binutils-2.40/gprofng/doc/gprofng_ug.texi	2023-04-09 13:12:26.545081432 +0200
 @@ -64,9 +64,9 @@ gprofng
  
  @c -- Entry for the Info dir structure ----------------------------------------
@@ -167,8 +167,8 @@ diff -urN binutils-2.24.51.0.4.org/ld/ld.texi binutils-2.24.51.0.4/ld/ld.texi
      # We require texinfo to be 6.3 or later, for a working synindex
      # and validatemenus: otherwise we fall back to /bin/true.
      if ${MAKEINFO} --version \
--       | egrep 'texinfo[^0-9]*(6\.[3-9]|[7-9][0-9])' >/dev/null 2>&1; then
-+       | grep -E 'texinfo[^0-9]*(6\.[3-9]|[7-9]\.)' >/dev/null 2>&1; then
+-       | egrep 'texinfo[^0-9]*(6\.[3-9]|[7-9]|[1-6][0-9])' >/dev/null 2>&1; then
++       | grep -E 'texinfo[^0-9]*(6\.[3-9]|[7-9]|[1-6][0-9])' >/dev/null 2>&1; then
        build_info=yes
      else
          build_info=
