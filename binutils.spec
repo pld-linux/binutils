@@ -341,6 +341,10 @@ perl -pi -e 's@-L[^ ]*/pic @@g' $RPM_BUILD_ROOT%{_libdir}/libbfd.la
 
 rm -f $RPM_BUILD_ROOT%{_infodir}/dir
 
+%if %{with gprofng}
+%{__rm} $RPM_BUILD_ROOT%{_libdir}/gprofng/libgp-collectorAPI.{a,la}
+%endif
+
 %if %{with gold}
 install -d gold-doc
 cp -p gold/{README,ChangeLog,TODO} gold-doc
@@ -522,7 +526,7 @@ rm -rf $RPM_BUILD_ROOT
 %files gprofng-devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libgprofng.so
-%attr(755,root,root) %{_libdir}/libgprofng.la
+%{_libdir}/libgprofng.la
 %{_includedir}/collectorAPI.h
 %{_includedir}/libcollector.h
 %{_includedir}/libfcollector.h
