@@ -30,13 +30,13 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.41
+Version:	2.42
 Release:	1
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
 Source0:	https://ftp.gnu.org/gnu/binutils/%{name}-%{version}.tar.lz
-# Source0-md5:	288970f59090ce9c1b7ce8c649a0296a
+# Source0-md5:	c1526faed7197b4e79dfe04eded7fc11
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch1:		%{name}-info.patch
@@ -55,8 +55,8 @@ BuildRequires:	bison
 BuildRequires:	flex
 BuildRequires:	gettext-tools
 %{?with_jansson:BuildRequires:	jansson-devel}
-%{?with_gold:BuildRequires:	libstdc++-devel >= 6:4.0-1}
-%{?with_tests:BuildRequires:	libstdc++-static >= 6:4.0}
+%{?with_gold:BuildRequires:	libstdc++-devel >= 6:4.8.1}
+%{?with_tests:BuildRequires:	libstdc++-static >= 6:4.8.1}
 BuildRequires:	lzip
 %{?with_msgpack:BuildRequires:	msgpack-devel}
 BuildRequires:	perl-tools-pod
