@@ -221,14 +221,14 @@ Biblioteki statyczne narzędzia profilującego GNU Next Generation.
 
 %prep
 %setup -q
-%patch1 -p1
-%patch2 -p1
-%{?with_pax:%patch3 -p1}
+%patch -P1 -p1
+%patch -P2 -p1
+%{?with_pax:%patch -P3 -p1}
 
-%patch6 -p1
-%patch7 -p1
-%patch9 -p1
-%patch10 -p1
+%patch -P6 -p1
+%patch -P7 -p1
+%patch -P9 -p1
+%patch -P10 -p1
 
 %{__sed} -i -e '1s,.*env perl,#!%{__perl},' gprofng/gp-display-html/gp-display-html.in
 
