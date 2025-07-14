@@ -30,13 +30,13 @@ Summary(ru.UTF-8):	Набор инструментов GNU для построе
 Summary(tr.UTF-8):	GNU geliştirme araçları
 Summary(uk.UTF-8):	Набір інструментів GNU для побудови виконуваних програм
 Name:		binutils
-Version:	2.43.1
+Version:	2.44
 Release:	1
 Epoch:		4
 License:	GPL v3+
 Group:		Development/Tools
-Source0:	https://ftp.gnu.org/gnu/binutils/%{name}-%{version}.tar.lz
-# Source0-md5:	02e842be7201e2a2d997c85d61b20d1b
+Source0:	https://ftp.gnu.org/gnu/binutils/%{name}-with-gold-%{version}.tar.lz
+# Source0-md5:	cd67415c0ebc4ab158ad1c6961e1dc55
 Source1:	http://www.mif.pg.gda.pl/homepages/ankry/man-PLD/%{name}-non-english-man-pages.tar.bz2
 # Source1-md5:	a717d9707ec77d82acb6ec9078c472d6
 Patch1:		%{name}-info.patch
@@ -67,6 +67,7 @@ BuildRequires:	sparc32
 %endif
 BuildRequires:	tar >= 1:1.22
 BuildRequires:	texinfo >= 6.3
+BuildRequires:	xxHash-devel
 BuildRequires:	zlib-devel
 %{?with_tests:BuildRequires:	zlib-static}
 BuildRequires:	zstd-devel
@@ -220,7 +221,7 @@ GNU Next Generation profiler static libraries.
 Biblioteki statyczne narzędzia profilującego GNU Next Generation.
 
 %prep
-%setup -q
+%setup -q -n %{name}-with-gold-%{version}
 %patch -P1 -p1
 %patch -P2 -p1
 %{?with_pax:%patch -P3 -p1}
@@ -499,17 +500,22 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/gprofng.rc
 %attr(755,root,root) %{_bindir}/gp-archive
+%attr(755,root,root) %{_bindir}/gprofng-archive
 %attr(755,root,root) %{_bindir}/gp-collect-app
+%attr(755,root,root) %{_bindir}/gprofng-collect-app
 %attr(755,root,root) %{_bindir}/gp-display-html
+%attr(755,root,root) %{_bindir}/gprofng-display-html
 %attr(755,root,root) %{_bindir}/gp-display-src
+%attr(755,root,root) %{_bindir}/gprofng-display-src
 %attr(755,root,root) %{_bindir}/gp-display-text
+%attr(755,root,root) %{_bindir}/gprofng-display-text
 %attr(755,root,root) %{_bindir}/gprofng
 %{_infodir}/gprofng.info*
-%{_mandir}/man1/gp-archive.*
-%{_mandir}/man1/gp-collect-app.*
-%{_mandir}/man1/gp-display-html.*
-%{_mandir}/man1/gp-display-src.*
-%{_mandir}/man1/gp-display-text.*
+%{_mandir}/man1/gprofng-archive.*
+%{_mandir}/man1/gprofng-collect-app.*
+%{_mandir}/man1/gprofng-display-html.*
+%{_mandir}/man1/gprofng-display-src.*
+%{_mandir}/man1/gprofng-display-text.*
 %{_mandir}/man1/gprofng.1*
 
 %files gprofng-libs

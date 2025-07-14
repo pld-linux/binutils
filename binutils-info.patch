@@ -122,7 +122,7 @@ diff -urN binutils-2.24.51.0.4.org/ld/ld.texi binutils-2.24.51.0.4/ld/ld.texi
 --- binutils-2.41/ld/ldint.texi.orig	2023-07-03 01:00:00.000000000 +0200
 +++ binutils-2.41/ld/ldint.texi	2023-08-17 18:27:29.608789214 +0200
 @@ -3,9 +3,9 @@
- @c Copyright (C) 1992-2024 Free Software Foundation, Inc.
+ @c Copyright (C) 1992-2025 Free Software Foundation, Inc.
  
  @ifnottex
 -@dircategory Software development
